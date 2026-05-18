@@ -40,11 +40,63 @@ function getSlugFromLocation() {
 }
 
 function pickHeroImage(site) {
-  return ASSETS.hero;
+  return site?.settings?.heroImageUrl || ASSETS.hero;
 }
 
 function pickHeroVideo(site) {
+  return site?.settings?.heroVideoUrl || "";
+}
+
+function isYoutubeUrl(url = "") {
+  return /(?:youtube\.com|youtu\.be)/i.test(String(url || ""));
+}
+
+function isVimeoUrl(url = "") {
+  return /vimeo\.com/i.test(String(url || ""));
+}
+
+function buildEmbeddedVideoUrl(url = "") {
+  const trimmed = String(url || "").trim();
+  if (!trimmed) return "";
+
+  if (isYoutubeUrl(trimmed)) {
+    try {
+      const parsed = new URL(trimmed);
+      const videoId =
+        parsed.hostname.includes("youtu.be")
+          ? parsed.pathname.split("/").filter(Boolean)[0]
+          : parsed.searchParams.get("v") || parsed.pathname.split("/").filter(Boolean).pop();
+      return videoId ? `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?rel=0&modestbranding=1&playsinline=1` : "";
+    } catch {
+      return "";
+    }
+  }
+
+  if (isVimeoUrl(trimmed)) {
+    try {
+      const parsed = new URL(trimmed);
+      const videoId = parsed.pathname.split("/").filter(Boolean).pop();
+      return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}?title=0&byline=0&portrait=0` : "";
+    } catch {
+      return "";
+    }
+  }
+
   return "";
+}
+
+function renderInlineVideo(url, title) {
+  const embedded = buildEmbeddedVideoUrl(url);
+  if (embedded) {
+    return `<iframe class="embedded-video" src="${escapeHtml(embedded)}" title="${escapeHtml(title || "Video")}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  }
+
+  return `
+    <video class="embedded-video" controls playsinline preload="metadata">
+      <source src="${escapeHtml(url)}" />
+      Tu navegador no soporta la reproduccion de video.
+    </video>
+  `;
 }
 
 function whatsappLink(number) {
@@ -138,7 +190,7 @@ function renderRaffles(site) {
     <div class="grid-3">
       ${raffles
         .map(({ campaign, publicConfig }) => {
-          const image = ASSETS.raffle;
+          const image = publicConfig?.coverImageUrl || ASSETS.raffle;
           const isFeatured = publicConfig?.isFeatured;
           const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
           const description = publicConfig?.publicDescription || campaign?.name || "";
@@ -148,17 +200,18 @@ function renderRaffles(site) {
             <article class="card">
               <div class="card-media">
                 ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />` : ""}
+                ${isFeatured ? `<div class="card-flag">Destacado</div>` : ""}
               </div>
               <div class="card-body">
                 <div class="chip-row">
-                  ${isFeatured ? `<span class="chip">Destacado</span>` : ""}
                   ${drawDate ? `<span class="chip">Sorteo ${escapeHtml(drawDate)}</span>` : ""}
+                  ${campaign?.registrationMode ? `<span class="chip">${escapeHtml(campaign.registrationMode)}</span>` : ""}
                 </div>
                 <h3 class="card-title">${escapeHtml(heroTitle)}</h3>
                 <p class="card-copy">${escapeHtml(description)}</p>
                 <div class="chip-row">
                   ${campaign?.numberValue ? `<span class="chip">Boleta ${currencyFormatter.format(Number(campaign.numberValue))}</span>` : ""}
-                  ${campaign?.registrationMode ? `<span class="chip">${escapeHtml(campaign.registrationMode)}</span>` : ""}
+                  ${campaign?.totalNumeros ? `<span class="chip">${escapeHtml(String(campaign.totalNumeros))} boletas</span>` : ""}
                 </div>
                 <div style="margin-top:18px">
                   <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis numeros</a>
@@ -183,11 +236,11 @@ function renderWinnerVideos(site) {
     <div class="grid-3">
       ${videos
         .map((video) => {
-          const preview = ASSETS.winner;
+          const preview = video.thumbnailUrl || ASSETS.winner;
           return `
             <article class="card">
               <div class="card-media">
-                ${preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" />` : ""}
+                ${video.videoUrl ? renderInlineVideo(video.videoUrl, video.title) : preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" />` : ""}
               </div>
               <div class="card-body">
                 <div class="chip-row">
@@ -195,8 +248,8 @@ function renderWinnerVideos(site) {
                   ${video.drawDate ? `<span class="chip">${escapeHtml(formatDate(video.drawDate))}</span>` : ""}
                 </div>
                 <h3 class="card-title">${escapeHtml(video.title)}</h3>
-                <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` Â· ${escapeHtml(video.prize)}` : ""}</p>
-                ${video.videoUrl ? `<div style="margin-top:16px"><a class="button secondary" href="${escapeHtml(video.videoUrl)}" target="_blank" rel="noreferrer">Ver video</a></div>` : ""}
+                <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` · ${escapeHtml(video.prize)}` : ""}</p>
+                
               </div>
             </article>
           `;
@@ -260,9 +313,51 @@ function renderSections(site, sections, title, description) {
 }
 
 function renderPreview(site) {
+  const settings = site?.settings || {};
+  const company = site?.company || {};
+  const heroImage = settings.heroImageUrl || ASSETS.hero;
+  const heroTitle = settings.heroTitle || settings.title || company.nombre || "Rifas";
+  const heroSubtitle = settings.heroSubtitle || settings.subtitle || "Una experiencia de rifas administrada desde el backend.";
+  const raffles = asArray(site.activeRaffles).slice(0, 2);
+  const videos = asArray(site.winnerVideos).slice(0, 2);
+
   return `
     <div class="site-preview">
-      <pre>${escapeHtml(JSON.stringify(site, null, 2))}</pre>
+      <div class="preview-hero">
+        <div class="preview-hero-copy">
+          <span class="section-tag">Vista previa del sitio público</span>
+          <h3>${escapeHtml(heroTitle)}</h3>
+          <p>${escapeHtml(heroSubtitle)}</p>
+          <div class="chip-row">
+            ${settings.whatsappNumber ? `<span class="chip">WhatsApp: ${escapeHtml(settings.whatsappNumber)}</span>` : ""}
+            <span class="chip">${escapeHtml(String(asArray(site.activeRaffles).length))} sorteos</span>
+            <span class="chip">${escapeHtml(String(asArray(site.winnerVideos).length))} videos</span>
+          </div>
+        </div>
+        <div class="preview-hero-media">
+          <img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />
+        </div>
+      </div>
+      <div class="preview-grid">
+        <div class="preview-column">
+          <h4>Sorteos visibles</h4>
+          ${raffles.length ? raffles.map(({ campaign, publicConfig }) => `
+            <div class="preview-item">
+              <strong>${escapeHtml(publicConfig?.publicTitle || campaign?.name || "Sorteo")}</strong>
+              <div>${escapeHtml(publicConfig?.publicDescription || campaign?.name || "")}</div>
+            </div>
+          `).join("") : `<div class="preview-empty">No hay sorteos visibles cargados.</div>`}
+        </div>
+        <div class="preview-column">
+          <h4>Videos de ganadores</h4>
+          ${videos.length ? videos.map((video) => `
+            <div class="preview-item">
+              <strong>${escapeHtml(video.title)}</strong>
+              <div>${escapeHtml(video.winnerName || "Ganador verificado")}${video.city ? ` · ${escapeHtml(video.city)}` : ""}</div>
+            </div>
+          `).join("") : `<div class="preview-empty">No hay videos publicados.</div>`}
+        </div>
+      </div>
     </div>
   `;
 }
@@ -295,7 +390,7 @@ function renderShell(site, slug) {
         <div class="shell topbar-inner">
           <div class="brand">
             <div class="brand-mark">
-              <img src="${escapeHtml(ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
             </div>
             <div>
               <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
@@ -315,7 +410,7 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div>
-                <span class="eyebrow">Pagina publica activa Â· ${escapeHtml(company.activo ? "empresa activa" : "empresa inactiva")}</span>
+                <span class="eyebrow">Pagina publica activa · ${escapeHtml(company.activo ? "empresa activa" : "empresa inactiva")}</span>
                 <h1>${escapeHtml(heroTitle)}${slogan ? ` <span class="accent">${escapeHtml(slogan)}</span>` : ""}</h1>
                 <p>${escapeHtml(heroSubtitle)}</p>
                 <div class="hero-actions">
@@ -343,7 +438,7 @@ function renderShell(site, slug) {
               </div>
 
               <div class="hero-media">
-                ${heroVideo ? `<video src="${escapeHtml(heroVideo)}" autoplay muted loop playsinline controls></video>` : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
+                ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
                 <div class="overlay">
                   <strong>${escapeHtml(company.nombre || "Rifas publicas")}</strong>
                   <div style="margin-top:6px">${escapeHtml(settings.heroButtonLabel || "Escoge tu boleta y participa")}</div>
@@ -512,3 +607,7 @@ async function loadSite() {
 }
 
 loadSite();
+
+
+
+
