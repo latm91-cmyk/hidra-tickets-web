@@ -4,9 +4,9 @@
   --surface-strong: #ffffff;
   --text: #102238;
   --muted: #5b6678;
-  --primary: #0b2340;
+  --primary: #08192f;
   --secondary: #d6a11e;
-  --accent: #1f7a4d;
+  --accent: #1d5f46;
   --line: rgba(11, 35, 64, 0.1);
   --shadow: 0 18px 50px rgba(11, 35, 64, 0.12);
   --radius-xl: 30px;
@@ -26,10 +26,10 @@ body {
   margin: 0;
   font-family: "Poppins", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(214, 161, 30, 0.16), transparent 24%),
-    radial-gradient(circle at top right, rgba(31, 122, 77, 0.12), transparent 23%),
-    radial-gradient(circle at bottom left, rgba(11, 35, 64, 0.08), transparent 20%),
-    linear-gradient(180deg, #fffdf8 0%, #f7f9fb 58%, #eef4f7 100%);
+    radial-gradient(circle at top left, rgba(214, 161, 30, 0.14), transparent 24%),
+    radial-gradient(circle at top right, rgba(29, 95, 70, 0.12), transparent 23%),
+    radial-gradient(circle at bottom left, rgba(8, 25, 47, 0.08), transparent 20%),
+    linear-gradient(180deg, #fffdf8 0%, #fbfbf7 54%, #eef3f7 100%);
   color: var(--text);
 }
 
@@ -55,9 +55,9 @@ button {
   top: 0;
   z-index: 50;
   backdrop-filter: blur(18px);
-  background: linear-gradient(135deg, rgba(11, 35, 64, 0.98), rgba(31, 122, 77, 0.96));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 30px rgba(11, 35, 64, 0.22);
+  background: linear-gradient(135deg, rgba(8, 25, 47, 0.98), rgba(12, 34, 58, 0.96) 58%, rgba(29, 95, 70, 0.94));
+  border-bottom: 1px solid rgba(255, 216, 122, 0.14);
+  box-shadow: 0 12px 30px rgba(8, 25, 47, 0.2);
 }
 
 .topbar-inner {
@@ -65,7 +65,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 12px 0;
+  padding: 14px 0;
 }
 
 .brand {
@@ -79,20 +79,20 @@ button {
 }
 
 .brand-mark {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
   display: grid;
   place-items: center;
   font-weight: 900;
-  box-shadow: none;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 28px rgba(8, 25, 47, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .brand-name {
-  font-size: 19px;
+  font-size: 21px;
   line-height: 1.1;
   color: #fff;
   text-transform: uppercase;
@@ -229,7 +229,7 @@ button {
 }
 
 .hero {
-  padding: 28px 0 12px;
+  padding: 26px 0 14px;
 }
 
 .hero-card {
@@ -237,8 +237,8 @@ button {
   overflow: hidden;
   border-radius: 36px;
   background:
-    linear-gradient(135deg, rgba(11, 35, 64, 0.97), rgba(31, 122, 77, 0.92)),
-    radial-gradient(circle at top right, rgba(214, 161, 30, 0.34), transparent 30%),
+    linear-gradient(135deg, rgba(8, 25, 47, 0.97), rgba(12, 34, 58, 0.93) 54%, rgba(29, 95, 70, 0.9)),
+    radial-gradient(circle at top right, rgba(214, 161, 30, 0.28), transparent 30%),
     radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.1), transparent 28%);
   color: white;
   box-shadow: var(--shadow);
@@ -247,10 +247,10 @@ button {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 0.92fr 1.08fr;
-  gap: 28px;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 24px;
   align-items: center;
-  padding: 38px;
+  padding: 36px;
 }
 
 .eyebrow {
@@ -267,10 +267,10 @@ button {
 
 .hero h1 {
   margin: 18px 0 14px;
-  font-size: clamp(38px, 5.2vw, 62px);
-  line-height: 0.98;
+  font-size: clamp(34px, 4.6vw, 56px);
+  line-height: 0.95;
   letter-spacing: -0.05em;
-  max-width: 10ch;
+  max-width: 9ch;
 }
 
 .hero h1 .accent {
@@ -279,53 +279,77 @@ button {
 
 .hero p {
   margin: 0;
-  font-size: 17px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.6;
   color: rgba(255, 255, 255, 0.82);
-  max-width: 44ch;
+  max-width: 38ch;
 }
 
 .hero-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
-.hero-meta {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 24px;
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
 }
 
-.meta-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 18px;
-  backdrop-filter: blur(12px);
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
 }
 
-.meta-card strong {
-  display: block;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.meta-card span {
-  display: block;
-  margin-top: 6px;
-  color: rgba(255, 255, 255, 0.75);
+.overlay-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffe08a;
   font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+
+.overlay-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.overlay-meta span {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .hero-media {
-  min-height: 520px;
+  min-height: 500px;
   border-radius: 32px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   position: relative;
@@ -351,11 +375,27 @@ button {
 .hero-media .overlay {
   position: absolute;
   inset: auto 18px 18px 18px;
-  background: linear-gradient(135deg, rgba(11, 35, 64, 0.92), rgba(31, 122, 77, 0.88));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(8, 25, 47, 0.94), rgba(12, 34, 58, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
-  padding: 16px 18px;
+  padding: 16px 18px 14px;
   color: white;
+  backdrop-filter: blur(10px);
+}
+
+.hero-media .overlay strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.hero-media .overlay div {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .section {
@@ -1431,14 +1471,14 @@ button {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  padding-top: 18px;
+  padding: 14px 0 8px;
 }
 
 .trust-item {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 18px;
+  padding: 16px 18px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(15, 76, 129, 0.08);
@@ -1446,9 +1486,9 @@ button {
 }
 
 .trust-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -1459,15 +1499,15 @@ button {
 
 .trust-item strong {
   display: block;
-  margin-bottom: 5px;
-  font-size: 15px;
+  margin-bottom: 4px;
+  font-size: 14px;
 }
 
 .trust-item span {
   display: block;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .card-media {

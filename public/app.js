@@ -1818,14 +1818,24 @@ function renderShell(site, slug) {
   const heroButton = settings.heroButtonUrl || "#sorteos";
   const heroLabel = settings.heroButtonLabel || (settings.heroButtonUrl ? "Escríbenos" : "Ver sorteos");
   const slogan = settings.slogan || "";
+  const featuredRaffle = asArray(site.activeRaffles)[0] || null;
+  const heroSpotlightTitle = featuredRaffle ? getRaffleDisplayTitle(featuredRaffle) : heroTitle;
+  const heroSpotlightDescription = featuredRaffle
+    ? (getRaffleDisplayDescription(featuredRaffle) || "Compra segura y numeros visibles en tiempo real.")
+    : (settings.heroOverlayText || "Compra segura y numeros visibles en tiempo real.");
+  const heroSpotlightImage = featuredRaffle ? getRaffleDisplayImage(featuredRaffle, site) : heroImage;
+  const heroSpotlightLabel = featuredRaffle ? "Sorteo destacado" : "Compra segura";
+  const heroSpotlightChips = [
+    featuredRaffle ? getRaffleDisplayDate(featuredRaffle) : "",
+    featuredRaffle ? getRaffleDisplayPrice(featuredRaffle) : "",
+  ].filter(Boolean);
   const raffleCount = asArray(site.activeRaffles).length;
   const faqCount = asArray(site.faq).length;
   const videosCount = asArray(site.winnerVideos).length;
-  const heroMetaItems = [
-    { value: raffleCount, label: "Sorteos visibles" },
-    { value: videosCount, label: "Ganadores reales" },
-    { value: faqCount, label: "Dudas resueltas" },
-  ].filter((item) => Number(item.value || 0) > 0);
+  const heroSignals = [
+    raffleCount > 0 ? `${raffleCount} sorteos visibles` : "",
+    videosCount > 0 ? `${videosCount} ganadores publicados` : "",
+  ].filter(Boolean);
   const paymentSections = asArray(site.paymentMethods);
   const legalSections = asArray(site.legal);
   const otherSections = asArray(site.otherSections);
@@ -1875,22 +1885,12 @@ function renderShell(site, slug) {
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary" href="#videos">Ganadores reales</a>
                 </div>
-                <div class="hero-note">
-                  <span class="hero-note-icon">✦</span>
-                  <div>
-                    <strong>Historias reales que inspiran confianza</strong>
-                    <span>Ganadores publicados, premios visibles y atención directa por WhatsApp.</span>
-                  </div>
-                </div>
-                ${heroMetaItems.length ? `
-                  <div class="hero-meta">
-                    ${heroMetaItems
+                ${heroSignals.length ? `
+                  <div class="hero-badges">
+                    ${heroSignals
                       .map(
                         (item) => `
-                          <div class="meta-card">
-                            <strong>${escapeHtml(String(item.value))}</strong>
-                            <span>${escapeHtml(item.label)}</span>
-                          </div>
+                          <span class="hero-badge">${escapeHtml(item)}</span>
                         `,
                       )
                       .join("")}
@@ -1899,10 +1899,16 @@ function renderShell(site, slug) {
               </div>
 
               <div class="hero-media">
-                ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
+                ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" />`}
                 <div class="overlay">
-                  <strong>${escapeHtml(heroTitle)}</strong>
-                  <div style="margin-top:6px">${escapeHtml(settings.heroOverlayText || "Mira el sorteo destacado y conoce cómo participar.")}</div>
+                  <span class="overlay-label">${escapeHtml(heroSpotlightLabel)}</span>
+                  <strong>${escapeHtml(heroSpotlightTitle)}</strong>
+                  <div>${escapeHtml(heroSpotlightDescription)}</div>
+                  ${heroSpotlightChips.length ? `
+                    <div class="overlay-meta">
+                      ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                    </div>
+                  ` : ""}
                 </div>
               </div>
             </div>
