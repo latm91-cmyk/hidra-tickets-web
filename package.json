@@ -5,6 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "build": "node -e \"console.log('build ok')\"",
     "start": "node server.js",
     "dev": "node server.js"
   },
