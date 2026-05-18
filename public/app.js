@@ -235,7 +235,7 @@ function renderRaffles(site) {
   }
 
   return `
-    <div class="grid-3">
+    <div class="raffles-grid">
       ${raffles
         .map(({ campaign, publicConfig }) => {
           const image = publicConfig?.coverImageUrl || ASSETS.raffle;
@@ -243,26 +243,28 @@ function renderRaffles(site) {
           const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
           const description = publicConfig?.publicDescription || campaign?.name || "";
           const drawDate = campaign?.drawDate ? formatDate(campaign.drawDate) : "";
+          const price = campaign?.numberValue ? currencyFormatter.format(Number(campaign.numberValue)) : "";
+          const mode = campaign?.registrationMode || campaign?.selectionMode || "automatico";
           const buttonHref = site.settings?.heroButtonUrl || whatsappLink(site.settings?.whatsappNumber || site.company?.whatsapp_number);
           return `
-            <article class="card">
-              <div class="card-media">
+            <article class="raffle-card">
+              <div class="raffle-card-media">
                 ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />` : ""}
                 ${isFeatured ? `<div class="card-flag">Destacado</div>` : ""}
               </div>
-              <div class="card-body">
+              <div class="raffle-card-body">
+                <h3 class="raffle-card-title">${escapeHtml(heroTitle)}</h3>
+                ${description ? `<p class="raffle-card-copy">${escapeHtml(description)}</p>` : ""}
                 <div class="chip-row">
-                  ${drawDate ? `<span class="chip">Sorteo ${escapeHtml(drawDate)}</span>` : ""}
-                  ${campaign?.registrationMode ? `<span class="chip">${escapeHtml(campaign.registrationMode)}</span>` : ""}
+                  ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+                  <span class="chip">${escapeHtml(mode)}</span>
                 </div>
-                <h3 class="card-title">${escapeHtml(heroTitle)}</h3>
-                <p class="card-copy">${escapeHtml(description)}</p>
                 <div class="chip-row">
-                  ${campaign?.numberValue ? `<span class="chip">Boleta ${currencyFormatter.format(Number(campaign.numberValue))}</span>` : ""}
+                  ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
                   ${campaign?.totalNumeros ? `<span class="chip">${escapeHtml(String(campaign.totalNumeros))} boletas</span>` : ""}
                 </div>
-                <div style="margin-top:18px">
-                  <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis numeros</a>
+                <div class="raffle-card-actions">
+                  <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis números</a>
                 </div>
               </div>
             </article>
@@ -541,9 +543,9 @@ function renderShell(site, slug) {
         <section class="section shell section-anchor" id="sorteos">
           <div class="section-head">
             <div>
-              <span class="section-tag">Sorteos visibles</span>
-              <h2>Participa desde la pagina publica</h2>
-              <p>Estos son los sorteos que el backend marca como visibles y que la landing debe mostrar automaticamente.</p>
+              <span class="section-tag">Sorteos disponibles</span>
+              <h2>Sorteos disponibles</h2>
+              <p>Selecciona el sorteo en el que deseas participar.</p>
             </div>
           </div>
           ${renderRaffles(site)}

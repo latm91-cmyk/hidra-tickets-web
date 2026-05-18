@@ -306,6 +306,12 @@ button {
   gap: 18px;
 }
 
+.raffles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -325,6 +331,61 @@ button {
   overflow: hidden;
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
+}
+
+.raffle-card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+}
+
+.raffle-card-media {
+  position: relative;
+  aspect-ratio: 1.15 / 1;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.12), rgba(214, 161, 62, 0.12));
+}
+
+.raffle-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.raffle-card-body {
+  padding: 22px 22px 24px;
+}
+
+.raffle-card-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.raffle-card-copy {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.raffle-card .chip-row {
+  margin-top: 14px;
+}
+
+.raffle-card-actions {
+  margin-top: 20px;
+}
+
+.raffle-card .button.gold {
+  width: 100%;
+  padding: 15px 18px;
+  border-radius: 20px;
+  font-size: 16px;
 }
 
 .trust-strip {
@@ -886,7 +947,8 @@ button {
   .hero-grid,
   .grid-3,
   .grid-4,
-  .grid-2 {
+  .grid-2,
+  .raffles-grid {
     grid-template-columns: 1fr;
   }
 
