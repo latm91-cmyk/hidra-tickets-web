@@ -1806,6 +1806,11 @@ function renderHowItWorks() {
 function renderShell(site, slug) {
   const settings = site.settings || {};
   const company = site.company || {};
+  const pageTitle = [
+    company.nombre || settings.title || "Rifas",
+    "Rifas publicas",
+  ].filter(Boolean).join(" | ");
+  document.title = pageTitle;
   const themePrimary = settings.primaryColor || "#0f172a";
   const themeSecondary = settings.secondaryColor || "#d6a13e";
   document.documentElement.style.setProperty("--primary", themePrimary);
