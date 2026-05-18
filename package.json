@@ -5,11 +5,15 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "build": "node -e \"console.log('build ok')\"",
+    "build": "node scripts/generate-assets.mjs",
+    "generate-assets": "node scripts/generate-assets.mjs",
     "start": "node server.js",
     "dev": "node server.js"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }

@@ -1,6 +1,13 @@
 const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
 const API_BASE_URL = String(CONFIG.apiBaseUrl || "http://localhost:10000").replace(/\/+$/, "");
 const app = document.getElementById("app");
+const ASSETS = {
+  brand: "/assets/logo-placeholder.webp",
+  hero: "/assets/hero-caballo.webp",
+  raffle: "/assets/raffle-card.webp",
+  winner: "/assets/winner-video.webp",
+  payments: "/assets/payment-methods.webp",
+};
 
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   style: "currency",
@@ -33,11 +40,11 @@ function getSlugFromLocation() {
 }
 
 function pickHeroImage(site) {
-  return site?.settings?.heroImageUrl || site?.settings?.logoUrl || site?.company?.logo || "";
+  return ASSETS.hero;
 }
 
 function pickHeroVideo(site) {
-  return site?.settings?.heroVideoUrl || "";
+  return "";
 }
 
 function whatsappLink(number) {
@@ -131,7 +138,7 @@ function renderRaffles(site) {
     <div class="grid-3">
       ${raffles
         .map(({ campaign, publicConfig }) => {
-          const image = publicConfig?.coverImageUrl || pickHeroImage(site);
+          const image = ASSETS.raffle;
           const isFeatured = publicConfig?.isFeatured;
           const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
           const description = publicConfig?.publicDescription || campaign?.name || "";
@@ -176,7 +183,7 @@ function renderWinnerVideos(site) {
     <div class="grid-3">
       ${videos
         .map((video) => {
-          const preview = video.thumbnailUrl || pickHeroImage(site);
+          const preview = ASSETS.winner;
           return `
             <article class="card">
               <div class="card-media">
@@ -287,7 +294,9 @@ function renderShell(site, slug) {
       <header class="topbar">
         <div class="shell topbar-inner">
           <div class="brand">
-            <div class="brand-mark">${escapeHtml((company.nombre || settings.title || "R").slice(0, 1).toUpperCase())}</div>
+            <div class="brand-mark">
+              <img src="${escapeHtml(ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+            </div>
             <div>
               <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
               <span class="brand-subtitle">${escapeHtml(company.qr_logo ? "Sitio administrado desde el backend" : "Sitio administrado desde el backend")}</span>
@@ -334,7 +343,7 @@ function renderShell(site, slug) {
               </div>
 
               <div class="hero-media">
-                ${heroVideo ? `<video src="${escapeHtml(heroVideo)}" autoplay muted loop playsinline controls></video>` : heroImage ? `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />` : ""}
+                ${heroVideo ? `<video src="${escapeHtml(heroVideo)}" autoplay muted loop playsinline controls></video>` : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
                 <div class="overlay">
                   <strong>${escapeHtml(company.nombre || "Rifas publicas")}</strong>
                   <div style="margin-top:6px">${escapeHtml(settings.heroButtonLabel || "Escoge tu boleta y participa")}</div>
@@ -357,14 +366,17 @@ function renderShell(site, slug) {
 
         ${paymentSections.length ? `
           <section class="section shell section-anchor" id="pagos">
-            <div class="section-head">
-              <div>
-                <span class="section-tag">Metodos de pago</span>
-                <h2>Opciones de pago visibles</h2>
-                <p>La pagina publica toma estos bloques desde la configuracion del backend.</p>
-              </div>
+          <div class="section-head">
+            <div>
+              <span class="section-tag">Metodos de pago</span>
+              <h2>Opciones de pago visibles</h2>
+              <p>La pagina publica toma estos bloques desde la configuracion del backend.</p>
             </div>
-            ${renderSections(site, paymentSections, "Metodos de pago", "Bloques administrables desde el panel.") }
+          </div>
+          <div class="state-card" style="margin-bottom:18px">
+            <img src="${escapeHtml(ASSETS.payments)}" alt="Metodos de pago" style="width:100%;height:auto;border-radius:22px;display:block;margin-bottom:16px" />
+          </div>
+          ${renderSections(site, paymentSections, "Metodos de pago", "Bloques administrables desde el panel.") }
           </section>
         ` : ""}
 
