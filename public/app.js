@@ -101,8 +101,24 @@ function getRaffleDisplayImage(raffle = {}, site = {}) {
 }
 
 function getRaffleDisplayPrice(raffle = {}) {
-  const raw = raffle?.campaign?.numberValue ?? raffle?.campaign?.valor_numero ?? raffle?.numberValue ?? raffle?.valor_numero;
-  const numeric = Number(raw || 0);
+  const pricingConfig = raffle?.campaign?.pricingConfig || raffle?.campaign?.pricing_config || raffle?.pricingConfig || raffle?.pricing_config || {};
+  const pricingStrategy = String(
+    raffle?.campaign?.pricingStrategy
+      || raffle?.campaign?.pricing_strategy
+      || raffle?.pricingStrategy
+      || raffle?.pricing_strategy
+      || "",
+  ).toLowerCase();
+  const raw = pricingConfig?.precioUnitario
+    ?? pricingConfig?.precio_unitario
+    ?? (pricingStrategy === "paquetes"
+      ? pricingConfig?.packages?.find((item) => Number(item?.cantidad || 0) === 1)?.valor
+      : null)
+    ?? raffle?.campaign?.numberValue
+    ?? raffle?.campaign?.valor_numero
+    ?? raffle?.numberValue
+    ?? raffle?.valor_numero;
+  const numeric = Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0;
   return Number.isFinite(numeric) && numeric > 0 ? currencyFormatter.format(numeric) : "";
 }
 
