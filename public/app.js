@@ -256,11 +256,14 @@ function renderRaffles(site) {
           <div class="raffle-feature-body">
             <div class="chip-row">
               ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
-              <span class="chip">${escapeHtml(mode)}</span>
               ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             </div>
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
             ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
+            <div class="raffle-feature-meta">
+              <span>${escapeHtml(mode)}</span>
+              ${campaign?.totalNumeros ? `<span>${escapeHtml(String(campaign.totalNumeros))} boletas</span>` : ""}
+            </div>
             <div class="raffle-feature-actions">
               <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis números</a>
             </div>
@@ -297,7 +300,34 @@ function renderRaffles(site) {
   return `
     <div class="raffle-showcase">
       ${renderRaffleCard(featured, true)}
-      ${rest.length ? `<div class="raffles-grid">${rest.map((raffle) => renderRaffleCard(raffle, false)).join("")}</div>` : ""}
+      ${rest.length ? `
+        <div class="raffle-list">
+          ${rest.slice(0, 2).map((raffle) => {
+            const campaign = raffle.campaign || {};
+            const publicConfig = raffle.publicConfig || {};
+            const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
+            const image = publicConfig?.coverImageUrl || site.settings?.heroImageUrl || ASSETS.hero;
+            const drawDate = campaign?.drawDate ? formatDate(campaign.drawDate) : "";
+            const price = campaign?.numberValue ? currencyFormatter.format(Number(campaign.numberValue)) : "";
+            const buttonHref = site.settings?.heroButtonUrl || whatsappLink(site.settings?.whatsappNumber || site.company?.whatsapp_number);
+            return `
+              <article class="raffle-mini">
+                <div class="raffle-mini-media">
+                  <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+                </div>
+                <div class="raffle-mini-body">
+                  <h4>${escapeHtml(heroTitle)}</h4>
+                  <div class="chip-row">
+                    ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+                    ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+                  </div>
+                  <a class="button secondary" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Ver sorteo</a>
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </div>
+      ` : ""}
     </div>
   `;
 }
@@ -577,7 +607,7 @@ function renderShell(site, slug) {
             <div>
               <span class="section-tag">Sorteos disponibles</span>
               <h2>Sorteos disponibles</h2>
-              <p>Selecciona el sorteo en el que deseas participar.</p>
+              <p>Selecciona el sorteo que quieras ver o compartir.</p>
             </div>
           </div>
           ${renderRaffles(site)}
