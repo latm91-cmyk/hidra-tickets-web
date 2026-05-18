@@ -284,6 +284,13 @@ function buildWhatsAppHref(number, message) {
   return `https://web.whatsapp.com/send?phone=${digits}&text=${text}`;
 }
 
+function scrollToPaymentSection() {
+  const target = document.getElementById("pagos");
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -573,6 +580,7 @@ function renderRaffleSelectorContent() {
   const inventoryTotal = Number(stats.inventoryTotal || total || 0);
   const selected = raffleSelectorState.selected || [];
   const selectedAmount = selected.length * Number(price ? String(price).replace(/[^\d]/g, "") : 0);
+  const hasPaymentSections = asArray(site.paymentMethods).length > 0;
   const selectedCopy = selected.length
     ? selected
       .map((item) => `
@@ -696,6 +704,9 @@ function renderRaffleSelectorContent() {
             <strong>${selected.length ? buildSelectionMessage(raffle, selected) : "Selecciona los numeros que quieras apartar."}</strong>
           </div>
           <div class="selector-summary-actions">
+            ${hasPaymentSections ? `
+              <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Pagar en línea</button>
+            ` : ""}
             <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
             <a
               class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -731,6 +742,9 @@ function renderRaffleSelectorContent() {
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
       <div class="selector-summary-mobile-actions">
+        ${hasPaymentSections ? `
+          <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Pagar en línea</button>
+        ` : ""}
         <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
         <a
           class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -1311,6 +1325,15 @@ app.addEventListener("click", (event) => {
     raffleSelectorState.notice = "Seleccion limpiada.";
     raffleSelectorState.noticeTone = "info";
     paintRaffleSelector();
+    return;
+  }
+
+  if (actionName === "go-payment-section") {
+    event.preventDefault();
+    closeRaffleSelector();
+    setTimeout(() => {
+      scrollToPaymentSection();
+    }, 50);
     return;
   }
 });
