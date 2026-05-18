@@ -1029,8 +1029,8 @@ function renderShell(site, slug) {
   const heroVideo = pickHeroVideo(site);
   const heroTitle = settings.heroTitle || settings.title || company.nombre || "Rifas";
   const heroSubtitle = settings.heroSubtitle || settings.subtitle || "Una experiencia de rifas administrada desde el backend.";
-  const heroLabel = settings.heroButtonLabel || "Escoger mis numeros";
-  const heroButton = settings.heroButtonUrl || whatsappLink(settings.whatsappNumber || company.whatsapp_number);
+  const heroButton = settings.heroButtonUrl || "#sorteos";
+  const heroLabel = settings.heroButtonLabel || (settings.heroButtonUrl ? "Escríbenos" : "Ver sorteos");
   const slogan = settings.slogan || "";
   const raffleCount = asArray(site.activeRaffles).length;
   const faqCount = asArray(site.faq).length;
@@ -1079,14 +1079,17 @@ function renderShell(site, slug) {
               <div>
                 <span class="eyebrow">Premios reales · Compra segura</span>
                 <h1>${escapeHtml(heroTitle)}${slogan ? ` <span class="accent">${escapeHtml(slogan)}</span>` : ""}</h1>
-                <p>${escapeHtml(heroSubtitle)}</p>
+                <p>${escapeHtml(heroSubtitle || "Participa por premios reales con sorteos visibles, ganadores publicados y atención por WhatsApp.")}</p>
                 <div class="hero-actions">
-                  ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}" target="_blank" rel="noreferrer">${escapeHtml(heroLabel)}</a>` : ""}
-                  <a class="button secondary" href="#sorteos">Ver sorteos</a>
+                  ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
+                  <a class="button secondary" href="#videos">Ganadores reales</a>
                 </div>
-                <div class="hero-ribbon">
-                  <span>✦</span>
-                  <span>${escapeHtml(settings.heroButtonUrl ? "Contenido actualizado desde el panel" : "Contenido actualizado desde el panel")}</span>
+                <div class="hero-note">
+                  <span class="hero-note-icon">✦</span>
+                  <div>
+                    <strong>Historias reales que inspiran confianza</strong>
+                    <span>Ganadores publicados, premios visibles y atención directa por WhatsApp.</span>
+                  </div>
                 </div>
                 <div class="hero-meta">
                   <div class="meta-card">
@@ -1108,7 +1111,7 @@ function renderShell(site, slug) {
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
                 <div class="overlay">
                   <strong>${escapeHtml(heroTitle)}</strong>
-                  <div style="margin-top:6px">${escapeHtml(settings.heroButtonLabel || "Escoge tu boleta y participa")}</div>
+                  <div style="margin-top:6px">${escapeHtml(settings.heroOverlayText || "Mira el sorteo destacado y conoce cómo participar.")}</div>
                 </div>
               </div>
             </div>
