@@ -505,7 +505,7 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div>
-                <span class="eyebrow">Pagina publica activa · ${escapeHtml(company.activo ? "empresa activa" : "empresa inactiva")}</span>
+                <span class="eyebrow">Premios reales · Compra segura</span>
                 <h1>${escapeHtml(heroTitle)}${slogan ? ` <span class="accent">${escapeHtml(slogan)}</span>` : ""}</h1>
                 <p>${escapeHtml(heroSubtitle)}</p>
                 <div class="hero-actions">
@@ -513,8 +513,8 @@ function renderShell(site, slug) {
                   <a class="button secondary" href="#sorteos">Ver sorteos</a>
                 </div>
                 <div class="hero-ribbon">
-                  <span>ðŸŒ¾</span>
-                  <span>${escapeHtml(settings.heroButtonUrl ? "Contenido sincronizado con backend" : "Contenido sincronizado con backend")}</span>
+                  <span>✦</span>
+                  <span>${escapeHtml(settings.heroButtonUrl ? "Contenido actualizado desde el panel" : "Contenido actualizado desde el panel")}</span>
                 </div>
                 <div class="hero-meta">
                   <div class="meta-card">
@@ -523,11 +523,11 @@ function renderShell(site, slug) {
                   </div>
                   <div class="meta-card">
                     <strong>${escapeHtml(String(videosCount))}</strong>
-                    <span>Videos de ganadores</span>
+                    <span>Ganadores reales</span>
                   </div>
                   <div class="meta-card">
                     <strong>${escapeHtml(String(faqCount))}</strong>
-                    <span>Preguntas frecuentes</span>
+                    <span>Dudas resueltas</span>
                   </div>
                 </div>
               </div>
@@ -535,7 +535,7 @@ function renderShell(site, slug) {
               <div class="hero-media">
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />`}
                 <div class="overlay">
-                  <strong>${escapeHtml(company.nombre || "Rifas publicas")}</strong>
+                  <strong>${escapeHtml(heroTitle)}</strong>
                   <div style="margin-top:6px">${escapeHtml(settings.heroButtonLabel || "Escoge tu boleta y participa")}</div>
                 </div>
               </div>
