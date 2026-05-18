@@ -2173,9 +2173,9 @@ async function loadSite() {
       <div class="page">
         <div class="loading-shell">
           <div class="loading-card">
-            <div class="loading-badge">Falta slug</div>
-            <h1>Abre la pagina con un slug publico</h1>
-            <p>Usa una ruta como <strong>/agropecuario</strong> o agrega <strong>?slug=agropecuario</strong>.</p>
+            <div class="loading-badge">Cargando...</div>
+            <h1>Preparando la pagina</h1>
+            <p>Estamos cargando tu sitio publico.</p>
           </div>
         </div>
       </div>
@@ -2186,9 +2186,9 @@ async function loadSite() {
   app.innerHTML = `
     <div class="loading-shell">
       <div class="loading-card">
-        <div class="loading-badge">Cargando sitio publico</div>
-        <h1>Construyendo la landing de /${escapeHtml(slug)}</h1>
-        <p>Estamos consultando el backend en ${escapeHtml(API_BASE_URL)}.</p>
+        <div class="loading-badge">Cargando...</div>
+        <h1>Preparando tu pagina</h1>
+        <p>En un momento veras el sitio publico de /${escapeHtml(slug)}.</p>
       </div>
     </div>
   `;
@@ -2208,7 +2208,7 @@ async function loadSite() {
           <div class="loading-card">
             <div class="loading-badge">Error</div>
             <h1>No fue posible cargar la pagina publica</h1>
-            <p>${escapeHtml(error?.message || "Error inesperado")}</p>
+            <p>Estamos teniendo un problema temporal al abrir el sitio.</p>
             <div style="margin-top:18px">
               <a class="button primary" href="/" onclick="window.location.reload(); return false;">Intentar de nuevo</a>
             </div>
