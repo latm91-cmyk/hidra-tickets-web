@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "build": "node scripts/generate-assets.mjs",
+    "build": "node -e \"console.log('assets already committed')\"",
     "generate-assets": "node scripts/generate-assets.mjs",
     "start": "node server.js",
     "dev": "node server.js"
