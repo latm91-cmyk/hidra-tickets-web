@@ -1207,6 +1207,7 @@ function renderShell(site, slug) {
             </div>
           </div>
         </section>
+      </main>
         ${renderRaffleSelectorModal()}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
