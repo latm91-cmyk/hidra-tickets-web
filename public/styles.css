@@ -388,12 +388,25 @@ button {
   font-weight: 700;
 }
 
+.raffle-price-label {
+  margin: 10px 0 6px;
+  color: rgba(15, 23, 42, 0.74);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .selector-price-summary {
   color: var(--primary);
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(15, 23, 42, 0.04);
   border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.selector-price-label {
+  color: rgba(15, 23, 42, 0.72);
 }
 
 .grid-3 {

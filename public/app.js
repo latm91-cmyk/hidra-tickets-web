@@ -630,7 +630,10 @@ function renderRaffles(site) {
               ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
               ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             </div>
-            ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
+            ${pricingSummary ? `
+              <div class="raffle-price-label">Precio de boletería:</div>
+              <p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>
+            ` : ""}
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
             ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
             <div class="raffle-feature-meta">
@@ -707,7 +710,10 @@ function renderRaffles(site) {
                     ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
                     ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
                   </div>
-                  ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
+                  ${pricingSummary ? `
+                    <div class="raffle-price-label">Precio de boletería:</div>
+                    <p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>
+                  ` : ""}
                   <button
                     type="button"
                     class="button secondary js-open-raffle-selector"
@@ -910,7 +916,10 @@ function renderRaffleSelectorContent() {
               <span>Actualizacion</span>
             </div>
           </div>
-          ${pricingSummary ? `<p class="raffle-price-summary selector-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
+          ${pricingSummary ? `
+            <div class="raffle-price-label selector-price-label">Precio de boletería:</div>
+            <p class="raffle-price-summary selector-price-summary">${escapeHtml(pricingSummary)}</p>
+          ` : ""}
         </div>
       </div>
     ` : ""}
