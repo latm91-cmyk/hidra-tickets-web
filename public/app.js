@@ -206,7 +206,7 @@ function formatRafflePricingSummary(raffle = {}) {
 function getRafflePricingBadge(raffle = {}) {
   const packages = getRafflePricingPackages(raffle);
   if (packages.length > 0) {
-    return `${packages.length} paquete${packages.length === 1 ? "" : "s"} activos`;
+    return "";
   }
 
   const price = getRaffleDisplayPrice(raffle);
