@@ -66,9 +66,10 @@ async function serveAsset(res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = contentTypes[ext] || "application/octet-stream";
   const content = await fs.readFile(filePath);
+  const noCache = ext === ".html" || ext === ".css" || ext === ".js";
   res.writeHead(200, {
     "Content-Type": contentType,
-    "Cache-Control": ext === ".html" ? "no-store" : "public, max-age=3600",
+    "Cache-Control": noCache ? "no-store" : "public, max-age=3600",
   });
   res.end(content);
 }
