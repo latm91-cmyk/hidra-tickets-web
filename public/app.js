@@ -1229,7 +1229,7 @@ function renderPaymentModalContent() {
             <div class="payment-action-icon payment-action-icon-contact">✎</div>
             <div>
               <strong>Datos del comprador</strong>
-              <p>Necesitamos tu nombre, ciudad y teléfono para enviarte la boleta.</p>
+              <p>Necesitamos estos datos para marcar y enviarte tus boletas y dejar tu compra registrada.</p>
             </div>
             <div class="payment-form-grid">
               <label class="payment-field">
