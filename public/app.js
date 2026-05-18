@@ -863,7 +863,6 @@ function renderRaffleSelectorContent() {
     ? raffleSelectorState.selected
     : persistedSelected;
   const selectedAmount = raffle ? getRafflePriceForQuantity(raffle, selected.length || 1) * (selected.length > 0 ? 1 : 0) : 0;
-  const hasPaymentSections = asArray(site.paymentMethods).length > 0;
   const selectedCopy = selected.length
       ? selected
       .map((item) => `
@@ -997,11 +996,10 @@ function renderRaffleSelectorContent() {
         <div class="selector-summary-footer">
           <div class="selector-summary-note">
             <strong>${selected.length ? buildSelectionMessage(raffle, selected) : "Selecciona los numeros que quieras apartar."}</strong>
+            <span>${selected.length ? "Tus numeros ya estan listos para continuar al pago." : "Cuando selecciones numeros, aqui veras el acceso al pago."}</span>
           </div>
           <div class="selector-summary-actions">
-            ${hasPaymentSections ? `
-              <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Pagar en línea</button>
-            ` : ""}
+            <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
             <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
             <a
               class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -1037,9 +1035,7 @@ function renderRaffleSelectorContent() {
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
       <div class="selector-summary-mobile-actions">
-        ${hasPaymentSections ? `
-          <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Pagar en línea</button>
-        ` : ""}
+        <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
         <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
         <a
           class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
