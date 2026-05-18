@@ -831,7 +831,62 @@ function paintRaffleSelector() {
   const content = document.getElementById("raffle-selector-content");
   if (!content) return;
   content.innerHTML = renderRaffleSelectorContent();
+  bindRaffleSelectorActions();
   syncRaffleSelectorModal();
+}
+
+function handleRaffleSelectorTicketValue(rawValue) {
+  const value = normalizeTicketDisplayValue(rawValue);
+  if (!value || !raffleSelectorState.raffle) {
+    return;
+  }
+
+  const exists = raffleSelectorState.selected.includes(value);
+  raffleSelectorState.selected = exists
+    ? raffleSelectorState.selected.filter((item) => item !== value)
+    : [...raffleSelectorState.selected, value];
+  persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
+  raffleSelectorState.notice = exists
+    ? `Quitaste ${value} de tu seleccion.`
+    : `Agregaste ${value} a tu seleccion.`;
+  raffleSelectorState.noticeTone = "success";
+  paintRaffleSelector();
+}
+
+function handleRaffleSelectorRemoveValue(rawValue) {
+  const value = normalizeTicketDisplayValue(rawValue);
+  if (!raffleSelectorState.raffle) {
+    return;
+  }
+
+  raffleSelectorState.selected = raffleSelectorState.selected.filter((item) => item !== value);
+  persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
+  raffleSelectorState.notice = value ? `Quitaste ${value} de tu seleccion.` : "";
+  raffleSelectorState.noticeTone = "info";
+  paintRaffleSelector();
+}
+
+function bindRaffleSelectorActions() {
+  const content = document.getElementById("raffle-selector-content");
+  if (!content) {
+    return;
+  }
+
+  content.querySelectorAll("[data-selector-ticket]").forEach((button) => {
+    button.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleRaffleSelectorTicketValue(button.getAttribute("data-selector-ticket"));
+    };
+  });
+
+  content.querySelectorAll("[data-selector-remove]").forEach((button) => {
+    button.onclick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleRaffleSelectorRemoveValue(button.getAttribute("data-selector-remove"));
+    };
+  });
 }
 
 function clearRaffleSelectorTimers() {
@@ -1376,43 +1431,6 @@ app.addEventListener("click", (event) => {
       scrollToPaymentSection();
     }, 50);
     return;
-  }
-});
-
-app.addEventListener("click", (event) => {
-  const ticketButton = event.target.closest("[data-selector-ticket]");
-  if (ticketButton && app.contains(ticketButton)) {
-    event.preventDefault();
-    event.stopPropagation();
-    const value = normalizeTicketDisplayValue(ticketButton.getAttribute("data-selector-ticket"));
-    if (!value) {
-      return;
-    }
-
-    const exists = raffleSelectorState.selected.includes(value);
-    raffleSelectorState.selected = exists
-      ? raffleSelectorState.selected.filter((item) => item !== value)
-      : [...raffleSelectorState.selected, value];
-    persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
-    raffleSelectorState.notice = exists
-      ? `Quitaste ${value} de tu seleccion.`
-      : `Agregaste ${value} a tu seleccion.`;
-    raffleSelectorState.noticeTone = "success";
-    paintRaffleSelector();
-  }
-});
-
-app.addEventListener("click", (event) => {
-  const removeButton = event.target.closest("[data-selector-remove]");
-  if (removeButton && app.contains(removeButton)) {
-    event.preventDefault();
-    event.stopPropagation();
-    const value = normalizeTicketDisplayValue(removeButton.getAttribute("data-selector-remove"));
-    raffleSelectorState.selected = raffleSelectorState.selected.filter((item) => item !== value);
-    persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
-    raffleSelectorState.notice = value ? `Quitaste ${value} de tu seleccion.` : "";
-    raffleSelectorState.noticeTone = "info";
-    paintRaffleSelector();
   }
 });
 
