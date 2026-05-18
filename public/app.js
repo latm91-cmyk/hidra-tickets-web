@@ -28,6 +28,23 @@ const raffleSelectorState = {
   queryTimer: null,
 };
 
+const paymentModalState = {
+  open: false,
+  site: null,
+  slug: "",
+  raffle: null,
+  selected: [],
+  amount: 0,
+  file: null,
+  fileName: "",
+  checkoutUrl: "",
+  loading: false,
+  error: "",
+  notice: "",
+  noticeTone: "info",
+  requestId: 0,
+};
+
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
@@ -499,6 +516,19 @@ function scrollToPaymentSection() {
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+async function readJsonResponse(response) {
+  const raw = await response.text();
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { message: raw };
+  }
 }
 
 function getSelectionStorageKey(raffleId) {
@@ -1048,6 +1078,177 @@ function renderRaffleSelectorModal() {
   `;
 }
 
+function getPaymentModalSelectionTotal(raffle = {}, selected = []) {
+  const quantity = Math.max(0, asArray(selected).length);
+  if (!raffle || quantity <= 0) {
+    return 0;
+  }
+
+  return getRafflePriceForQuantity(raffle, quantity);
+}
+
+function openPaymentModal(payload = {}) {
+  const raffle = payload.raffle || null;
+  const selected = asArray(payload.selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  paymentModalState.open = true;
+  paymentModalState.site = payload.site || null;
+  paymentModalState.slug = String(payload.slug || "").trim();
+  paymentModalState.raffle = raffle;
+  paymentModalState.selected = [...new Set(selected)];
+  paymentModalState.amount = getPaymentModalSelectionTotal(raffle, paymentModalState.selected);
+  paymentModalState.file = null;
+  paymentModalState.fileName = "";
+  paymentModalState.checkoutUrl = "";
+  paymentModalState.loading = false;
+  paymentModalState.error = "";
+  paymentModalState.notice = "";
+  paymentModalState.noticeTone = "info";
+  paymentModalState.requestId += 1;
+  syncPaymentModal();
+  paintPaymentModal();
+}
+
+function closePaymentModal() {
+  paymentModalState.open = false;
+  paymentModalState.site = null;
+  paymentModalState.slug = "";
+  paymentModalState.raffle = null;
+  paymentModalState.selected = [];
+  paymentModalState.amount = 0;
+  paymentModalState.file = null;
+  paymentModalState.fileName = "";
+  paymentModalState.checkoutUrl = "";
+  paymentModalState.loading = false;
+  paymentModalState.error = "";
+  paymentModalState.notice = "";
+  paymentModalState.noticeTone = "info";
+  paymentModalState.requestId += 1;
+  paintPaymentModal();
+  syncPaymentModal();
+}
+
+function syncPaymentModal() {
+  const modal = document.getElementById("payment-modal");
+  if (!modal) return;
+  modal.classList.toggle("is-open", paymentModalState.open);
+  modal.setAttribute("aria-hidden", paymentModalState.open ? "false" : "true");
+  document.body.classList.toggle("modal-open", paymentModalState.open || raffleSelectorState.open);
+}
+
+function renderPaymentModalContent() {
+  const raffle = paymentModalState.raffle || null;
+  const site = paymentModalState.site || {};
+  const selected = asArray(paymentModalState.selected);
+  const title = raffle ? getRaffleDisplayTitle(raffle) : "Pago";
+  const description = raffle
+    ? (getRaffleDisplayDescription(raffle) || "Continúa con tu pago con el método que prefieras.")
+    : "Continúa con tu pago con el método que prefieras.";
+  const total = Number(paymentModalState.amount || getPaymentModalSelectionTotal(raffle, selected) || 0);
+  const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
+  const selectedChips = selected.length
+    ? selected
+      .map((item) => `<span class="payment-chip">${escapeHtml(item)}</span>`)
+      .join("")
+    : `<div class="selector-empty selector-empty-inline">Aun no hay numeros seleccionados.</div>`;
+  const receiptLabel = paymentModalState.fileName
+    ? `<div class="payment-file-name">${escapeHtml(paymentModalState.fileName)}</div>`
+    : "";
+  const notice = paymentModalState.notice
+    ? `<div class="payment-modal-notice payment-modal-notice-${escapeHtml(paymentModalState.noticeTone || "info")}">${escapeHtml(paymentModalState.notice)}</div>`
+    : "";
+  const checkoutUrl = paymentModalState.checkoutUrl || "";
+  const isDisabled = !selected.length || paymentModalState.loading;
+  const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
+
+  return `
+    <div class="payment-modal-head">
+      <div class="payment-modal-head-copy">
+        <span class="section-tag">Pago de boletas</span>
+        <h3>Completa tu compra</h3>
+        <p>${escapeHtml(description)}</p>
+      </div>
+      <button type="button" class="selector-close" data-action="close-payment-modal">Cerrar</button>
+    </div>
+
+    ${notice}
+
+    <div class="payment-modal-grid">
+      <div class="payment-modal-summary">
+        <span class="payment-modal-kicker">Sorteo seleccionado</span>
+        <h4>${escapeHtml(title)}</h4>
+        <p class="payment-modal-copy">${escapeHtml(selected.length ? `Llevas ${selected.length} numero${selected.length === 1 ? "" : "s"} apartados.` : "Selecciona numeros antes de pagar.")}</p>
+        <div class="payment-modal-chips">
+          ${selectedChips}
+        </div>
+        <div class="payment-modal-total">
+          <span>Total a pagar</span>
+          <strong>${escapeHtml(formatCOP(total))}</strong>
+        </div>
+        ${pricingSummary ? `
+          <div class="payment-modal-pricing">
+            <span>Precio de boletería:</span>
+            <p>${escapeHtml(pricingSummary)}</p>
+          </div>
+        ` : ""}
+        <div class="payment-modal-footnote">${escapeHtml(supportLabel)}</div>
+      </div>
+
+      <div class="payment-modal-actions">
+        <div class="payment-action-card">
+          <div class="payment-action-icon payment-action-icon-pse">PSE</div>
+          <div>
+            <strong>Pago en línea</strong>
+            <p>Abre la pasarela para completar la transacción.</p>
+          </div>
+          <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
+          ${checkoutUrl ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
+        </div>
+
+        <div class="payment-action-card">
+          <div class="payment-action-icon payment-action-icon-upload">↥</div>
+          <div>
+            <strong>Cargar comprobante</strong>
+            <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
+          </div>
+          <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
+          <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
+          ${receiptLabel}
+        </div>
+
+        <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
+      </div>
+    </div>
+  `;
+}
+
+function paintPaymentModal() {
+  const content = document.getElementById("payment-modal-content");
+  if (!content) return;
+  content.innerHTML = renderPaymentModalContent();
+  syncPaymentModal();
+}
+
+function renderPaymentModal() {
+  return `
+    <div
+      id="payment-modal"
+      class="payment-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="payment-modal-card">
+        <div id="payment-modal-content" class="payment-modal-content">
+          <div class="selector-empty selector-empty-large">Selecciona numeros para continuar con el pago.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function syncRaffleSelectorModal() {
   const modal = document.getElementById("raffle-selector-modal");
   if (!modal) return;
@@ -1270,6 +1471,120 @@ function closeRaffleSelector() {
   clearRaffleSelectorTimers();
   paintRaffleSelector();
   syncRaffleSelectorModal();
+}
+
+function submitPublicPaymentStateNotice(message, tone = "info") {
+  paymentModalState.notice = message;
+  paymentModalState.noticeTone = tone;
+  paymentModalState.error = tone === "error" ? message : "";
+  paintPaymentModal();
+}
+
+async function submitPublicPseCheckout() {
+  const site = paymentModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+  const raffle = paymentModalState.raffle || null;
+  const selected = asArray(paymentModalState.selected);
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading) {
+    return;
+  }
+
+  const checkoutWindow = window.open("", "_blank");
+  paymentModalState.loading = true;
+  paymentModalState.checkoutUrl = "";
+  submitPublicPaymentStateNotice("Preparando el checkout de PSE...", "info");
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/pse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          selected_numbers: selected,
+        }),
+        cache: "no-store",
+      },
+    );
+
+    const payload = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(payload?.message || "No fue posible preparar el pago en linea.");
+    }
+
+    paymentModalState.loading = false;
+    paymentModalState.checkoutUrl = payload?.checkout_url || "";
+    paintPaymentModal();
+
+    if (paymentModalState.checkoutUrl) {
+      if (checkoutWindow) {
+        checkoutWindow.location.href = paymentModalState.checkoutUrl;
+        checkoutWindow.focus?.();
+        submitPublicPaymentStateNotice("Abrimos la pasarela de PSE en una nueva pestaña.", "success");
+      } else {
+        submitPublicPaymentStateNotice("Ya esta listo tu checkout de PSE. Usa el boton para abrirlo.", "warning");
+      }
+    } else {
+      submitPublicPaymentStateNotice("El checkout quedo listo, pero no recibimos la URL de apertura.", "warning");
+    }
+  } catch (error) {
+    paymentModalState.loading = false;
+    try {
+      checkoutWindow?.close?.();
+    } catch {
+      // Ignore popup cleanup failures.
+    }
+    submitPublicPaymentStateNotice(error?.message || "No fue posible preparar el pago en linea.", "error");
+  }
+}
+
+async function submitPublicReceiptUpload(file = null) {
+  const site = paymentModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+  const raffle = paymentModalState.raffle || null;
+  const selected = asArray(paymentModalState.selected);
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file) {
+    return;
+  }
+
+  paymentModalState.loading = true;
+  paymentModalState.file = file;
+  paymentModalState.fileName = file.name || "Comprobante";
+  submitPublicPaymentStateNotice(`Cargando ${paymentModalState.fileName}...`, "info");
+
+  try {
+    const formData = new FormData();
+    formData.append("selected_numbers", JSON.stringify(selected));
+    formData.append("receipt_file", file, file.name || "comprobante");
+
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/receipt`,
+      {
+        method: "POST",
+        body: formData,
+        cache: "no-store",
+      },
+    );
+
+    const payload = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(payload?.message || "No fue posible cargar el comprobante.");
+    }
+
+    paymentModalState.loading = false;
+    paymentModalState.file = null;
+    paymentModalState.fileName = "";
+    paymentModalState.checkoutUrl = "";
+    submitPublicPaymentStateNotice(
+      payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.",
+      "success",
+    );
+  } catch (error) {
+    paymentModalState.loading = false;
+    submitPublicPaymentStateNotice(error?.message || "No fue posible cargar el comprobante.", "error");
+  }
 }
 
 function renderFaq(site) {
@@ -1595,6 +1910,7 @@ function renderShell(site, slug) {
         </section>
       </main>
         ${renderRaffleSelectorModal()}
+        ${renderPaymentModal()}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
           <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">×</button>
@@ -1634,6 +1950,12 @@ app.addEventListener("click", (event) => {
     return;
   }
 
+  const paymentOverlay = event.target.closest("#payment-modal");
+  if (paymentOverlay && event.target.id === "payment-modal") {
+    closePaymentModal();
+    return;
+  }
+
   const action = event.target.closest("[data-action]");
   if (!action) {
     return;
@@ -1668,10 +1990,46 @@ app.addEventListener("click", (event) => {
   if (actionName === "go-payment-section") {
     event.preventDefault();
     event.stopPropagation();
+    const currentRaffle = raffleSelectorState.raffle || null;
+    const selected = asArray(raffleSelectorState.selected).length
+      ? [...raffleSelectorState.selected]
+      : readPersistedSelection(currentRaffle?.campaign?.id);
+    const site = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+    const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+    if (!currentRaffle || !selected.length) {
+      return;
+    }
     closeRaffleSelector();
-    setTimeout(() => {
-      scrollToPaymentSection();
-    }, 50);
+    openPaymentModal({
+      site,
+      slug,
+      raffle: currentRaffle,
+      selected,
+    });
+    return;
+  }
+
+  if (actionName === "close-payment-modal") {
+    event.preventDefault();
+    event.stopPropagation();
+    closePaymentModal();
+    return;
+  }
+
+  if (actionName === "start-public-pse") {
+    event.preventDefault();
+    event.stopPropagation();
+    submitPublicPseCheckout();
+    return;
+  }
+
+  if (actionName === "trigger-public-receipt-upload") {
+    event.preventDefault();
+    event.stopPropagation();
+    const receiptInput = app.querySelector("[data-public-receipt-input]");
+    if (receiptInput) {
+      receiptInput.click();
+    }
     return;
   }
 });
@@ -1690,6 +2048,21 @@ app.addEventListener("input", (event) => {
   raffleSelectorState.queryTimer = setTimeout(() => {
     fetchRaffleSelectorNumbers();
   }, 300);
+});
+
+app.addEventListener("change", (event) => {
+  const receiptInput = event.target.closest("[data-public-receipt-input]");
+  if (!receiptInput || !app.contains(receiptInput)) {
+    return;
+  }
+
+  const file = receiptInput.files?.[0] || null;
+  receiptInput.value = "";
+  if (!file) {
+    return;
+  }
+
+  submitPublicReceiptUpload(file);
 });
 
 async function loadSite() {
