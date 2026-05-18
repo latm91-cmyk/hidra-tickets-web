@@ -1,4 +1,4 @@
-const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
+﻿const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
 const API_BASE_URL = String(CONFIG.apiBaseUrl || "http://localhost:10000").replace(/\/+$/, "");
 const app = document.getElementById("app");
 const ASSETS = {
@@ -248,7 +248,7 @@ function renderWinnerVideos(site) {
                   ${video.drawDate ? `<span class="chip">${escapeHtml(formatDate(video.drawDate))}</span>` : ""}
                 </div>
                 <h3 class="card-title">${escapeHtml(video.title)}</h3>
-                <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` � ${escapeHtml(video.prize)}` : ""}</p>
+                <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` · ${escapeHtml(video.prize)}` : ""}</p>
                 
               </div>
             </article>
@@ -312,53 +312,78 @@ function renderSections(site, sections, title, description) {
   `;
 }
 
-function renderPreview(site) {
+function renderTrustStrip(site) {
   const settings = site?.settings || {};
   const company = site?.company || {};
-  const heroImage = settings.heroImageUrl || ASSETS.hero;
-  const heroTitle = settings.heroTitle || settings.title || company.nombre || "Rifas";
-  const heroSubtitle = settings.heroSubtitle || settings.subtitle || "Una experiencia de rifas administrada desde el backend.";
-  const raffles = asArray(site.activeRaffles).slice(0, 2);
-  const videos = asArray(site.winnerVideos).slice(0, 2);
+  const items = [
+    {
+      title: "Compra segura",
+      text: "Tu información y tu pago se gestionan desde el backend.",
+    },
+    {
+      title: "Sorteos visibles",
+      text: `${asArray(site.activeRaffles).length} sorteos activos en la landing.`,
+    },
+    {
+      title: "Premios reales",
+      text: `${asArray(site.winnerVideos).length} videos de ganadores publicados.`,
+    },
+    {
+      title: "Atención directa",
+      text: settings.whatsappNumber || company.whatsapp_number ? `WhatsApp: ${settings.whatsappNumber || company.whatsapp_number}` : "Soporte por WhatsApp",
+    },
+  ];
 
   return `
-    <div class="site-preview">
-      <div class="preview-hero">
-        <div class="preview-hero-copy">
-          <span class="section-tag">Vista previa del sitio p�blico</span>
-          <h3>${escapeHtml(heroTitle)}</h3>
-          <p>${escapeHtml(heroSubtitle)}</p>
-          <div class="chip-row">
-            ${settings.whatsappNumber ? `<span class="chip">WhatsApp: ${escapeHtml(settings.whatsappNumber)}</span>` : ""}
-            <span class="chip">${escapeHtml(String(asArray(site.activeRaffles).length))} sorteos</span>
-            <span class="chip">${escapeHtml(String(asArray(site.winnerVideos).length))} videos</span>
-          </div>
-        </div>
-        <div class="preview-hero-media">
-          <img src="${escapeHtml(heroImage)}" alt="${escapeHtml(heroTitle)}" />
+    <section class="section shell trust-strip">
+      ${items
+        .map(
+          (item) => `
+            <div class="trust-item">
+              <div class="trust-icon">✦</div>
+              <div>
+                <strong>${escapeHtml(item.title)}</strong>
+                <span>${escapeHtml(item.text)}</span>
+              </div>
+            </div>
+          `,
+        )
+        .join("")}
+    </section>
+  `;
+}
+
+function renderHowItWorks() {
+  const steps = [
+    ["Escoge tus números", "Selecciona los números que más te gusten."],
+    ["Realiza el pago", "Paga por el medio que prefieras."],
+    ["Envía comprobante", "Sube el soporte desde WhatsApp."],
+    ["Recibe tu boleta", "La boleta queda lista para seguimiento."],
+  ];
+
+  return `
+    <section class="section shell section-anchor">
+      <div class="section-head">
+        <div>
+          <span class="section-tag">Cómo participar</span>
+          <h2>Compra en menos de 2 minutos</h2>
+          <p>Una ruta clara y rápida para pasar de ver el sorteo a tener tu boleta registrada.</p>
         </div>
       </div>
-      <div class="preview-grid">
-        <div class="preview-column">
-          <h4>Sorteos visibles</h4>
-          ${raffles.length ? raffles.map(({ campaign, publicConfig }) => `
-            <div class="preview-item">
-              <strong>${escapeHtml(publicConfig?.publicTitle || campaign?.name || "Sorteo")}</strong>
-              <div>${escapeHtml(publicConfig?.publicDescription || campaign?.name || "")}</div>
-            </div>
-          `).join("") : `<div class="preview-empty">No hay sorteos visibles cargados.</div>`}
-        </div>
-        <div class="preview-column">
-          <h4>Videos de ganadores</h4>
-          ${videos.length ? videos.map((video) => `
-            <div class="preview-item">
-              <strong>${escapeHtml(video.title)}</strong>
-              <div>${escapeHtml(video.winnerName || "Ganador verificado")}${video.city ? ` � ${escapeHtml(video.city)}` : ""}</div>
-            </div>
-          `).join("") : `<div class="preview-empty">No hay videos publicados.</div>`}
-        </div>
+      <div class="grid-4">
+        ${steps
+          .map(
+            ([title, text], index) => `
+              <article class="step-card">
+                <div class="step-number">${index + 1}</div>
+                <strong>${escapeHtml(title)}</strong>
+                <p>${escapeHtml(text)}</p>
+              </article>
+            `,
+          )
+          .join("")}
       </div>
-    </div>
+    </section>
   `;
 }
 
@@ -410,7 +435,7 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div>
-                <span class="eyebrow">Pagina publica activa � ${escapeHtml(company.activo ? "empresa activa" : "empresa inactiva")}</span>
+                <span class="eyebrow">Pagina publica activa · ${escapeHtml(company.activo ? "empresa activa" : "empresa inactiva")}</span>
                 <h1>${escapeHtml(heroTitle)}${slogan ? ` <span class="accent">${escapeHtml(slogan)}</span>` : ""}</h1>
                 <p>${escapeHtml(heroSubtitle)}</p>
                 <div class="hero-actions">
@@ -418,7 +443,7 @@ function renderShell(site, slug) {
                   <a class="button secondary" href="#sorteos">Ver sorteos</a>
                 </div>
                 <div class="hero-ribbon">
-                  <span>🌾</span>
+                  <span>ðŸŒ¾</span>
                   <span>${escapeHtml(settings.heroButtonUrl ? "Contenido sincronizado con backend" : "Contenido sincronizado con backend")}</span>
                 </div>
                 <div class="hero-meta">
@@ -448,6 +473,8 @@ function renderShell(site, slug) {
           </div>
         </section>
 
+        ${renderTrustStrip(site)}
+
         <section class="section shell section-anchor" id="sorteos">
           <div class="section-head">
             <div>
@@ -458,6 +485,8 @@ function renderShell(site, slug) {
           </div>
           ${renderRaffles(site)}
         </section>
+
+        ${renderHowItWorks()}
 
         ${paymentSections.length ? `
           <section class="section shell section-anchor" id="pagos">
@@ -536,18 +565,7 @@ function renderShell(site, slug) {
             </div>
           </div>
         </section>
-
-        <section class="section shell">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Vista interna</span>
-              <h2>Snapshot consumido desde el backend</h2>
-              <p>Esta primera version ya lee la API y renderiza contenido real; aqui puedes revisar el JSON recibido.</p>
-            </div>
-          </div>
-          ${renderPreview(site)}
-        </section>
-      </main>
+</main>
     </div>
   `;
 }
@@ -607,6 +625,8 @@ async function loadSite() {
 }
 
 loadSite();
+
+
 
 
 
