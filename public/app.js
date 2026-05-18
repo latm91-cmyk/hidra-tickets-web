@@ -820,7 +820,7 @@ function renderRaffleSelectorContent() {
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Selecciona un sorteo";
   const description = raffle ? getRaffleDisplayDescription(raffle) : "";
   const image = raffle ? getRaffleDisplayImage(raffle, site) : ASSETS.raffle;
-  const price = raffle ? getRaffleDisplayPrice(raffle) : "";
+    const pricingBadge = raffle ? getRafflePricingBadge(raffle) : "";
   const drawDate = raffle ? getRaffleDisplayDate(raffle) : "";
   const mode = raffle ? getRaffleDisplayMode(raffle) : "";
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
@@ -897,11 +897,11 @@ function renderRaffleSelectorContent() {
           <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" />
         </div>
         <div class="selector-hero-body">
-          <div class="chip-row">
-            ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
-            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
-            ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
-          </div>
+            <div class="chip-row">
+              ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+              ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+              ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
+            </div>
           <div class="selector-hero-stats">
             <div>
               <strong>${escapeHtml(String(availableCount))}</strong>
