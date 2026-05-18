@@ -203,6 +203,30 @@ button {
   box-shadow: 0 14px 30px rgba(214, 161, 62, 0.26);
 }
 
+.button.whatsapp {
+  background: linear-gradient(135deg, #25d366, #1faa59);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(37, 211, 102, 0.28);
+}
+
+.button.whatsapp:hover {
+  background: linear-gradient(135deg, #2ade71, #159e4d);
+}
+
+.whatsapp-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.whatsapp-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .hero {
   padding: 28px 0 12px;
 }
@@ -837,6 +861,15 @@ button {
   font-size: 22px;
   line-height: 1.05;
   letter-spacing: -0.04em;
+}
+
+.selector-summary-total {
+  margin: 8px 0 0;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: #f8fafc;
 }
 
 .selected-list {
@@ -1665,11 +1698,24 @@ button {
     gap: 6px;
   }
 
-  .selector-summary-mobile-copy strong {
-    font-size: 15px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
+.selector-summary-mobile-copy strong {
+  font-size: 15px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.selector-summary-mobile-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 800;
+}
 
   .selector-summary-mobile-copy span:last-child {
     color: rgba(255, 255, 255, 0.78);
@@ -1709,6 +1755,10 @@ button {
 
   .selector-summary-mobile-actions .button {
     width: 100%;
+  }
+
+  .selector-summary-mobile-actions .button.whatsapp {
+    justify-content: center;
   }
 
   .hero-grid {

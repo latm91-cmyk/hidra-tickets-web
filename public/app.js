@@ -261,6 +261,29 @@ function whatsappLink(number) {
   return digits ? `https://wa.me/${digits}` : "#";
 }
 
+function isMobileDevice() {
+  return (
+    typeof navigator !== "undefined"
+    && (
+      /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || "")
+      || (navigator.maxTouchPoints || 0) > 1
+      || window.matchMedia?.("(pointer: coarse)")?.matches
+    )
+  );
+}
+
+function buildWhatsAppHref(number, message) {
+  const digits = String(number || "").replace(/\D/g, "");
+  if (!digits) return "#";
+
+  const text = encodeURIComponent(String(message || ""));
+  if (isMobileDevice()) {
+    return `https://wa.me/${digits}?text=${text}`;
+  }
+
+  return `https://web.whatsapp.com/send?phone=${digits}&text=${text}`;
+}
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -549,6 +572,7 @@ function renderRaffleSelectorContent() {
   const availableCount = Number(stats.availableCount || raffleSelectorState.numbers.length || 0);
   const inventoryTotal = Number(stats.inventoryTotal || total || 0);
   const selected = raffleSelectorState.selected || [];
+  const selectedAmount = selected.length * Number(price ? String(price).replace(/[^\d]/g, "") : 0);
   const selectedCopy = selected.length
     ? selected
       .map((item) => `
@@ -586,9 +610,9 @@ function renderRaffleSelectorContent() {
   const isReady = raffle && !raffleSelectorState.loading;
   const whatsappNumber = getRaffleDisplayWhatsApp(site);
   const cleanWhatsapp = String(whatsappNumber || "").replace(/\D/g, "");
-  const whatsappHref = cleanWhatsapp && selected.length
-    ? `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(buildSelectionMessage(raffle, selected))}`
-    : "#";
+  const whatsappMessage = buildSelectionMessage(raffle, selected);
+  const whatsappHref = cleanWhatsapp && selected.length ? buildWhatsAppHref(cleanWhatsapp, whatsappMessage) : "#";
+  const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp Web";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} boletas visibles`;
   const lastUpdated = raffleSelectorState.updatedAt ? formatRelativeTime(raffleSelectorState.updatedAt) : "Actualizando...";
   const notice = raffleSelectorState.notice
@@ -662,6 +686,7 @@ function renderRaffleSelectorContent() {
         <div class="selector-summary-head">
           <span class="section-tag">Tu seleccion</span>
           <h4>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"}` : "Aun no seleccionas numeros"}</h4>
+          ${selected.length ? `<p class="selector-summary-total">${escapeHtml(formatCOP(selectedAmount))}</p>` : ""}
         </div>
         <div class="selected-list">
           ${selectedCopy}
@@ -673,13 +698,18 @@ function renderRaffleSelectorContent() {
           <div class="selector-summary-actions">
             <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
             <a
-              class="button gold ${selected.length && isReady ? "" : "is-disabled"}"
+              class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
               href="${escapeHtml(whatsappHref)}"
               target="_blank"
               rel="noreferrer"
               ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
             >
-              Continuar por WhatsApp
+              <span class="whatsapp-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                  <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
+                </svg>
+              </span>
+              <span>${escapeHtml(whatsappLabel)}</span>
             </a>
           </div>
         </div>
@@ -690,6 +720,7 @@ function renderRaffleSelectorContent() {
       <div class="selector-summary-mobile-copy">
         <span class="section-tag">Tu seleccion</span>
         <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} elegidos` : "Sin numeros aun"}</strong>
+        ${selected.length ? `<span class="selector-summary-mobile-total">${escapeHtml(formatCOP(selectedAmount))}</span>` : ""}
         <span>${selected.length ? buildSelectionMessage(raffle, selected) : "Toca un numero para empezar."}</span>
       </div>
       <div class="selector-summary-mobile-chips">
@@ -702,13 +733,18 @@ function renderRaffleSelectorContent() {
       <div class="selector-summary-mobile-actions">
         <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
         <a
-          class="button gold ${selected.length && isReady ? "" : "is-disabled"}"
+          class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
           href="${escapeHtml(whatsappHref)}"
           target="_blank"
           rel="noreferrer"
           ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
         >
-          WhatsApp
+          <span class="whatsapp-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+              <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span>${escapeHtml(whatsappLabel)}</span>
         </a>
       </div>
     </div>
