@@ -224,13 +224,6 @@ function removeRaffleSelectorTicket(value) {
   handleRaffleSelectorRemoveValue(value);
 }
 
-window.selectRaffleSelectorTicket = selectRaffleSelectorTicket;
-window.removeRaffleSelectorTicket = removeRaffleSelectorTicket;
-window.__PUBLIC_RAFFLE_SELECTOR__ = {
-  select: selectRaffleSelectorTicket,
-  remove: removeRaffleSelectorTicket,
-};
-
 function formatTicketSelectionLabel(ticket = {}) {
   const numbers = Array.isArray(ticket.numbers)
     ? ticket.numbers.map(normalizeTicketDisplayValue).filter(Boolean)
@@ -724,7 +717,6 @@ function renderRaffleSelectorContent() {
           type="button"
           class="selected-chip"
           data-selector-remove="${escapeAttr(item)}"
-          onclick='window.__PUBLIC_RAFFLE_SELECTOR__.remove(${JSON.stringify(item)}, event); return false;'
         >
           <span>${escapeHtml(item)}</span>
           <strong>×</strong>
@@ -745,7 +737,6 @@ function renderRaffleSelectorContent() {
               type="button"
               class="ticket-chip ${isSelected ? "is-selected" : ""}"
               data-selector-ticket="${escapeAttr(label)}"
-              onclick='window.__PUBLIC_RAFFLE_SELECTOR__.select(${JSON.stringify(label)}, event); return false;'
               aria-pressed="${isSelected ? "true" : "false"}"
             >
               ${escapeHtml(label)}
@@ -883,7 +874,7 @@ function renderRaffleSelectorContent() {
       <div class="selector-summary-mobile-chips">
         ${selected.length
           ? selected
-            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}" onclick='window.__PUBLIC_RAFFLE_SELECTOR__.remove(${JSON.stringify(item)}, event); return false;'>${escapeHtml(item)}<strong>×</strong></button>`)
+            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>×</strong></button>`)
             .join("")
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
@@ -999,16 +990,7 @@ function bindRaffleSelectorActions(content) {
         handleRaffleSelectorRemoveValue(removeButton.getAttribute("data-selector-remove"));
       }
     });
-
   }
-
-  content.querySelectorAll("[data-selector-remove]").forEach((button) => {
-    button.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      handleRaffleSelectorRemoveValue(button.getAttribute("data-selector-remove"));
-    };
-  });
 }
 
 function clearRaffleSelectorTimers() {
