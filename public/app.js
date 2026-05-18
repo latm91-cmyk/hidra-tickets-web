@@ -34,6 +34,11 @@ const currencyFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
 });
 
+function formatCOP(value) {
+  const numeric = Number(value || 0);
+  return Number.isFinite(numeric) ? currencyFormatter.format(numeric) : currencyFormatter.format(0);
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
