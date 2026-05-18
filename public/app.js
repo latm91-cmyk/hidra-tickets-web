@@ -427,7 +427,7 @@ function renderHowItWorks() {
   ];
 
   return `
-    <section class="section shell section-anchor">
+    <section class="section shell section-anchor" id="como-participar">
       <div class="section-head">
         <div>
           <span class="section-tag">Cómo participar</span>
@@ -484,19 +484,24 @@ function renderShell(site, slug) {
             </div>
             <div>
               <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
-              <span class="brand-subtitle">${escapeHtml(company.qr_logo ? "Sitio administrado desde el backend" : "Sitio administrado desde el backend")}</span>
+              <span class="brand-subtitle">Tu portal de rifas y ganadores</span>
             </div>
           </div>
+          <nav class="top-nav" aria-label="Navegación principal">
+            <a href="#inicio">Inicio</a>
+            <a href="#sorteos">Sorteos</a>
+            <a href="#videos">Ganadores</a>
+            <a href="#como-participar">Cómo participar</a>
+            <a href="#faq">Ayuda</a>
+          </nav>
           <div class="top-actions">
-            ${slug ? `<span class="pill">/${escapeHtml(slug)}</span>` : `<span class="pill">Sin slug</span>`}
-            ${settings.whatsappNumber ? `<a class="button secondary" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">WhatsApp</a>` : ""}
-            ${heroButton ? `<a class="button primary" href="${escapeHtml(heroButton)}" target="_blank" rel="noreferrer">${escapeHtml(heroLabel)}</a>` : ""}
+            ${settings.whatsappNumber ? `<a class="button topbar-cta" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">Escríbenos</a>` : ""}
           </div>
         </div>
       </header>
 
       <main>
-        <section class="hero">
+        <section class="hero" id="inicio">
           <div class="shell hero-card">
             <div class="hero-grid">
               <div>
