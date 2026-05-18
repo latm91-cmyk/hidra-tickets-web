@@ -935,7 +935,7 @@ function paintRaffleSelector() {
   const content = document.getElementById("raffle-selector-content");
   if (!content) return;
   content.innerHTML = renderRaffleSelectorContent();
-  bindRaffleSelectorActions();
+  bindRaffleSelectorActions(content);
   syncRaffleSelectorModal();
 }
 
@@ -970,19 +970,31 @@ function handleRaffleSelectorRemoveValue(rawValue) {
   paintRaffleSelector();
 }
 
-function bindRaffleSelectorActions() {
-  const content = document.getElementById("raffle-selector-content");
+function bindRaffleSelectorActions(content) {
   if (!content) {
     return;
   }
 
-  content.querySelectorAll("[data-selector-ticket]").forEach((button) => {
-    button.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      handleRaffleSelectorTicketValue(button.getAttribute("data-selector-ticket"));
-    };
-  });
+  if (!content.dataset.raffleSelectorBound) {
+    content.dataset.raffleSelectorBound = "1";
+    content.addEventListener("click", (event) => {
+      const ticketButton = event.target.closest("[data-selector-ticket]");
+      if (ticketButton && content.contains(ticketButton)) {
+        event.preventDefault();
+        event.stopPropagation();
+        handleRaffleSelectorTicketValue(ticketButton.getAttribute("data-selector-ticket"));
+        return;
+      }
+
+      const removeButton = event.target.closest("[data-selector-remove]");
+      if (removeButton && content.contains(removeButton)) {
+        event.preventDefault();
+        event.stopPropagation();
+        handleRaffleSelectorRemoveValue(removeButton.getAttribute("data-selector-remove"));
+      }
+    });
+
+  }
 
   content.querySelectorAll("[data-selector-remove]").forEach((button) => {
     button.onclick = (event) => {
