@@ -27,6 +27,26 @@ const contentTypes = {
   ".html": "text/html; charset=utf-8",
 };
 
+async function getAssetVersion() {
+  const targets = [
+    path.join(publicDir, "app.js"),
+    path.join(publicDir, "styles.css"),
+    path.join(publicDir, "index.html"),
+  ];
+  const timestamps = await Promise.all(
+    targets.map(async (filePath) => {
+      try {
+        const stat = await fs.stat(filePath);
+        return stat.mtimeMs || stat.ctimeMs || Date.now();
+      } catch {
+        return 0;
+      }
+    }),
+  );
+
+  return String(Math.max(...timestamps, Date.now())).replace(/\D/g, "");
+}
+
 async function fileExists(filePath) {
   try {
     const stat = await fs.stat(filePath);
@@ -55,7 +75,10 @@ async function serveAsset(res, filePath) {
 
 async function serveIndex(res) {
   const template = await fs.readFile(path.join(publicDir, "index.html"), "utf8");
-  const html = template.replaceAll("__API_BASE_URL__", apiBaseUrl);
+  const assetVersion = await getAssetVersion();
+  const html = template
+    .replaceAll("__API_BASE_URL__", apiBaseUrl)
+    .replaceAll("__ASSET_VERSION__", assetVersion);
   res.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
     "Cache-Control": "no-store",
