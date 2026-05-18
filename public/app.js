@@ -234,43 +234,70 @@ function renderRaffles(site) {
     `;
   }
 
+  const featured = raffles[0];
+  const rest = raffles.slice(1);
+  const renderRaffleCard = ({ campaign, publicConfig }, featuredMode = false) => {
+    const image = publicConfig?.coverImageUrl || site.settings?.heroImageUrl || ASSETS.hero;
+    const isFeatured = featuredMode || publicConfig?.isFeatured;
+    const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
+    const description = publicConfig?.publicDescription || campaign?.name || "";
+    const drawDate = campaign?.drawDate ? formatDate(campaign.drawDate) : "";
+    const price = campaign?.numberValue ? currencyFormatter.format(Number(campaign.numberValue)) : "";
+    const mode = campaign?.registrationMode || campaign?.selectionMode || "automatico";
+    const buttonHref = site.settings?.heroButtonUrl || whatsappLink(site.settings?.whatsappNumber || site.company?.whatsapp_number);
+
+    if (featuredMode) {
+      return `
+        <article class="raffle-feature">
+          <div class="raffle-feature-media">
+            <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+            <div class="raffle-feature-badge">${isFeatured ? "Sorteo destacado" : "Sorteo disponible"}</div>
+          </div>
+          <div class="raffle-feature-body">
+            <div class="chip-row">
+              ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+              <span class="chip">${escapeHtml(mode)}</span>
+              ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            </div>
+            <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
+            ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
+            <div class="raffle-feature-actions">
+              <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis números</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    return `
+      <article class="raffle-card raffle-card-compact">
+        <div class="raffle-card-media">
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+          ${isFeatured ? `<div class="card-flag">Destacado</div>` : ""}
+        </div>
+        <div class="raffle-card-body">
+          <h3 class="raffle-card-title">${escapeHtml(heroTitle)}</h3>
+          ${description ? `<p class="raffle-card-copy">${escapeHtml(description)}</p>` : ""}
+          <div class="chip-row">
+            ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+            <span class="chip">${escapeHtml(mode)}</span>
+          </div>
+          <div class="chip-row">
+            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            ${campaign?.totalNumeros ? `<span class="chip">${escapeHtml(String(campaign.totalNumeros))} boletas</span>` : ""}
+          </div>
+          <div class="raffle-card-actions">
+            <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis números</a>
+          </div>
+        </div>
+      </article>
+    `;
+  };
+
   return `
-    <div class="raffles-grid">
-      ${raffles
-        .map(({ campaign, publicConfig }) => {
-          const image = publicConfig?.coverImageUrl || ASSETS.raffle;
-          const isFeatured = publicConfig?.isFeatured;
-          const heroTitle = publicConfig?.publicTitle || campaign?.name || "Sorteo";
-          const description = publicConfig?.publicDescription || campaign?.name || "";
-          const drawDate = campaign?.drawDate ? formatDate(campaign.drawDate) : "";
-          const price = campaign?.numberValue ? currencyFormatter.format(Number(campaign.numberValue)) : "";
-          const mode = campaign?.registrationMode || campaign?.selectionMode || "automatico";
-          const buttonHref = site.settings?.heroButtonUrl || whatsappLink(site.settings?.whatsappNumber || site.company?.whatsapp_number);
-          return `
-            <article class="raffle-card">
-              <div class="raffle-card-media">
-                ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />` : ""}
-                ${isFeatured ? `<div class="card-flag">Destacado</div>` : ""}
-              </div>
-              <div class="raffle-card-body">
-                <h3 class="raffle-card-title">${escapeHtml(heroTitle)}</h3>
-                ${description ? `<p class="raffle-card-copy">${escapeHtml(description)}</p>` : ""}
-                <div class="chip-row">
-                  ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
-                  <span class="chip">${escapeHtml(mode)}</span>
-                </div>
-                <div class="chip-row">
-                  ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
-                  ${campaign?.totalNumeros ? `<span class="chip">${escapeHtml(String(campaign.totalNumeros))} boletas</span>` : ""}
-                </div>
-                <div class="raffle-card-actions">
-                  <a class="button gold" href="${escapeHtml(buttonHref)}" target="_blank" rel="noreferrer">Escoger mis números</a>
-                </div>
-              </div>
-            </article>
-          `;
-        })
-        .join("")}
+    <div class="raffle-showcase">
+      ${renderRaffleCard(featured, true)}
+      ${rest.length ? `<div class="raffles-grid">${rest.map((raffle) => renderRaffleCard(raffle, false)).join("")}</div>` : ""}
     </div>
   `;
 }
