@@ -720,7 +720,6 @@ function renderRaffleSelectorContent() {
           type="button"
           class="selected-chip"
           data-selector-remove="${escapeAttr(item)}"
-          onclick="removeRaffleSelectorTicket(${JSON.stringify(item)}); return false;"
         >
           <span>${escapeHtml(item)}</span>
           <strong>×</strong>
@@ -741,7 +740,6 @@ function renderRaffleSelectorContent() {
               type="button"
               class="ticket-chip ${isSelected ? "is-selected" : ""}"
               data-selector-ticket="${escapeAttr(label)}"
-              onclick="selectRaffleSelectorTicket(${JSON.stringify(label)}); return false;"
               aria-pressed="${isSelected ? "true" : "false"}"
             >
               ${escapeHtml(label)}
@@ -879,7 +877,7 @@ function renderRaffleSelectorContent() {
       <div class="selector-summary-mobile-chips">
         ${selected.length
           ? selected
-            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}" onclick="removeRaffleSelectorTicket(${JSON.stringify(item)}); return false;">${escapeHtml(item)}<strong>×</strong></button>`)
+            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>×</strong></button>`)
             .join("")
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
