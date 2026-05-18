@@ -2171,12 +2171,8 @@ async function loadSite() {
   if (!slug) {
     app.innerHTML = `
       <div class="page">
-        <div class="loading-shell">
-          <div class="loading-card">
-            <div class="loading-badge">Cargando...</div>
-            <h1>Preparando la pagina</h1>
-            <p>Estamos cargando tu sitio publico.</p>
-          </div>
+        <div class="loading-shell loading-shell-minimal" aria-label="Cargando sitio">
+          <div class="loading-spinner"></div>
         </div>
       </div>
     `;
@@ -2184,12 +2180,8 @@ async function loadSite() {
   }
 
   app.innerHTML = `
-    <div class="loading-shell">
-      <div class="loading-card">
-        <div class="loading-badge">Cargando...</div>
-        <h1>Preparando tu pagina</h1>
-        <p>En un momento veras el sitio publico de /${escapeHtml(slug)}.</p>
-      </div>
+    <div class="loading-shell loading-shell-minimal" aria-label="Cargando sitio">
+      <div class="loading-spinner"></div>
     </div>
   `;
 
