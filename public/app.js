@@ -608,6 +608,7 @@ function renderRaffleSelectorContent() {
               type="button"
               class="ticket-chip ${isSelected ? "is-selected" : ""}"
               data-selector-ticket="${escapeAttr(label)}"
+              aria-pressed="${isSelected ? "true" : "false"}"
             >
               ${escapeHtml(label)}
             </button>
@@ -685,6 +686,13 @@ function renderRaffleSelectorContent() {
           </div>
         </div>
         ${notice}
+        ${selected.length ? `
+          <div class="selector-live-summary">
+            <strong>${selected.length} numero${selected.length === 1 ? "" : "s"} seleccionados</strong>
+            <span>${escapeHtml(formatCOP(selectedAmount))}</span>
+            <p>${escapeHtml(buildSelectionMessage(raffle, selected))}</p>
+          </div>
+        ` : ""}
         <div class="ticket-grid">
           ${numbersHtml}
         </div>
@@ -1309,18 +1317,21 @@ app.addEventListener("click", (event) => {
   const actionName = action.getAttribute("data-action");
   if (actionName === "close-raffle-selector") {
     event.preventDefault();
+    event.stopPropagation();
     closeRaffleSelector();
     return;
   }
 
   if (actionName === "refresh-raffle-selector") {
     event.preventDefault();
+    event.stopPropagation();
     fetchRaffleSelectorNumbers();
     return;
   }
 
   if (actionName === "clear-raffle-selection") {
     event.preventDefault();
+    event.stopPropagation();
     raffleSelectorState.selected = [];
     raffleSelectorState.notice = "Seleccion limpiada.";
     raffleSelectorState.noticeTone = "info";
@@ -1330,6 +1341,7 @@ app.addEventListener("click", (event) => {
 
   if (actionName === "go-payment-section") {
     event.preventDefault();
+    event.stopPropagation();
     closeRaffleSelector();
     setTimeout(() => {
       scrollToPaymentSection();
@@ -1342,6 +1354,7 @@ app.addEventListener("click", (event) => {
   const ticketButton = event.target.closest("[data-selector-ticket]");
   if (ticketButton && app.contains(ticketButton)) {
     event.preventDefault();
+    event.stopPropagation();
     const value = normalizeTicketDisplayValue(ticketButton.getAttribute("data-selector-ticket"));
     if (!value) {
       return;
@@ -1363,6 +1376,7 @@ app.addEventListener("click", (event) => {
   const removeButton = event.target.closest("[data-selector-remove]");
   if (removeButton && app.contains(removeButton)) {
     event.preventDefault();
+    event.stopPropagation();
     const value = normalizeTicketDisplayValue(removeButton.getAttribute("data-selector-remove"));
     raffleSelectorState.selected = raffleSelectorState.selected.filter((item) => item !== value);
     raffleSelectorState.notice = value ? `Quitaste ${value} de tu seleccion.` : "";
