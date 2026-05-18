@@ -2139,6 +2139,13 @@ button {
     gap: 10px;
   }
 
+  .selector-summary-mobile-actions .button.primary {
+    grid-column: 1 / -1;
+    min-height: 54px;
+    font-size: 15px;
+    box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+  }
+
   .selector-summary-mobile-actions .button {
     width: 100%;
   }
