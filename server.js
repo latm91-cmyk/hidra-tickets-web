@@ -7,7 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
 const port = Number.parseInt(process.env.PORT || "3000", 10);
-const apiBaseUrl = (process.env.API_BASE_URL || process.env.PUBLIC_API_URL || "http://localhost:10000").replace(/\/+$/, "");
+const apiBaseUrl = (
+  process.env.API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.PUBLIC_API_URL ||
+  "http://localhost:10000"
+).replace(/\/+$/, "");
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",

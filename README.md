@@ -13,6 +13,7 @@ Primera version del sitio publico conectado al backend por slug.
 
 - `PORT`: puerto del web service
 - `API_BASE_URL`: URL publica del backend, por ejemplo `https://tu-backend.onrender.com`
+- `NEXT_PUBLIC_API_URL`: alternativa soportada para Render, apuntando al backend
 
 ## Desarrollo local
 
@@ -42,4 +43,3 @@ En Render:
 - FAQ
 - Legal
 - Vista previa del snapshot
-
