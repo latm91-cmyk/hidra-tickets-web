@@ -295,6 +295,31 @@ function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function getSelectionStorageKey(raffleId) {
+  const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "public";
+  return `hidra-tickets-selection:${slug}:${String(raffleId || "")}`;
+}
+
+function readPersistedSelection(raffleId) {
+  try {
+    const raw = window.localStorage.getItem(getSelectionStorageKey(raffleId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map((item) => String(item || "").trim()).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistSelection(raffleId, selected) {
+  try {
+    const value = JSON.stringify(asArray(selected).map((item) => String(item || "").trim()).filter(Boolean));
+    window.localStorage.setItem(getSelectionStorageKey(raffleId), value);
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
 function formatDate(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -578,7 +603,10 @@ function renderRaffleSelectorContent() {
   const stats = raffleSelectorState.stats || {};
   const availableCount = Number(stats.availableCount || raffleSelectorState.numbers.length || 0);
   const inventoryTotal = Number(stats.inventoryTotal || total || 0);
-  const selected = raffleSelectorState.selected || [];
+  const persistedSelected = raffle ? readPersistedSelection(raffle.campaign.id) : [];
+  const selected = raffleSelectorState.selected?.length
+    ? raffleSelectorState.selected
+    : persistedSelected;
   const selectedAmount = selected.length * Number(price ? String(price).replace(/[^\d]/g, "") : 0);
   const hasPaymentSections = asArray(site.paymentMethods).length > 0;
   const selectedCopy = selected.length
@@ -908,7 +936,7 @@ function openRaffleSelector(raffleId) {
   raffleSelectorState.slug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || "";
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
-  raffleSelectorState.selected = [];
+  raffleSelectorState.selected = readPersistedSelection(raffle.campaign.id);
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
   raffleSelectorState.loading = true;
@@ -1333,6 +1361,7 @@ app.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     raffleSelectorState.selected = [];
+    persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
     raffleSelectorState.notice = "Seleccion limpiada.";
     raffleSelectorState.noticeTone = "info";
     paintRaffleSelector();
@@ -1364,6 +1393,7 @@ app.addEventListener("click", (event) => {
     raffleSelectorState.selected = exists
       ? raffleSelectorState.selected.filter((item) => item !== value)
       : [...raffleSelectorState.selected, value];
+    persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
     raffleSelectorState.notice = exists
       ? `Quitaste ${value} de tu seleccion.`
       : `Agregaste ${value} a tu seleccion.`;
@@ -1379,6 +1409,7 @@ app.addEventListener("click", (event) => {
     event.stopPropagation();
     const value = normalizeTicketDisplayValue(removeButton.getAttribute("data-selector-remove"));
     raffleSelectorState.selected = raffleSelectorState.selected.filter((item) => item !== value);
+    persistSelection(raffleSelectorState.raffle?.campaign?.id, raffleSelectorState.selected);
     raffleSelectorState.notice = value ? `Quitaste ${value} de tu seleccion.` : "";
     raffleSelectorState.noticeTone = "info";
     paintRaffleSelector();
