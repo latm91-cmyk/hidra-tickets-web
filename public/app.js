@@ -35,6 +35,9 @@ const paymentModalState = {
   raffle: null,
   selected: [],
   amount: 0,
+  customerName: "",
+  customerCity: "",
+  customerPhone: "",
   file: null,
   fileName: "",
   checkoutUrl: "",
@@ -1095,6 +1098,9 @@ function openPaymentModal(payload = {}) {
   paymentModalState.raffle = raffle;
   paymentModalState.selected = [...new Set(selected)];
   paymentModalState.amount = getPaymentModalSelectionTotal(raffle, paymentModalState.selected);
+  paymentModalState.customerName = "";
+  paymentModalState.customerCity = "";
+  paymentModalState.customerPhone = "";
   paymentModalState.file = null;
   paymentModalState.fileName = "";
   paymentModalState.checkoutUrl = "";
@@ -1114,6 +1120,9 @@ function closePaymentModal() {
   paymentModalState.raffle = null;
   paymentModalState.selected = [];
   paymentModalState.amount = 0;
+  paymentModalState.customerName = "";
+  paymentModalState.customerCity = "";
+  paymentModalState.customerPhone = "";
   paymentModalState.file = null;
   paymentModalState.fileName = "";
   paymentModalState.checkoutUrl = "";
@@ -1132,6 +1141,25 @@ function syncPaymentModal() {
   modal.classList.toggle("is-open", paymentModalState.open);
   modal.setAttribute("aria-hidden", paymentModalState.open ? "false" : "true");
   document.body.classList.toggle("modal-open", paymentModalState.open || raffleSelectorState.open);
+}
+
+function refreshPaymentModalActionState() {
+  const modal = document.getElementById("payment-modal");
+  if (!modal) return;
+  const ready = Boolean(
+    paymentModalState.open
+    && !paymentModalState.loading
+    && String(paymentModalState.customerName || "").trim()
+    && String(paymentModalState.customerCity || "").trim()
+    && String(paymentModalState.customerPhone || "").trim()
+    && asArray(paymentModalState.selected).length > 0,
+  );
+
+  modal.querySelectorAll('[data-action="start-public-pse"], [data-action="trigger-public-receipt-upload"]').forEach((button) => {
+    if (button instanceof HTMLButtonElement) {
+      button.disabled = !ready;
+    }
+  });
 }
 
 function renderPaymentModalContent() {
@@ -1156,7 +1184,11 @@ function renderPaymentModalContent() {
     ? `<div class="payment-modal-notice payment-modal-notice-${escapeHtml(paymentModalState.noticeTone || "info")}">${escapeHtml(paymentModalState.notice)}</div>`
     : "";
   const checkoutUrl = paymentModalState.checkoutUrl || "";
-  const isDisabled = !selected.length || paymentModalState.loading;
+  const customerName = String(paymentModalState.customerName || "").trim();
+  const customerCity = String(paymentModalState.customerCity || "").trim();
+  const customerPhone = String(paymentModalState.customerPhone || "").trim();
+  const isContactReady = Boolean(selected.length && customerName && customerCity && customerPhone);
+  const isDisabled = !isContactReady || paymentModalState.loading;
   const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
 
   return `
@@ -1172,7 +1204,7 @@ function renderPaymentModalContent() {
     ${notice}
 
     <div class="payment-modal-grid">
-      <div class="payment-modal-summary">
+        <div class="payment-modal-summary">
         <span class="payment-modal-kicker">Sorteo seleccionado</span>
         <h4>${escapeHtml(title)}</h4>
         <p class="payment-modal-copy">${escapeHtml(selected.length ? `Llevas ${selected.length} numero${selected.length === 1 ? "" : "s"} apartados.` : "Selecciona numeros antes de pagar.")}</p>
@@ -1189,30 +1221,52 @@ function renderPaymentModalContent() {
             <p>${escapeHtml(pricingSummary)}</p>
           </div>
         ` : ""}
-        <div class="payment-modal-footnote">${escapeHtml(supportLabel)}</div>
-      </div>
-
-      <div class="payment-modal-actions">
-        <div class="payment-action-card">
-          <div class="payment-action-icon payment-action-icon-pse">PSE</div>
-          <div>
-            <strong>Pago en línea</strong>
-            <p>Abre la pasarela para completar la transacción.</p>
-          </div>
-          <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
-          ${checkoutUrl ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
+          <div class="payment-modal-footnote">${escapeHtml(supportLabel)}</div>
         </div>
 
-        <div class="payment-action-card">
-          <div class="payment-action-icon payment-action-icon-upload">↥</div>
-          <div>
-            <strong>Cargar comprobante</strong>
-            <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
+        <div class="payment-modal-actions">
+          <div class="payment-action-card payment-contact-card">
+            <div class="payment-action-icon payment-action-icon-contact">✎</div>
+            <div>
+              <strong>Datos del comprador</strong>
+              <p>Necesitamos tu nombre, ciudad y teléfono para enviarte la boleta.</p>
+            </div>
+            <div class="payment-form-grid">
+              <label class="payment-field">
+                <span>Nombre</span>
+                <input type="text" data-payment-field="customerName" value="${escapeAttr(paymentModalState.customerName || "")}" placeholder="Ej. Jennyfer Alvarado" />
+              </label>
+              <label class="payment-field">
+                <span>Ciudad</span>
+                <input type="text" data-payment-field="customerCity" value="${escapeAttr(paymentModalState.customerCity || "")}" placeholder="Ej. Neiva" />
+              </label>
+              <label class="payment-field">
+                <span>Teléfono</span>
+                <input type="tel" data-payment-field="customerPhone" value="${escapeAttr(paymentModalState.customerPhone || "")}" placeholder="Ej. 3001234567" />
+              </label>
+            </div>
           </div>
-          <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
-          <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
-          ${receiptLabel}
-        </div>
+
+          <div class="payment-action-card">
+            <div class="payment-action-icon payment-action-icon-pse">PSE</div>
+            <div>
+              <strong>Pago en línea</strong>
+              <p>Abre la pasarela para completar la transacción.</p>
+            </div>
+            <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
+            ${checkoutUrl ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
+          </div>
+
+          <div class="payment-action-card">
+            <div class="payment-action-icon payment-action-icon-upload">↥</div>
+            <div>
+              <strong>Cargar comprobante</strong>
+              <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
+            </div>
+            <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
+            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
+            ${receiptLabel}
+          </div>
 
         <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
       </div>
@@ -1225,6 +1279,7 @@ function paintPaymentModal() {
   if (!content) return;
   content.innerHTML = renderPaymentModalContent();
   syncPaymentModal();
+  refreshPaymentModalActionState();
 }
 
 function renderPaymentModal() {
@@ -1476,12 +1531,41 @@ function submitPublicPaymentStateNotice(message, tone = "info") {
   paintPaymentModal();
 }
 
+function updatePaymentModalField(field, value) {
+  const normalized = String(value || "");
+  if (field === "customerName") {
+    paymentModalState.customerName = normalized;
+  } else if (field === "customerCity") {
+    paymentModalState.customerCity = normalized;
+  } else if (field === "customerPhone") {
+    paymentModalState.customerPhone = normalized;
+  }
+  refreshPaymentModalActionState();
+}
+
+function getPaymentModalContactPayload() {
+  return {
+    customer_name: String(paymentModalState.customerName || "").trim(),
+    customer_city: String(paymentModalState.customerCity || "").trim(),
+    customer_phone: String(paymentModalState.customerPhone || "").trim(),
+  };
+}
+
+function ensurePaymentModalContactReady() {
+  const payload = getPaymentModalContactPayload();
+  if (!payload.customer_name || !payload.customer_city || !payload.customer_phone) {
+    return false;
+  }
+  return true;
+}
+
 async function submitPublicPseCheckout() {
   const site = paymentModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
   const selected = asArray(paymentModalState.selected);
-  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading) {
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !ensurePaymentModalContactReady()) {
+    submitPublicPaymentStateNotice("Completa nombre, ciudad y teléfono para continuar.", "warning");
     return;
   }
 
@@ -1500,6 +1584,7 @@ async function submitPublicPseCheckout() {
         },
         body: JSON.stringify({
           selected_numbers: selected,
+          ...getPaymentModalContactPayload(),
         }),
         cache: "no-store",
       },
@@ -1541,7 +1626,7 @@ async function submitPublicReceiptUpload(file = null) {
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
   const selected = asArray(paymentModalState.selected);
-  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file) {
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file || !ensurePaymentModalContactReady()) {
     return;
   }
 
@@ -1554,6 +1639,10 @@ async function submitPublicReceiptUpload(file = null) {
     const formData = new FormData();
     formData.append("selected_numbers", JSON.stringify(selected));
     formData.append("receipt_file", file, file.name || "comprobante");
+    const contactPayload = getPaymentModalContactPayload();
+    formData.append("customer_name", contactPayload.customer_name);
+    formData.append("customer_city", contactPayload.customer_city);
+    formData.append("customer_phone", contactPayload.customer_phone);
 
     const response = await fetch(
       `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/receipt`,
@@ -2022,6 +2111,9 @@ app.addEventListener("click", (event) => {
   if (actionName === "trigger-public-receipt-upload") {
     event.preventDefault();
     event.stopPropagation();
+    if (!ensurePaymentModalContactReady()) {
+      return;
+    }
     const receiptInput = app.querySelector("[data-public-receipt-input]");
     if (receiptInput) {
       receiptInput.click();
@@ -2059,6 +2151,15 @@ app.addEventListener("change", (event) => {
   }
 
   submitPublicReceiptUpload(file);
+});
+
+app.addEventListener("input", (event) => {
+  const field = event.target.closest("[data-payment-field]");
+  if (!field || !app.contains(field)) {
+    return;
+  }
+
+  updatePaymentModalField(field.getAttribute("data-payment-field"), field.value);
 });
 
 async function loadSite() {

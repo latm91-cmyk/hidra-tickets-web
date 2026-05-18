@@ -1258,6 +1258,45 @@ button {
   box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
 }
 
+.payment-contact-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.payment-form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.payment-field {
+  display: grid;
+  gap: 8px;
+}
+
+.payment-field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.payment-field input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  padding: 13px 14px;
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.payment-field input:focus {
+  border-color: rgba(22, 163, 74, 0.45);
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+}
+
 .payment-action-card strong {
   display: block;
   margin-bottom: 4px;
@@ -1288,6 +1327,10 @@ button {
 
 .payment-action-icon-upload {
   background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.payment-action-icon-contact {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
 }
 
 .payment-pse {
