@@ -101,25 +101,116 @@ function getRaffleDisplayImage(raffle = {}, site = {}) {
 }
 
 function getRaffleDisplayPrice(raffle = {}) {
-  const pricingConfig = raffle?.campaign?.pricingConfig || raffle?.campaign?.pricing_config || raffle?.pricingConfig || raffle?.pricing_config || {};
-  const pricingStrategy = String(
-    raffle?.campaign?.pricingStrategy
-      || raffle?.campaign?.pricing_strategy
-      || raffle?.pricingStrategy
-      || raffle?.pricing_strategy
-      || "",
-  ).toLowerCase();
+  const pricingConfig = getRafflePricingConfig(raffle);
   const raw = pricingConfig?.precioUnitario
     ?? pricingConfig?.precio_unitario
-    ?? (pricingStrategy === "paquetes"
-      ? pricingConfig?.packages?.find((item) => Number(item?.cantidad || 0) === 1)?.valor
-      : null)
+    ?? getRafflePricingPackages(raffle).find((item) => Number(item.quantity || 0) === 1)?.value
     ?? raffle?.campaign?.numberValue
     ?? raffle?.campaign?.valor_numero
     ?? raffle?.numberValue
     ?? raffle?.valor_numero;
   const numeric = Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0;
   return Number.isFinite(numeric) && numeric > 0 ? currencyFormatter.format(numeric) : "";
+}
+
+function getRafflePricingConfig(raffle = {}) {
+  const raw = raffle?.campaign?.pricingConfig || raffle?.campaign?.pricing_config || raffle?.pricingConfig || raffle?.pricing_config || {};
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return raw && typeof raw === "object" ? raw : {};
+}
+
+function getRafflePricingStrategy(raffle = {}) {
+  return String(
+    raffle?.campaign?.pricingStrategy
+      || raffle?.campaign?.pricing_strategy
+      || raffle?.pricingStrategy
+      || raffle?.pricing_strategy
+      || "",
+  ).toLowerCase();
+}
+
+function getRafflePricingPackages(raffle = {}) {
+  const pricingConfig = getRafflePricingConfig(raffle);
+  const rawPackages = Array.isArray(pricingConfig.packages) ? pricingConfig.packages : [];
+
+  return rawPackages
+    .map((item) => {
+      const quantity = Number(item?.cantidad ?? item?.quantity ?? item?.cant ?? (item?.n || 0));
+      const rawValue = item?.valor ?? item?.value ?? item?.precio ?? item?.price ?? "";
+      const value = Number(String(rawValue || "").replace(/[^\d.-]/g, "")) || 0;
+      return quantity > 0 && value > 0 ? { quantity, value } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.quantity - b.quantity);
+}
+
+function getRafflePriceForQuantity(raffle = {}, quantity = 1) {
+  const packages = getRafflePricingPackages(raffle);
+  const count = Math.max(1, Number.parseInt(quantity, 10) || 1);
+
+  const exact = packages.find((item) => item.quantity === count);
+  if (exact) {
+    return exact.value;
+  }
+
+  if (!packages.length) {
+    const fallback = Number(
+      raffle?.campaign?.numberValue
+      ?? raffle?.campaign?.valor_numero
+      ?? raffle?.numberValue
+      ?? raffle?.valor_numero
+      ?? 0,
+    );
+    return Number.isFinite(fallback) ? fallback * count : 0;
+  }
+
+  const sorted = [...packages].sort((a, b) => b.quantity - a.quantity);
+  let remaining = count;
+  let total = 0;
+
+  for (const item of sorted) {
+    if (!item.quantity) continue;
+    while (remaining >= item.quantity) {
+      total += item.value;
+      remaining -= item.quantity;
+    }
+  }
+
+  if (remaining > 0) {
+    const unit = packages.find((item) => item.quantity === 1);
+    total += unit ? unit.value * remaining : (packages[0]?.value || 0) * remaining;
+  }
+
+  return total;
+}
+
+function formatRafflePricingSummary(raffle = {}) {
+  const packages = getRafflePricingPackages(raffle);
+  if (!packages.length) {
+    const price = getRaffleDisplayPrice(raffle);
+    return price ? `Precio por boleta ${price}` : "";
+  }
+
+  return packages
+    .map((item) => `${item.quantity} boleta${item.quantity === 1 ? "" : "s"} = ${currencyFormatter.format(item.value)}`)
+    .join(" | ");
+}
+
+function getRafflePricingBadge(raffle = {}) {
+  const packages = getRafflePricingPackages(raffle);
+  if (packages.length > 0) {
+    return `${packages.length} paquete${packages.length === 1 ? "" : "s"} activos`;
+  }
+
+  const price = getRaffleDisplayPrice(raffle);
+  return price ? `Boleta ${price}` : "";
 }
 
 function getRaffleDisplayDate(raffle = {}) {
@@ -521,7 +612,8 @@ function renderRaffles(site) {
     const heroTitle = getRaffleDisplayTitle({ campaign, publicConfig });
     const description = getRaffleDisplayDescription({ campaign, publicConfig });
     const drawDate = getRaffleDisplayDate({ campaign, publicConfig });
-    const price = getRaffleDisplayPrice({ campaign, publicConfig });
+    const pricingBadge = getRafflePricingBadge({ campaign, publicConfig });
+    const pricingSummary = formatRafflePricingSummary({ campaign, publicConfig });
     const mode = getRaffleDisplayMode({ campaign, publicConfig });
     const total = getRaffleDisplayTotal({ campaign, publicConfig });
 
@@ -535,9 +627,10 @@ function renderRaffles(site) {
           <div class="raffle-feature-body">
             <span class="section-tag">Sorteo destacado</span>
             <div class="chip-row">
-              ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+              ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
               ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             </div>
+            ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
             ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
             <div class="raffle-feature-meta">
@@ -568,9 +661,10 @@ function renderRaffles(site) {
           <h3 class="raffle-card-title">${escapeHtml(heroTitle)}</h3>
           ${description ? `<p class="raffle-card-copy">${escapeHtml(description)}</p>` : ""}
           <div class="chip-row">
-            ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+            ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
             <span class="chip">${escapeHtml(mode)}</span>
           </div>
+          ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
           <div class="chip-row">
             ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             ${total ? `<span class="chip">${escapeHtml(String(total))} boletas</span>` : ""}
@@ -600,7 +694,8 @@ function renderRaffles(site) {
             const heroTitle = getRaffleDisplayTitle({ campaign, publicConfig });
             const image = getRaffleDisplayImage({ campaign, publicConfig }, site);
             const drawDate = getRaffleDisplayDate({ campaign, publicConfig });
-            const price = getRaffleDisplayPrice({ campaign, publicConfig });
+            const pricingBadge = getRafflePricingBadge({ campaign, publicConfig });
+            const pricingSummary = formatRafflePricingSummary({ campaign, publicConfig });
             return `
               <article class="raffle-mini">
                 <div class="raffle-mini-media">
@@ -609,9 +704,10 @@ function renderRaffles(site) {
                 <div class="raffle-mini-body">
                   <h4>${escapeHtml(heroTitle)}</h4>
                   <div class="chip-row">
-                    ${price ? `<span class="chip">Boleta ${price}</span>` : ""}
+                    ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
                     ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
                   </div>
+                  ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
                   <button
                     type="button"
                     class="button secondary js-open-raffle-selector"
@@ -722,6 +818,7 @@ function renderRaffleSelectorContent() {
   const drawDate = raffle ? getRaffleDisplayDate(raffle) : "";
   const mode = raffle ? getRaffleDisplayMode(raffle) : "";
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
+  const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const stats = raffleSelectorState.stats || {};
   const availableCount = Number(stats.availableCount || raffleSelectorState.numbers.length || 0);
   const inventoryTotal = Number(stats.inventoryTotal || total || 0);
@@ -729,7 +826,7 @@ function renderRaffleSelectorContent() {
   const selected = raffleSelectorState.selected?.length
     ? raffleSelectorState.selected
     : persistedSelected;
-  const selectedAmount = selected.length * Number(price ? String(price).replace(/[^\d]/g, "") : 0);
+  const selectedAmount = raffle ? getRafflePriceForQuantity(raffle, selected.length || 1) * (selected.length > 0 ? 1 : 0) : 0;
   const hasPaymentSections = asArray(site.paymentMethods).length > 0;
   const selectedCopy = selected.length
       ? selected
@@ -813,6 +910,7 @@ function renderRaffleSelectorContent() {
               <span>Actualizacion</span>
             </div>
           </div>
+          ${pricingSummary ? `<p class="raffle-price-summary selector-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
         </div>
       </div>
     ` : ""}
