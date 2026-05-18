@@ -1,14 +1,14 @@
 :root {
-  --bg: #fff6ea;
-  --surface: rgba(255, 255, 255, 0.9);
+  --bg: #fffdf8;
+  --surface: rgba(255, 255, 255, 0.94);
   --surface-strong: #ffffff;
-  --text: #10233f;
-  --muted: #5f6c82;
-  --primary: #0f4c81;
-  --secondary: #ffb703;
-  --accent: #ff6b6b;
-  --line: rgba(15, 76, 129, 0.12);
-  --shadow: 0 18px 50px rgba(15, 76, 129, 0.12);
+  --text: #102238;
+  --muted: #5b6678;
+  --primary: #0b2340;
+  --secondary: #d6a11e;
+  --accent: #1f7a4d;
+  --line: rgba(11, 35, 64, 0.1);
+  --shadow: 0 18px 50px rgba(11, 35, 64, 0.12);
   --radius-xl: 30px;
   --radius-lg: 22px;
   --radius-md: 16px;
@@ -26,10 +26,10 @@ body {
   margin: 0;
   font-family: "Poppins", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(255, 183, 3, 0.16), transparent 26%),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.14), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(255, 107, 107, 0.12), transparent 22%),
-    linear-gradient(180deg, #fffaf3 0%, #f6fbff 55%, #eef6ff 100%);
+    radial-gradient(circle at top left, rgba(214, 161, 30, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(31, 122, 77, 0.12), transparent 23%),
+    radial-gradient(circle at bottom left, rgba(11, 35, 64, 0.08), transparent 20%),
+    linear-gradient(180deg, #fffdf8 0%, #f7f9fb 58%, #eef4f7 100%);
   color: var(--text);
 }
 
@@ -55,9 +55,9 @@ button {
   top: 0;
   z-index: 50;
   backdrop-filter: blur(18px);
-  background: linear-gradient(135deg, rgba(15, 76, 129, 0.98), rgba(124, 58, 237, 0.96));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.98), rgba(31, 122, 77, 0.96));
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 30px rgba(15, 76, 129, 0.22);
+  box-shadow: 0 12px 30px rgba(11, 35, 64, 0.22);
 }
 
 .topbar-inner {
@@ -79,8 +79,8 @@ button {
 }
 
 .brand-mark {
-  width: 46px;
-  height: 46px;
+  width: 60px;
+  height: 60px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
@@ -92,7 +92,7 @@ button {
 }
 
 .brand-name {
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.1;
   color: #fff;
   text-transform: uppercase;
@@ -127,7 +127,7 @@ button {
 }
 
 .top-nav a:hover {
-  color: #ffe28a;
+  color: #ffd76a;
   transform: translateY(-1px);
 }
 
@@ -175,16 +175,16 @@ button {
 }
 
 .button.primary {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, #0b2340, #1f7a4d);
   color: #fff;
-  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 14px 28px rgba(11, 35, 64, 0.2);
 }
 
 .topbar-cta {
-  background: linear-gradient(135deg, #ffffff, #fff4d6);
-  color: #0f4c81;
+  background: linear-gradient(135deg, #ffffff, #fff0bf);
+  color: #0b2340;
   border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(15, 76, 129, 0.18);
+  box-shadow: 0 10px 24px rgba(11, 35, 64, 0.16);
   padding: 12px 18px;
 }
 
@@ -199,13 +199,13 @@ button {
 }
 
 .button.gold {
-  background: linear-gradient(135deg, var(--secondary), #ff6b6b);
+  background: linear-gradient(135deg, #d6a11e, #f2c14e);
   color: white;
-  box-shadow: 0 14px 30px rgba(255, 183, 3, 0.26);
+  box-shadow: 0 14px 30px rgba(214, 161, 30, 0.24);
 }
 
 .button.whatsapp {
-  background: linear-gradient(135deg, #25d366, #13b981);
+  background: linear-gradient(135deg, #25d366, #1f7a4d);
   color: #fff;
   box-shadow: 0 14px 30px rgba(37, 211, 102, 0.28);
 }
@@ -237,9 +237,9 @@ button {
   overflow: hidden;
   border-radius: 36px;
   background:
-    linear-gradient(135deg, rgba(15, 76, 129, 0.98), rgba(124, 58, 237, 0.94)),
-    radial-gradient(circle at top right, rgba(255, 183, 3, 0.34), transparent 30%),
-    radial-gradient(circle at bottom left, rgba(255, 107, 107, 0.22), transparent 28%);
+    linear-gradient(135deg, rgba(11, 35, 64, 0.97), rgba(31, 122, 77, 0.92)),
+    radial-gradient(circle at top right, rgba(214, 161, 30, 0.34), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.1), transparent 28%);
   color: white;
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -247,7 +247,7 @@ button {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 0.92fr 1.08fr;
   gap: 28px;
   align-items: center;
   padding: 38px;
@@ -267,21 +267,22 @@ button {
 
 .hero h1 {
   margin: 18px 0 14px;
-  font-size: clamp(44px, 6.5vw, 74px);
-  line-height: 0.95;
+  font-size: clamp(38px, 5.2vw, 62px);
+  line-height: 0.98;
   letter-spacing: -0.05em;
+  max-width: 10ch;
 }
 
 .hero h1 .accent {
-  color: #ffd166;
+  color: #ffe08a;
 }
 
 .hero p {
   margin: 0;
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.82);
-  max-width: 54ch;
+  max-width: 44ch;
 }
 
 .hero-actions {
@@ -322,7 +323,7 @@ button {
 }
 
 .hero-media {
-  min-height: 470px;
+  min-height: 520px;
   border-radius: 32px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -350,7 +351,7 @@ button {
 .hero-media .overlay {
   position: absolute;
   inset: auto 18px 18px 18px;
-  background: linear-gradient(135deg, rgba(15, 76, 129, 0.92), rgba(124, 58, 237, 0.88));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.92), rgba(31, 122, 77, 0.88));
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
   padding: 16px 18px;
@@ -1423,7 +1424,7 @@ button {
   padding: 15px 18px;
   border-radius: 20px;
   font-size: 16px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, #0b2340, #1f7a4d);
 }
 
 .trust-strip {
@@ -1451,7 +1452,7 @@ button {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  background: linear-gradient(135deg, #0f4c81, #7c3aed);
+  background: linear-gradient(135deg, #0b2340, #1f7a4d);
   color: white;
   font-weight: 900;
 }
@@ -1496,7 +1497,7 @@ button {
   position: absolute;
   inset: auto 0 0 0;
   height: 42%;
-  background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.28));
+  background: linear-gradient(180deg, transparent, rgba(11, 35, 64, 0.28));
   pointer-events: none;
 }
 
@@ -1509,7 +1510,7 @@ button {
   padding: 12px 14px;
   border: 0;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(15, 76, 129, 0.82), rgba(124, 58, 237, 0.8));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.84), rgba(31, 122, 77, 0.8));
   color: #fff;
   cursor: pointer;
   text-align: left;
@@ -1521,7 +1522,7 @@ button {
 
 .play-overlay:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(124, 58, 237, 0.88));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.94), rgba(31, 122, 77, 0.9));
 }
 
 .play-overlay-badge {
@@ -1556,7 +1557,7 @@ button {
   left: 14px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(15, 76, 129, 0.82), rgba(124, 58, 237, 0.8));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.84), rgba(31, 122, 77, 0.8));
   color: #fff;
   font-size: 12px;
   font-weight: 800;
@@ -1883,7 +1884,7 @@ button {
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(255, 183, 3, 0.18), rgba(34, 211, 238, 0.14));
+  background: linear-gradient(135deg, rgba(214, 161, 30, 0.16), rgba(31, 122, 77, 0.12));
   color: var(--primary);
   font-size: 13px;
   font-weight: 800;
@@ -1909,7 +1910,7 @@ button {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b6b, #ffb703);
+  background: linear-gradient(135deg, #d6a11e, #1f7a4d);
   color: #fff;
   font-weight: 900;
   flex: 0 0 auto;
@@ -1944,7 +1945,7 @@ button {
   align-items: stretch;
   padding: 18px;
   border-radius: 24px;
-  background: linear-gradient(135deg, rgba(15, 76, 129, 0.98), rgba(124, 58, 237, 0.94));
+  background: linear-gradient(135deg, rgba(11, 35, 64, 0.98), rgba(31, 122, 77, 0.94));
   color: #fff;
   box-shadow: var(--shadow);
 }

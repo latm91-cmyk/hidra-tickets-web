@@ -1821,6 +1821,11 @@ function renderShell(site, slug) {
   const raffleCount = asArray(site.activeRaffles).length;
   const faqCount = asArray(site.faq).length;
   const videosCount = asArray(site.winnerVideos).length;
+  const heroMetaItems = [
+    { value: raffleCount, label: "Sorteos visibles" },
+    { value: videosCount, label: "Ganadores reales" },
+    { value: faqCount, label: "Dudas resueltas" },
+  ].filter((item) => Number(item.value || 0) > 0);
   const paymentSections = asArray(site.paymentMethods);
   const legalSections = asArray(site.legal);
   const otherSections = asArray(site.otherSections);
@@ -1835,7 +1840,7 @@ function renderShell(site, slug) {
   app.innerHTML = `
     <div class="page">
       <header class="topbar">
-        <div class="shell topbar-inner">
+          <div class="shell topbar-inner">
           <div class="brand">
             <div class="brand-mark">
               <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
@@ -1877,20 +1882,20 @@ function renderShell(site, slug) {
                     <span>Ganadores publicados, premios visibles y atención directa por WhatsApp.</span>
                   </div>
                 </div>
-                <div class="hero-meta">
-                  <div class="meta-card">
-                    <strong>${escapeHtml(String(raffleCount))}</strong>
-                    <span>Sorteos visibles</span>
+                ${heroMetaItems.length ? `
+                  <div class="hero-meta">
+                    ${heroMetaItems
+                      .map(
+                        (item) => `
+                          <div class="meta-card">
+                            <strong>${escapeHtml(String(item.value))}</strong>
+                            <span>${escapeHtml(item.label)}</span>
+                          </div>
+                        `,
+                      )
+                      .join("")}
                   </div>
-                  <div class="meta-card">
-                    <strong>${escapeHtml(String(videosCount))}</strong>
-                    <span>Ganadores reales</span>
-                  </div>
-                  <div class="meta-card">
-                    <strong>${escapeHtml(String(faqCount))}</strong>
-                    <span>Dudas resueltas</span>
-                  </div>
-                </div>
+                ` : ""}
               </div>
 
               <div class="hero-media">
