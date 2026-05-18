@@ -99,6 +99,54 @@ function renderInlineVideo(url, title) {
   `;
 }
 
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll("`", "&#96;");
+}
+
+window.__PUBLIC_VIDEO_MODAL__ = window.__PUBLIC_VIDEO_MODAL__ || null;
+
+function openVideoModal(payload = {}) {
+  const modal = document.getElementById("video-modal");
+  const frame = document.getElementById("video-modal-frame");
+  const title = document.getElementById("video-modal-title");
+  const subtitle = document.getElementById("video-modal-subtitle");
+
+  if (!modal || !frame || !title || !subtitle) {
+    return;
+  }
+
+  const embedded = buildEmbeddedVideoUrl(payload.url || "");
+  const source = embedded || String(payload.url || "").trim();
+
+  title.textContent = payload.title || "Video";
+  subtitle.textContent = payload.subtitle || "Ganador verificado";
+
+  if (embedded) {
+    frame.innerHTML = `<iframe class="video-modal-player" src="${escapeAttr(embedded)}" title="${escapeAttr(payload.title || "Video")}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  } else if (source) {
+    frame.innerHTML = `<video class="video-modal-player" controls autoplay playsinline preload="metadata"><source src="${escapeAttr(source)}" />Tu navegador no soporta la reproduccion de video.</video>`;
+  } else {
+    frame.innerHTML = `<div class="video-modal-empty">No hay video disponible.</div>`;
+  }
+
+  modal.classList.add("is-open");
+  document.body.classList.add("modal-open");
+  window.__PUBLIC_VIDEO_MODAL__ = payload;
+}
+
+function closeVideoModal() {
+  const modal = document.getElementById("video-modal");
+  const frame = document.getElementById("video-modal-frame");
+  if (modal) {
+    modal.classList.remove("is-open");
+  }
+  if (frame) {
+    frame.innerHTML = "";
+  }
+  document.body.classList.remove("modal-open");
+  window.__PUBLIC_VIDEO_MODAL__ = null;
+}
+
 function whatsappLink(number) {
   const digits = String(number || "").replace(/\D/g, "");
   return digits ? `https://wa.me/${digits}` : "#";
@@ -240,7 +288,23 @@ function renderWinnerVideos(site) {
           return `
             <article class="card">
               <div class="card-media">
-                ${video.videoUrl ? renderInlineVideo(video.videoUrl, video.title) : preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" />` : ""}
+                <img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" />
+                ${video.videoUrl ? `
+                  <button
+                    type="button"
+                    class="play-overlay"
+                    data-video-url="${escapeAttr(video.videoUrl)}"
+                    data-video-title="${escapeAttr(video.title)}"
+                    data-video-subtitle="${escapeAttr(video.winnerName || "Ganador verificado")}"
+                    aria-label="Reproducir video"
+                  >
+                    <span class="play-overlay-badge">▶</span>
+                    <span class="play-overlay-text">
+                      <strong>Ver video</strong>
+                      <small>Reproducir testimonio</small>
+                    </span>
+                  </button>
+                ` : ""}
               </div>
               <div class="card-body">
                 <div class="chip-row">
@@ -249,7 +313,6 @@ function renderWinnerVideos(site) {
                 </div>
                 <h3 class="card-title">${escapeHtml(video.title)}</h3>
                 <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` · ${escapeHtml(video.prize)}` : ""}</p>
-                
               </div>
             </article>
           `;
@@ -507,9 +570,9 @@ function renderShell(site, slug) {
         <section class="section shell section-anchor" id="videos">
           <div class="section-head">
             <div>
-              <span class="section-tag">Videos de ganadores</span>
-              <h2>Prueba social y confianza</h2>
-              <p>Videos y entregas administrados desde el backend para dar credibilidad al sorteo.</p>
+              <span class="section-tag">Ganadores</span>
+              <h2>Ganadores reales, historias que inspiran confianza</h2>
+              <p>Mira entregas, testimonios y momentos reales de quienes ya participaron y ganaron.</p>
             </div>
           </div>
           ${renderWinnerVideos(site)}
@@ -565,9 +628,29 @@ function renderShell(site, slug) {
             </div>
           </div>
         </section>
-</main>
+      <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
+        <div class="video-modal-card" role="document">
+          <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">×</button>
+          <div class="video-modal-head">
+            <div class="section-tag">Video de ganador</div>
+            <h3 id="video-modal-title">Video</h3>
+            <p id="video-modal-subtitle"></p>
+          </div>
+          <div id="video-modal-frame" class="video-modal-frame"></div>
+        </div>
+      </div>
     </div>
   `;
+
+  document.querySelectorAll("[data-video-url]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openVideoModal({
+        url: button.getAttribute("data-video-url") || "",
+        title: button.getAttribute("data-video-title") || "",
+        subtitle: button.getAttribute("data-video-subtitle") || "",
+      });
+    });
+  });
 }
 
 async function loadSite() {
