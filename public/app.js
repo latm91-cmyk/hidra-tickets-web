@@ -7,6 +7,7 @@ const ASSETS = {
   raffle: "/assets/raffle-card.webp",
   winner: "/assets/winner-video.webp",
   payments: "/assets/payment-methods.webp",
+  pse: "/assets/pse-logo.svg",
 };
 const RAFFLE_SELECTOR_LIMIT = 180;
 const raffleSelectorState = {
@@ -1248,7 +1249,9 @@ function renderPaymentModalContent() {
           </div>
 
           <div class="payment-action-card">
-            <div class="payment-action-icon payment-action-icon-pse">PSE</div>
+            <div class="payment-action-icon payment-action-icon-pse">
+              <img src="${escapeHtml(ASSETS.pse)}" alt="PSE" />
+            </div>
             <div>
               <strong>Pago en línea</strong>
               <p>Abre la pasarela para completar la transacción.</p>
