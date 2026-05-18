@@ -130,6 +130,92 @@ function normalizeTicketDisplayValue(value) {
   return String(value ?? "").trim();
 }
 
+function getRaffleSelectorAutoConfig(raffle = {}) {
+  const raw = raffle?.campaign?.ticketAutoConfig || raffle?.campaign?.ticket_auto_config || {};
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return raw && typeof raw === "object" ? raw : {};
+}
+
+function getRaffleSelectorFallbackNumbers(raffle = {}) {
+  const total = Number(
+    raffle?.campaign?.totalNumeros
+    ?? raffle?.campaign?.total_numeros
+    ?? raffle?.totalNumeros
+    ?? raffle?.total_numeros
+    ?? 0,
+  );
+  const autoConfig = getRaffleSelectorAutoConfig(raffle);
+  const digitsRaw = Number(autoConfig.numberDigits || autoConfig.number_digits || 0);
+  const digits = Number.isFinite(digitsRaw) && digitsRaw > 0
+    ? Math.min(Math.max(digitsRaw, 2), 6)
+    : Math.min(Math.max(String(Math.max(total, 1)).length, 2), 6);
+  const startRaw = String(autoConfig.numberStart || autoConfig.number_start || "").trim();
+  const endRaw = String(autoConfig.numberEnd || autoConfig.number_end || "").trim();
+
+  const startNumeric = startRaw ? Number.parseInt(startRaw.replace(/\D/g, ""), 10) : NaN;
+  const endNumeric = endRaw ? Number.parseInt(endRaw.replace(/\D/g, ""), 10) : NaN;
+
+  let numbers = [];
+  if (Number.isFinite(startNumeric) && Number.isFinite(endNumeric) && endNumeric >= startNumeric) {
+    const limit = Math.min(endNumeric - startNumeric + 1, 500);
+    for (let index = 0; index < limit; index += 1) {
+      const value = startNumeric + index;
+      numbers.push(String(value).padStart(digits, "0"));
+    }
+  } else if (total > 0) {
+    const limit = Math.min(total, 500);
+    for (let value = 1; value <= limit; value += 1) {
+      numbers.push(String(value).padStart(digits, "0"));
+    }
+  }
+
+  return numbers.map((number) => ({
+    id: number,
+    number,
+    display: number,
+    numbers: [number],
+    updatedAt: null,
+    source: "fallback",
+  }));
+}
+
+function filterRaffleSelectorNumbers(numbers = [], query = "") {
+  const normalizedQuery = String(query || "").trim().replace(/\s+/g, "");
+  if (!normalizedQuery) {
+    return numbers;
+  }
+
+  const queryDigits = normalizedQuery.replace(/\D/g, "");
+  const queryLower = normalizedQuery.toLowerCase();
+
+  return numbers.filter((ticket) => {
+    const haystacks = [
+      String(ticket?.display || ""),
+      String(ticket?.number || ""),
+      Array.isArray(ticket?.numbers) ? ticket.numbers.join(" ") : "",
+    ]
+      .map((item) => String(item || "").toLowerCase())
+      .filter(Boolean);
+
+    if (haystacks.some((value) => value.includes(queryLower))) {
+      return true;
+    }
+
+    if (queryDigits && haystacks.some((value) => value.includes(queryDigits))) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
 function selectRaffleSelectorTicket(value) {
   handleRaffleSelectorTicketValue(value);
 }
@@ -575,10 +661,17 @@ function renderWinnerVideos(site) {
 }
 
 function getRaffleSelectorNumbers() {
-  return asArray(raffleSelectorState.numbers).map((ticket) => ({
-    ...ticket,
-    display: formatTicketSelectionLabel(ticket),
-  }));
+  const raffle = raffleSelectorState.raffle || null;
+  const rawNumbers = asArray(raffleSelectorState.numbers);
+  const numbers = rawNumbers.length > 0 ? rawNumbers : getRaffleSelectorFallbackNumbers(raffle);
+
+  return filterRaffleSelectorNumbers(
+    numbers.map((ticket) => ({
+      ...ticket,
+      display: formatTicketSelectionLabel(ticket),
+    })),
+    raffleSelectorState.query || "",
+  );
 }
 
 function formatRelativeTime(value) {
@@ -970,7 +1063,13 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
           },
         }
       : raffle;
-    raffleSelectorState.numbers = asArray(payload?.numbers);
+    const payloadNumbers = asArray(payload?.numbers).map((ticket) => ({
+      ...ticket,
+      display: formatTicketSelectionLabel(ticket),
+    }));
+    raffleSelectorState.numbers = payloadNumbers.length > 0
+      ? payloadNumbers
+      : getRaffleSelectorFallbackNumbers(raffleSelectorState.raffle);
     raffleSelectorState.stats = payload?.stats || null;
     raffleSelectorState.updatedAt = payload?.updatedAt || new Date().toISOString();
     raffleSelectorState.loading = false;
