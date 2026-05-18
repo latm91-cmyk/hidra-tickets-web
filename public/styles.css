@@ -917,6 +917,10 @@ button {
   background: linear-gradient(135deg, var(--secondary), #f59e0b);
 }
 
+.selector-summary-mobile {
+  display: none;
+}
+
 @keyframes selectorPulse {
   0% {
     background-position: 0% 50%;
@@ -1611,11 +1615,83 @@ button {
   }
 
   .raffle-selector-content {
-    padding: 16px;
+    padding: 16px 16px 132px;
   }
 
   .selector-head {
     flex-direction: column;
+  }
+
+  .selector-summary {
+    display: none;
+  }
+
+  .selector-summary-mobile {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 24px;
+    background: rgba(15, 23, 42, 0.96);
+    color: #fff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+  }
+
+  .selector-summary-mobile-copy {
+    display: grid;
+    gap: 6px;
+  }
+
+  .selector-summary-mobile-copy strong {
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .selector-summary-mobile-copy span:last-child {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .selector-summary-mobile-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .selector-summary-mobile-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selected-chip.mobile {
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .selector-empty-inline {
+    min-height: auto;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  .selector-summary-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 10px;
+  }
+
+  .selector-summary-mobile-actions .button {
+    width: 100%;
   }
 
   .hero-grid {

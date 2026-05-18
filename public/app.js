@@ -685,6 +685,33 @@ function renderRaffleSelectorContent() {
         </div>
       </aside>
     </div>
+
+    <div class="selector-summary-mobile">
+      <div class="selector-summary-mobile-copy">
+        <span class="section-tag">Tu seleccion</span>
+        <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} elegidos` : "Sin numeros aun"}</strong>
+        <span>${selected.length ? buildSelectionMessage(raffle, selected) : "Toca un numero para empezar."}</span>
+      </div>
+      <div class="selector-summary-mobile-chips">
+        ${selected.length
+          ? selected
+            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>×</strong></button>`)
+            .join("")
+          : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
+      </div>
+      <div class="selector-summary-mobile-actions">
+        <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
+        <a
+          class="button gold ${selected.length && isReady ? "" : "is-disabled"}"
+          href="${escapeHtml(whatsappHref)}"
+          target="_blank"
+          rel="noreferrer"
+          ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
   `;
 }
 
