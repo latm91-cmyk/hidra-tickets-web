@@ -2895,6 +2895,10 @@ button {
     padding: 11px 12px;
   }
 
+  .hero-media .overlay-label {
+    display: none;
+  }
+
   .section-head {
     align-items: start;
     flex-direction: column;
