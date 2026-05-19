@@ -309,7 +309,7 @@ button {
   width: 100%;
   margin-bottom: 12px;
   color: #fff;
-  font-size: clamp(20px, 1.9vw, 26px);
+  font-size: clamp(18px, 1.7vw, 23px);
   line-height: 1;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -325,17 +325,17 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 0;
+  margin: 2px 0 2px;
 }
 
 .hero-brand-mark {
-  width: 248px;
-  height: 248px;
-  border-radius: 40px;
+  width: 304px;
+  height: 304px;
+  border-radius: 44px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 28px 52px rgba(8, 25, 47, 0.26);
+  box-shadow: 0 32px 58px rgba(8, 25, 47, 0.28);
   flex: 0 0 auto;
 }
 
@@ -363,7 +363,7 @@ button {
 }
 
 .hero-slogan {
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   max-width: 100%;
   text-align: center;
   color: #fff9e1;
