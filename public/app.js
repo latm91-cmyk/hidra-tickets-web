@@ -1883,33 +1883,16 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div class="hero-copy">
-                <span class="hero-eyebrow">Compra segura · Transparencia total</span>
-                <div class="hero-company-line">${escapeHtml(settings.title || settings.heroTitle || company.nombre || heroTitle || "Rifas publicas")}</div>
+                <div class="hero-company-line">${escapeHtml(settings.title || company.nombre || heroTitle || "Rifas publicas")}</div>
                 <div class="hero-brand">
                   <div class="hero-brand-mark">
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
                   </div>
                 </div>
                 ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
-                <h1 class="hero-title">${escapeHtml(heroTitle)}</h1>
-                <p class="hero-summary">${escapeHtml(heroSubtitle || "Participa por premios reales con sorteos visibles, ganadores publicados y atención por WhatsApp.")}</p>
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
-                </div>
-                <div class="hero-mini-cards">
-                  <div class="hero-mini-card">
-                    <strong>Premios reales</strong>
-                    <span>Entrega verificada</span>
-                  </div>
-                  <div class="hero-mini-card">
-                    <strong>Sorteos visibles</strong>
-                    <span>Actualización en tiempo real</span>
-                  </div>
-                  <div class="hero-mini-card">
-                    <strong>Atención directa</strong>
-                    <span>WhatsApp y soporte</span>
-                  </div>
                 </div>
               </div>
 
