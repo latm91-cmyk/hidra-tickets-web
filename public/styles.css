@@ -3035,19 +3035,68 @@ button {
   }
 
   .hero-grid {
-    padding: 22px;
+    padding: 18px;
+    gap: 14px;
   }
 
   .hero-media {
-    min-height: 280px;
+    min-height: 220px;
   }
 
   .hero h1 {
-    font-size: 38px;
+    font-size: 30px;
+    line-height: 1.02;
   }
 
   .button {
     width: 100%;
+  }
+
+  .hero-card {
+    border-radius: 28px;
+  }
+
+  .hero-copy {
+    gap: 4px;
+  }
+
+  .hero-company-line {
+    font-size: 17px;
+    margin-bottom: 2px;
+  }
+
+  .hero-company-line::after {
+    width: min(240px, 70%);
+    bottom: -6px;
+  }
+
+  .hero-brand {
+    margin: 12px 0 0;
+  }
+
+  .hero-brand-mark {
+    width: 250px;
+    height: 250px;
+    border-radius: 34px;
+  }
+
+  .hero-slogan {
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .hero-actions {
+    margin-top: 14px;
+    gap: 10px;
+  }
+
+  .hero-actions .button {
+    min-height: 48px;
+    padding-inline: 14px;
+  }
+
+  .hero-secondary {
+    min-height: 48px;
   }
 
   .raffle-feature-body {
