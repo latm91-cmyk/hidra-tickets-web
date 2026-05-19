@@ -246,8 +246,9 @@ button {
 
 .button.gold {
   background: linear-gradient(135deg, #f3c756, #d79f22);
-  color: #0b2340;
-  box-shadow: 0 14px 30px rgba(214, 161, 30, 0.24);
+  color: #08192f;
+  box-shadow: 0 14px 30px rgba(214, 161, 30, 0.22);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .button.gold:hover {
@@ -308,24 +309,37 @@ button {
   display: grid;
   align-content: center;
   justify-items: center;
+  gap: 6px;
 }
 
 .hero-company-line {
+  position: relative;
   width: 100%;
-  margin-bottom: 12px;
-  color: transparent;
-  background: linear-gradient(180deg, #ffffff 0%, #fff6d9 46%, #f0c04f 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  font-size: clamp(20px, 2vw, 28px);
+  margin-bottom: 6px;
+  color: #fffdf4;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(22px, 2.25vw, 30px);
   line-height: 1;
-  font-weight: 900;
-  letter-spacing: -0.05em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.hero-company-line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: min(340px, 62%);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 224, 138, 0.92), rgba(255, 255, 255, 0));
+  transform: translateX(-50%);
 }
 
 .hero-brand {
@@ -334,17 +348,17 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 2px 0 2px;
+  margin: 14px 0 2px;
 }
 
 .hero-brand-mark {
-  width: 304px;
-  height: 304px;
+  width: 324px;
+  height: 324px;
   border-radius: 44px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 32px 58px rgba(8, 25, 47, 0.28);
+  box-shadow: 0 34px 62px rgba(8, 25, 47, 0.28);
   flex: 0 0 auto;
 }
 
@@ -372,14 +386,14 @@ button {
 }
 
 .hero-slogan {
-  margin: 14px 0 0;
+  margin: 16px 0 0;
   max-width: 100%;
   text-align: center;
   color: #fff9e1;
-  font-size: clamp(17px, 1.8vw, 22px);
+  font-size: clamp(16px, 1.65vw, 20px);
   line-height: 1.02;
   letter-spacing: -0.03em;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   text-shadow: none;
 }
