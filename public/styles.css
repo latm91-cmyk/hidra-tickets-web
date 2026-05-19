@@ -279,26 +279,6 @@ button {
   display: block;
 }
 
-.hero-brand-copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.hero-brand-copy strong {
-  font-size: 17px;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-.hero-brand-copy span {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .eyebrow {
   display: inline-flex;
   align-items: center;

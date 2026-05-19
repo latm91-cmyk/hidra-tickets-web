@@ -1887,10 +1887,6 @@ function renderShell(site, slug) {
                   <div class="hero-brand-mark">
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
                   </div>
-                  <div class="hero-brand-copy">
-                    <strong>${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</strong>
-                    <span>Rifas premium · Ganadores visibles</span>
-                  </div>
                 </div>
                 <span class="eyebrow">Premios reales · Compra segura</span>
                 <div class="hero-heading">
