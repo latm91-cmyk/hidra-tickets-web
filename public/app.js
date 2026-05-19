@@ -380,7 +380,7 @@ function formatTicketSelectionLabel(ticket = {}) {
 function buildSelectionMessage(raffle = {}, selected = []) {
   const title = getRaffleDisplayTitle(raffle);
   const numbers = selected.map((item) => String(item || "").trim()).filter(Boolean);
-  return `Hola, quiero participar en "${title}" con estos números: ${numbers.join(", ")}.`;
+  return `Estas seleccionando tus números para el sorteo "${title}" llevas estos seleccionados: ${numbers.join(", ")}.`;
 }
 
 function isYoutubeUrl(url = "") {
@@ -658,11 +658,10 @@ function renderRaffles(site) {
             <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
             <div class="raffle-feature-badge">${isFeatured ? "Sorteo destacado" : "Sorteo disponible"}</div>
           </div>
-          <div class="raffle-feature-body">
-            <span class="section-tag">Sorteo destacado</span>
-            <div class="chip-row">
-              ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
-              ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            <div class="raffle-feature-body">
+              <div class="chip-row">
+                ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+                ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             </div>
             ${pricingSummary ? `
               <div class="raffle-price-label">Precio de boletería:</div>
@@ -915,12 +914,11 @@ function renderRaffleSelectorContent() {
     : "";
 
   return `
-    <div class="selector-head">
-      <div class="selector-head-copy">
-        <span class="section-tag">Boletas en tiempo real</span>
-        <h3>${escapeHtml(title)}</h3>
-        ${description ? `<p>${escapeHtml(description)}</p>` : ""}
-      </div>
+      <div class="selector-head">
+        <div class="selector-head-copy">
+          <h3>${escapeHtml(title)}</h3>
+          ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+        </div>
       <button type="button" class="selector-close" data-action="close-raffle-selector">Cerrar</button>
     </div>
 
@@ -989,8 +987,7 @@ function renderRaffleSelectorContent() {
       </div>
 
       <aside class="selector-summary">
-        <div class="selector-summary-head">
-          <span class="section-tag">Tu seleccion</span>
+      <div class="selector-summary-head">
           <h4>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"}` : "Aun no seleccionas numeros"}</h4>
           ${selected.length ? `<p class="selector-summary-total">${escapeHtml(formatCOP(selectedAmount))}</p>` : ""}
         </div>
@@ -1026,7 +1023,6 @@ function renderRaffleSelectorContent() {
 
     <div class="selector-summary-mobile">
       <div class="selector-summary-mobile-copy">
-        <span class="section-tag">Tu seleccion</span>
         <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} elegidos` : "Sin numeros aun"}</strong>
         ${selected.length ? `<span class="selector-summary-mobile-total">${escapeHtml(formatCOP(selectedAmount))}</span>` : ""}
         <span>${selected.length ? buildSelectionMessage(raffle, selected) : "Toca un numero para empezar."}</span>
@@ -1193,12 +1189,11 @@ function renderPaymentModalContent() {
   const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
 
   return `
-    <div class="payment-modal-head">
-      <div class="payment-modal-head-copy">
-        <span class="section-tag">Pago de boletas</span>
-        <h3>Completa tu compra</h3>
-        <p>${escapeHtml(description)}</p>
-      </div>
+      <div class="payment-modal-head">
+        <div class="payment-modal-head-copy">
+          <h3>Completa tu compra</h3>
+          <p>${escapeHtml(description)}</p>
+        </div>
       <button type="button" class="selector-close" data-action="close-payment-modal">Cerrar</button>
     </div>
 
@@ -1702,14 +1697,13 @@ function renderSections(site, sections, title, description) {
     return "";
   }
 
-  return `
-    <section class="section section-anchor">
-      <div class="section-head">
-        <div>
-          <span class="section-tag">${escapeHtml(title)}</span>
-          <h2>${escapeHtml(title)}</h2>
-          ${description ? `<p>${escapeHtml(description)}</p>` : ""}
-        </div>
+    return `
+      <section class="section section-anchor">
+        <div class="section-head">
+          <div>
+            <h2>${escapeHtml(title)}</h2>
+            ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+          </div>
       </div>
       <div class="grid-2">
         ${sections
@@ -1778,13 +1772,12 @@ function renderHowItWorks() {
   ];
 
   return `
-    <section class="section shell section-anchor" id="como-participar">
-      <div class="section-head">
-        <div>
-          <span class="section-tag">Cómo participar</span>
-          <h2>Compra en menos de 2 minutos</h2>
-          <p>Una ruta clara y rápida para pasar de ver el sorteo a tener tu boleta registrada.</p>
-        </div>
+      <section class="section shell section-anchor" id="como-participar">
+        <div class="section-head">
+          <div>
+            <h2>Compra en menos de 2 minutos</h2>
+            <p>Una ruta clara y rápida para pasar de ver el sorteo a tener tu boleta registrada.</p>
+          </div>
       </div>
       <div class="grid-4">
         ${steps
@@ -1915,13 +1908,12 @@ function renderShell(site, slug) {
 
         ${renderTrustStrip(site)}
 
-        <section class="section shell section-anchor" id="sorteos">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Sorteos disponibles</span>
-              <h2>Sorteos disponibles</h2>
-              <p>Selecciona el sorteo que quieras comprar y mira sus numeros disponibles en tiempo real.</p>
-            </div>
+          <section class="section shell section-anchor" id="sorteos">
+            <div class="section-head">
+              <div>
+                <h2>Sorteos disponibles</h2>
+                <p>Selecciona el sorteo que quieras comprar y mira sus numeros disponibles en tiempo real.</p>
+              </div>
           </div>
           ${renderRaffles(site)}
         </section>
@@ -1929,13 +1921,12 @@ function renderShell(site, slug) {
         ${renderHowItWorks()}
 
         ${paymentSections.length ? `
-          <section class="section shell section-anchor" id="pagos">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Metodos de pago</span>
-              <h2>Opciones de pago visibles</h2>
-              <p>La pagina publica toma estos bloques desde la configuracion del backend.</p>
-            </div>
+            <section class="section shell section-anchor" id="pagos">
+            <div class="section-head">
+              <div>
+                <h2>Opciones de pago visibles</h2>
+                <p>La pagina publica toma estos bloques desde la configuracion del backend.</p>
+              </div>
           </div>
           <div class="state-card" style="margin-bottom:18px">
             <img src="${escapeHtml(ASSETS.payments)}" alt="Metodos de pago" style="width:100%;height:auto;border-radius:22px;display:block;margin-bottom:16px" />
@@ -1944,49 +1935,45 @@ function renderShell(site, slug) {
           </section>
         ` : ""}
 
-        <section class="section shell section-anchor" id="videos">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Ganadores</span>
-              <h2>Ganadores, historias de suerte</h2>
-              <p>Mira entregas, testimonios y momentos reales de quienes ya participaron y ganaron.</p>
-            </div>
+          <section class="section shell section-anchor" id="videos">
+            <div class="section-head">
+              <div>
+                <h2>Ganadores, historias de suerte</h2>
+                <p>Mira entregas, testimonios y momentos reales de quienes ya participaron y ganaron.</p>
+              </div>
           </div>
           ${renderWinnerVideos(site)}
         </section>
 
-        <section class="section shell section-anchor" id="faq">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Preguntas frecuentes</span>
-              <h2>Dudas resueltas antes de comprar</h2>
-              <p>La landing muestra las respuestas que configuras en el panel administrativo.</p>
-            </div>
+          <section class="section shell section-anchor" id="faq">
+            <div class="section-head">
+              <div>
+                <h2>Dudas resueltas antes de comprar</h2>
+                <p>La landing muestra las respuestas que configuras en el panel administrativo.</p>
+              </div>
           </div>
           ${renderFaq(site)}
         </section>
 
         ${legalSections.length ? `
-          <section class="section shell section-anchor" id="legal">
-            <div class="section-head">
-              <div>
-                <span class="section-tag">Legal</span>
-                <h2>Terminos y condiciones</h2>
-                <p>Bloques legales que se muestran publicamente sin tocar el codigo de la web.</p>
-              </div>
+            <section class="section shell section-anchor" id="legal">
+              <div class="section-head">
+                <div>
+                  <h2>Terminos y condiciones</h2>
+                  <p>Bloques legales que se muestran publicamente sin tocar el codigo de la web.</p>
+                </div>
             </div>
             ${renderSections(site, legalSections, "Legal", "T&C, autorizaciones, privacidad y otras politicas.") }
           </section>
         ` : ""}
 
         ${otherSections.length ? `
-          <section class="section shell section-anchor" id="contenidos">
-            <div class="section-head">
-              <div>
-                <span class="section-tag">Otros bloques</span>
-                <h2>Contenido adicional</h2>
-                <p>Secciones extra cargadas desde el CMS interno.</p>
-              </div>
+            <section class="section shell section-anchor" id="contenidos">
+              <div class="section-head">
+                <div>
+                  <h2>Contenido adicional</h2>
+                  <p>Secciones extra cargadas desde el CMS interno.</p>
+                </div>
             </div>
             ${renderSections(site, otherSections, "Contenido adicional", "Bloques generales publicados por el administrador.") }
           </section>

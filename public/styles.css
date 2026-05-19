@@ -245,15 +245,18 @@ button {
 }
 
 .topbar-cta {
-  background: linear-gradient(135deg, #ffffff, #fff0bf);
-  color: #0b2340;
-  border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(11, 35, 64, 0.16);
-  padding: 12px 18px;
+  background: transparent;
+  color: #ffffff;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+  padding: 10px 12px 10px 10px;
+  gap: 8px;
 }
 
 .topbar-cta:hover {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.26);
 }
 
 .button.secondary {
@@ -287,14 +290,16 @@ button {
 .whatsapp-icon {
   display: inline-grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
+  color: #111111;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28));
 }
 
 .whatsapp-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   display: block;
 }
 
