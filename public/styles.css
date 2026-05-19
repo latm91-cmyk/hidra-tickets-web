@@ -546,6 +546,10 @@ button {
   text-transform: uppercase;
 }
 
+.overlay-label-featured {
+  background: rgba(255, 216, 122, 0.16);
+}
+
 .overlay-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2899,6 +2903,10 @@ button {
   .raffle-feature-badge,
   .card-flag {
     display: none;
+  }
+
+  .overlay-label-featured {
+    display: none !important;
   }
 
   .section-head {

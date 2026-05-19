@@ -1925,6 +1925,7 @@ function renderShell(site, slug) {
     : (settings.heroOverlayText || "Compra segura y numeros visibles en tiempo real.");
   const heroSpotlightImage = featuredRaffle ? getRaffleDisplayImage(featuredRaffle, site) : heroImage;
   const heroSpotlightLabel = featuredRaffle ? "Sorteo destacado" : "Compra segura";
+  const heroSpotlightLabelClass = featuredRaffle ? "overlay-label overlay-label-featured" : "overlay-label";
   const heroSpotlightChips = [
     featuredRaffle ? getRaffleDisplayDate(featuredRaffle) : "",
     featuredRaffle ? getRaffleDisplayPrice(featuredRaffle) : "",
@@ -2016,7 +2017,7 @@ function renderShell(site, slug) {
               <div class="hero-media">
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" />`}
                 <div class="overlay">
-                  <span class="overlay-label">${escapeHtml(heroSpotlightLabel)}</span>
+                  <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
                   <strong>${escapeHtml(heroSpotlightTitle)}</strong>
                   <div>${escapeHtml(heroSpotlightDescription)}</div>
                   ${heroSpotlightChips.length ? `
