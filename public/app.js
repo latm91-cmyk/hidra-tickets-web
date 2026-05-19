@@ -1884,7 +1884,10 @@ function renderShell(site, slug) {
             <div class="hero-grid">
               <div>
                 <span class="eyebrow">Premios reales · Compra segura</span>
-                <h1>${escapeHtml(heroTitle)}${slogan ? ` <span class="accent">${escapeHtml(slogan)}</span>` : ""}</h1>
+                <div class="hero-heading">
+                  <h1>${escapeHtml(heroTitle)}</h1>
+                  ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
+                </div>
                 <p>${escapeHtml(heroSubtitle || "Participa por premios reales con sorteos visibles, ganadores publicados y atención por WhatsApp.")}</p>
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
