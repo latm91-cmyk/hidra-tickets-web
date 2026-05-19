@@ -318,15 +318,13 @@ button {
   margin-bottom: 6px;
   color: #fffdf4;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(22px, 2.25vw, 30px);
+  font-size: clamp(18px, 1.75vw, 26px);
   line-height: 1;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   text-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
 }
 
@@ -348,7 +346,7 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 14px 0 2px;
+  margin: 16px 0 2px;
 }
 
 .hero-brand-mark {
