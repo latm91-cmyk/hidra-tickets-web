@@ -3051,15 +3051,99 @@ button {
   }
 
   .raffle-feature-body {
-    padding: 22px;
+    padding: 18px;
   }
 
   .raffle-feature-title {
-    font-size: 30px;
+    font-size: 26px;
+    line-height: 1.02;
   }
 
   .raffle-mini {
     grid-template-columns: 1fr;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .raffle-mini-body h4 {
+    font-size: 16px;
+  }
+
+  .raffle-mini .chip {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .raffle-card-compact {
+    max-width: none;
+  }
+
+  .raffle-card {
+    border-radius: 24px;
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
+  }
+
+  .raffle-feature {
+    border-radius: 24px;
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
+  }
+
+  .raffle-feature-media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .raffle-feature-badge {
+    left: 12px;
+    top: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .raffle-list {
+    gap: 10px;
+  }
+
+  .how-it-works-head {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .section-kicker {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .how-it-works-note {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .how-it-works-track {
+    gap: 10px;
+  }
+
+  .step-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .step-card-top {
+    margin-bottom: 12px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .premium-step strong {
+    font-size: 15px;
+  }
+
+  .premium-step p {
+    font-size: 13px;
   }
 
   .how-it-works-panel {
