@@ -1883,6 +1883,7 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div class="hero-copy">
+                <div class="hero-company-line">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
                 <div class="hero-brand">
                   <div class="hero-brand-mark">
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
@@ -2228,5 +2229,4 @@ async function loadSite() {
 }
 
 loadSite();
-
 
