@@ -54,10 +54,34 @@ button {
   position: sticky;
   top: 0;
   z-index: 50;
+  overflow: hidden;
   backdrop-filter: blur(18px);
   background: linear-gradient(135deg, rgba(8, 25, 47, 0.98), rgba(12, 34, 58, 0.96) 58%, rgba(29, 95, 70, 0.94));
   border-bottom: 1px solid rgba(255, 216, 122, 0.14);
   box-shadow: 0 12px 30px rgba(8, 25, 47, 0.2);
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.88),
+    rgba(255, 216, 122, 0.96),
+    rgba(255, 255, 255, 0.88),
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0)
+  );
+  box-shadow: 0 0 18px rgba(255, 216, 122, 0.55);
+  opacity: 0.9;
+  animation: topbarSheen 4.8s linear infinite;
+  pointer-events: none;
 }
 
 .topbar-inner {
@@ -1949,6 +1973,27 @@ button {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes topbarSheen {
+  0% {
+    transform: translateX(-18%);
+    opacity: 0.35;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateX(18%);
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(38%);
+    opacity: 0.35;
   }
 }
 
