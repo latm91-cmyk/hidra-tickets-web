@@ -1892,7 +1892,6 @@ function renderShell(site, slug) {
                   <h1>${escapeHtml(heroTitle)}</h1>
                   ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
                 </div>
-                <p>${escapeHtml(heroSubtitle || "Participa por premios reales con sorteos visibles, ganadores publicados y atención por WhatsApp.")}</p>
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
@@ -2229,6 +2228,5 @@ async function loadSite() {
 }
 
 loadSite();
-
 
 
