@@ -312,35 +312,20 @@ button {
 
 .hero-company-line {
   width: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   color: transparent;
-  background: linear-gradient(
-    110deg,
-    #fff8dc 0%,
-    #e8c46b 18%,
-    #fffdf2 34%,
-    #c99319 50%,
-    #fffef7 66%,
-    #e3bb58 82%,
-    #fff8dc 100%
-  );
-  background-size: 240% 100%;
+  background: linear-gradient(180deg, #ffffff 0%, #fff6d9 46%, #f0c04f 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  font-family: "Cinzel", Georgia, serif;
-  font-size: clamp(22px, 2.5vw, 34px);
+  font-size: clamp(20px, 2vw, 28px);
   line-height: 1;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.05em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-transform: uppercase;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.55),
-    0 8px 20px rgba(0, 0, 0, 0.22);
-  animation: metalShine 5.5s linear infinite;
+  text-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
 }
 
 .hero-brand {
@@ -349,7 +334,7 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 4px 0 4px;
+  margin: 2px 0 2px;
 }
 
 .hero-brand-mark {
@@ -387,11 +372,11 @@ button {
 }
 
 .hero-slogan {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   max-width: 100%;
   text-align: center;
   color: #fff9e1;
-  font-size: clamp(18px, 1.9vw, 24px);
+  font-size: clamp(17px, 1.8vw, 22px);
   line-height: 1.02;
   letter-spacing: -0.03em;
   font-weight: 700;
@@ -2069,18 +2054,6 @@ button {
   100% {
     transform: translateX(-8%);
     opacity: 0.35;
-  }
-}
-
-@keyframes metalShine {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
   }
 }
 
