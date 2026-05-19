@@ -1892,7 +1892,7 @@ function renderShell(site, slug) {
                 ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
-                  <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
+                  <a class="button secondary hero-secondary" href="#videos">Ver Ganadores</a>
                 </div>
               </div>
 
@@ -1948,7 +1948,7 @@ function renderShell(site, slug) {
           <div class="section-head">
             <div>
               <span class="section-tag">Ganadores</span>
-              <h2>Ganadores reales, historias que inspiran confianza</h2>
+              <h2>Ganadores, historias de suerte</h2>
               <p>Mira entregas, testimonios y momentos reales de quienes ya participaron y ganaron.</p>
             </div>
           </div>
