@@ -3051,12 +3051,12 @@ button {
   }
 
   .raffle-feature-body {
-    padding: 18px;
+    padding: 16px;
   }
 
   .raffle-feature-title {
-    font-size: 26px;
-    line-height: 1.02;
+    font-size: 22px;
+    line-height: 1.04;
   }
 
   .raffle-mini {
@@ -3089,7 +3089,7 @@ button {
   }
 
   .raffle-feature-media {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 11;
   }
 
   .raffle-feature-badge {
@@ -3100,7 +3100,30 @@ button {
   }
 
   .raffle-list {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .raffle-showcase {
+    gap: 12px;
+  }
+
+  .raffle-card-compact .raffle-card-actions {
+    margin-top: 10px;
+  }
+
+  .raffle-card-compact .chip-row {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .raffle-card-compact .raffle-price-summary {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .raffle-card-compact .raffle-card-copy {
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .how-it-works-head {
