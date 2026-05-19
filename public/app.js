@@ -62,6 +62,17 @@ function formatCOP(value) {
   return Number.isFinite(numeric) ? currencyFormatter.format(numeric) : currencyFormatter.format(0);
 }
 
+function socialIconMarkup(type) {
+  const icons = {
+    facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8.5V7c0-.7.5-1.2 1.2-1.2h1.8V3h-2.5C12.3 3 11 4.4 11 6.3v2.2H8.5V11H11v10h3v-10h2.6l.4-2.5H14Z" fill="currentColor"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10A3.5 3.5 0 0 1 20.5 7v10A3.5 3.5 0 0 1 17 20.5H7A3.5 3.5 0 0 1 3.5 17V7A3.5 3.5 0 0 1 7 3.5Zm0 2A1.5 1.5 0 0 0 5.5 7v10A1.5 1.5 0 0 0 7 18.5h10a1.5 1.5 0 0 0 1.5-1.5V7A1.5 1.5 0 0 0 17 5.5H7Zm5 2.2A4.3 4.3 0 1 1 7.7 12 4.3 4.3 0 0 1 12 7.7Zm0 2A2.3 2.3 0 1 0 14.3 12 2.3 2.3 0 0 0 12 9.7Zm4.7-3.2a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" fill="currentColor"/></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 3.5c.8 2.5 2.4 3.7 4.5 3.9V11c-1.7 0-3.3-.5-4.5-1.4V16a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v3.3a2.2 2.2 0 1 0 1.6 2.1V3.5h3Z" fill="currentColor"/></svg>',
+    youtube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 7.3a3 3 0 0 0-2.1-2.1C17.7 4.7 12 4.7 12 4.7s-5.7 0-7.5.5a3 3 0 0 0-2.1 2.1A31.3 31.3 0 0 0 2 12a31.3 31.3 0 0 0 .4 4.7 3 3 0 0 0 2.1 2.1c1.8.5 7.5.5 7.5.5s5.7 0 7.5-.5a3 3 0 0 0 2.1-2.1A31.3 31.3 0 0 0 22 12a31.3 31.3 0 0 0-.4-4.7ZM10 15.2V8.8l5.6 3.2L10 15.2Z" fill="currentColor"/></svg>',
+    whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg>',
+  };
+  return icons[type] || "";
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -259,6 +270,20 @@ function getRaffleDisplayTotal(raffle = {}) {
 
 function getRaffleDisplayWhatsApp(site = {}) {
   return site?.settings?.whatsappNumber || site?.company?.whatsapp_number || "";
+}
+
+function getFooterSocialLinks(site = {}) {
+  const settings = site?.settings || {};
+  const company = site?.company || {};
+  const links = [
+    (settings.whatsappNumber || company.whatsapp_number) ? { key: "whatsapp", label: "WhatsApp", href: whatsappLink(settings.whatsappNumber || company.whatsapp_number) } : null,
+    settings.facebookUrl || settings.facebook_url ? { key: "facebook", label: "Facebook", href: settings.facebookUrl || settings.facebook_url } : null,
+    settings.instagramUrl || settings.instagram_url ? { key: "instagram", label: "Instagram", href: settings.instagramUrl || settings.instagram_url } : null,
+    settings.tiktokUrl || settings.tiktok_url ? { key: "tiktok", label: "TikTok", href: settings.tiktokUrl || settings.tiktok_url } : null,
+    settings.youtubeUrl || settings.youtube_url ? { key: "youtube", label: "YouTube", href: settings.youtubeUrl || settings.youtube_url } : null,
+  ];
+
+  return links.filter(Boolean);
 }
 
 function normalizeTicketDisplayValue(value) {
@@ -1914,6 +1939,7 @@ function renderShell(site, slug) {
     ["Ganadores", "#videos"],
     ["Ayuda", "#faq"],
   ];
+  const footerSocialLinks = getFooterSocialLinks(site);
   const paymentSections = asArray(site.paymentMethods);
   const legalSections = asArray(site.legal);
   const otherSections = asArray(site.otherSections);
@@ -2077,12 +2103,18 @@ function renderShell(site, slug) {
               </div>
             </div>
             <div class="footer-contact">
-              <span class="footer-label">Contacto directo</span>
-              ${settings.whatsappNumber ? `<a class="footer-contact-pill" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">WhatsApp: ${escapeHtml(settings.whatsappNumber)}</a>` : ""}
-              <div class="top-actions footer-socials">
-                ${settings.facebookUrl ? `<a class="button secondary" href="${escapeHtml(settings.facebookUrl)}" target="_blank" rel="noreferrer">Facebook</a>` : ""}
-                ${settings.instagramUrl ? `<a class="button secondary" href="${escapeHtml(settings.instagramUrl)}" target="_blank" rel="noreferrer">Instagram</a>` : ""}
-                ${settings.tiktokUrl ? `<a class="button secondary" href="${escapeHtml(settings.tiktokUrl)}" target="_blank" rel="noreferrer">TikTok</a>` : ""}
+              <span class="footer-label">Redes sociales</span>
+              ${footerSocialLinks.length ? `
+                <div class="footer-social-grid">
+                  ${footerSocialLinks.map((item) => `
+                    <a class="social-link social-${escapeHtml(item.key)}" href="${escapeHtml(item.href)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(item.label)}">
+                      <span class="social-link-icon">${socialIconMarkup(item.key)}</span>
+                      <span>${escapeHtml(item.label)}</span>
+                    </a>
+                  `).join("")}
+                </div>
+              ` : ""}
+              ${settings.whatsappNumber ? `<a class="footer-contact-pill" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">WhatsApp ${escapeHtml(settings.whatsappNumber)}</a>` : ""}
               </div>
             </div>
           </div>
