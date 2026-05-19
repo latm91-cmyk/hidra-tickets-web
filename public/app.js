@@ -859,9 +859,6 @@ function renderRaffleSelectorContent() {
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
-  const stats = raffleSelectorState.stats || {};
-  const availableCount = Number(stats.availableCount || raffleSelectorState.numbers.length || 0);
-  const inventoryTotal = Number(stats.inventoryTotal || total || 0);
   const persistedSelected = raffle ? readPersistedSelection(raffle.campaign.id) : [];
   const selected = raffleSelectorState.selected?.length
     ? raffleSelectorState.selected
@@ -909,7 +906,6 @@ function renderRaffleSelectorContent() {
   const whatsappHref = cleanWhatsapp && selected.length ? buildWhatsAppHref(cleanWhatsapp, whatsappMessage) : "#";
   const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp Web";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} boletas visibles`;
-  const lastUpdated = raffleSelectorState.updatedAt ? formatRelativeTime(raffleSelectorState.updatedAt) : "Actualizando...";
   const notice = raffleSelectorState.notice
     ? `<div class="selector-notice selector-notice-${escapeHtml(raffleSelectorState.noticeTone || "info")}">${escapeHtml(raffleSelectorState.notice)}</div>`
     : `<div class="selector-notice selector-notice-placeholder" aria-hidden="true"></div>`;
@@ -933,12 +929,6 @@ function renderRaffleSelectorContent() {
           <small>${escapeHtml(pricingSummary)}</small>
         </span>
       ` : "");
-  const benefitCards = [
-    { title: "Compra segura", text: "Aparta tus números con respaldo y control." },
-    { title: "Tiempo real", text: "Mira la disponibilidad mientras exploras." },
-    { title: "Pago fácil", text: "Continúa por WhatsApp o sube tu comprobante." },
-  ];
-
   return `
       <div class="selector-head">
         <div class="selector-head-copy">
@@ -949,57 +939,18 @@ function renderRaffleSelectorContent() {
     </div>
 
     ${raffle ? `
-      <div class="selector-hero">
-        <div class="selector-hero-body">
+      <div class="selector-hero selector-hero-minimal">
+        <div class="selector-hero-body selector-hero-body-minimal">
           <div class="selector-hero-topline">
             <span class="selector-kicker">Precio de boletería</span>
             <div class="selector-price-strip">
               ${priceChips}
             </div>
           </div>
-          <div class="selector-premium-copy">
-            <span class="selector-premium-pill">Premio principal</span>
-            <h4>${escapeHtml(title)}</h4>
-            <p>${escapeHtml(description || "Compra segura y numeros visibles en tiempo real.")}</p>
-          </div>
-          <div class="selector-benefit-grid">
-            ${benefitCards.map((item) => `
-              <article class="selector-benefit-card">
-                <span>✦</span>
-                <strong>${escapeHtml(item.title)}</strong>
-                <p>${escapeHtml(item.text)}</p>
-              </article>
-            `).join("")}
-          </div>
-          <div class="selector-hero-cta-row">
-            <button type="button" class="button gold selector-hero-cta" data-action="focus-selector-grid">Escoger mis números</button>
-            <div class="selector-hero-chiprow">
-              ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
-              ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
-              ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
-            </div>
-          </div>
-          <div class="selector-hero-stats">
-            <div>
-              <strong>${escapeHtml(String(availableCount))}</strong>
-              <span>Disponibles ahora</span>
-            </div>
-            <div>
-              <strong>${escapeHtml(String(inventoryTotal || availableCount))}</strong>
-              <span>Total del sorteo</span>
-            </div>
-            <div>
-              <strong>${escapeHtml(lastUpdated)}</strong>
-              <span>Actualizacion</span>
-            </div>
-          </div>
-        </div>
-        <div class="selector-hero-media">
-          <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" />
-          <div class="selector-hero-media-overlay">
-            <span class="selector-hero-media-label">${escapeHtml(raffle ? "Sorteo destacado" : "Selección premium")}</span>
-            <strong>${escapeHtml(title)}</strong>
-            <p>${escapeHtml(description || "Selecciona tus números favoritos y continúa al pago.")}</p>
+          <div class="selector-hero-chiprow selector-hero-chiprow-minimal">
+            ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
           </div>
         </div>
       </div>
