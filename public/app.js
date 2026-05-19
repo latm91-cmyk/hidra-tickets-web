@@ -10,12 +10,14 @@ const ASSETS = {
   pse: "/assets/pse-logo.svg",
 };
 const RAFFLE_SELECTOR_LIMIT = 180;
+const RAFFLE_SELECTOR_PAGE_SIZE = 100;
 const raffleSelectorState = {
   open: false,
   site: null,
   slug: "",
   raffle: null,
   query: "",
+  page: 1,
   selected: [],
   numbers: [],
   stats: null,
@@ -827,6 +829,29 @@ function getRaffleSelectorNumbers() {
   );
 }
 
+function getRaffleSelectorPagination(numbers = []) {
+  const total = Array.isArray(numbers) ? numbers.length : 0;
+  const totalPages = Math.max(1, Math.ceil(total / RAFFLE_SELECTOR_PAGE_SIZE));
+  const requestedPage = Number.parseInt(raffleSelectorState.page, 10) || 1;
+  const page = Math.min(Math.max(1, requestedPage), totalPages);
+  const start = total > 0 ? (page - 1) * RAFFLE_SELECTOR_PAGE_SIZE : 0;
+  const end = total > 0 ? Math.min(start + RAFFLE_SELECTOR_PAGE_SIZE, total) : 0;
+  const pageNumbers = total > 0
+    ? numbers.slice(start, start + RAFFLE_SELECTOR_PAGE_SIZE)
+    : [];
+
+  return {
+    page,
+    total,
+    totalPages,
+    start,
+    end,
+    pageNumbers,
+    hasPrev: page > 1,
+    hasNext: page < totalPages,
+  };
+}
+
 function formatRelativeTime(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -879,10 +904,11 @@ function renderRaffleSelectorContent() {
       .join("")
     : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`;
   const numbers = getRaffleSelectorNumbers();
+  const pagination = getRaffleSelectorPagination(numbers);
   const numbersHtml = raffleSelectorState.loading
-    ? Array.from({ length: 18 }).map(() => `<span class="ticket-chip skeleton"></span>`).join("")
-    : numbers.length > 0
-      ? numbers
+    ? Array.from({ length: RAFFLE_SELECTOR_PAGE_SIZE }).map(() => `<span class="ticket-chip skeleton"></span>`).join("")
+    : pagination.pageNumbers.length > 0
+      ? pagination.pageNumbers
         .map((ticket) => {
           const label = ticket.display || ticket.number || "";
           const isSelected = selected.includes(label);
@@ -904,8 +930,11 @@ function renderRaffleSelectorContent() {
   const cleanWhatsapp = String(whatsappNumber || "").replace(/\D/g, "");
   const whatsappMessage = buildSelectionMessage(raffle, selected);
   const whatsappHref = cleanWhatsapp && selected.length ? buildWhatsAppHref(cleanWhatsapp, whatsappMessage) : "#";
-  const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp Web";
+  const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} boletas visibles`;
+  const pageInfo = numbers.length > 0
+    ? `Bloque ${pagination.page} de ${pagination.totalPages} · ${pagination.start + 1}-${pagination.end}`
+    : "Sin paginacion";
   const notice = raffleSelectorState.notice
     ? `<div class="selector-notice selector-notice-${escapeHtml(raffleSelectorState.noticeTone || "info")}">${escapeHtml(raffleSelectorState.notice)}</div>`
     : `<div class="selector-notice selector-notice-placeholder" aria-hidden="true"></div>`;
@@ -958,6 +987,7 @@ function renderRaffleSelectorContent() {
 
     <div class="selector-layout">
       <div class="selector-main">
+        <div class="selector-main-top">
         <div class="selector-toolbar">
           <label class="selector-search">
             <span>Buscar numero</span>
@@ -976,8 +1006,21 @@ function renderRaffleSelectorContent() {
         </div>
         ${notice}
         ${liveSummary}
-        <div class="ticket-grid">
-          ${numbersHtml}
+        <div class="selector-pagination selector-pagination-top">
+          <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
+          <span>${escapeHtml(pageInfo)}</span>
+          <button type="button" class="selector-page-button" data-selector-page="next" ${pagination.hasNext ? "" : "disabled"}>Siguiente</button>
+        </div>
+        </div>
+        <div class="ticket-grid-shell">
+          <div class="ticket-grid">
+            ${numbersHtml}
+          </div>
+        </div>
+        <div class="selector-pagination selector-pagination-bottom">
+          <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
+          <span>${escapeHtml(pageInfo)}</span>
+          <button type="button" class="selector-page-button" data-selector-page="next" ${pagination.hasNext ? "" : "disabled"}>Siguiente</button>
         </div>
       </div>
 
@@ -1361,6 +1404,23 @@ function bindRaffleSelectorActions(content) {
         event.preventDefault();
         event.stopPropagation();
         handleRaffleSelectorRemoveValue(removeButton.getAttribute("data-selector-remove"));
+        return;
+      }
+
+      const pageButton = event.target.closest("[data-selector-page]");
+      if (pageButton && content.contains(pageButton)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const pagination = getRaffleSelectorPagination(getRaffleSelectorNumbers());
+        const direction = pageButton.getAttribute("data-selector-page");
+        if (direction === "prev" && pagination.hasPrev) {
+          raffleSelectorState.page = Math.max(1, pagination.page - 1);
+        } else if (direction === "next" && pagination.hasNext) {
+          raffleSelectorState.page = Math.min(pagination.totalPages, pagination.page + 1);
+        } else {
+          return;
+        }
+        paintRaffleSelector();
       }
     });
   }
@@ -1478,6 +1538,7 @@ function openRaffleSelector(raffleId) {
   raffleSelectorState.slug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || "";
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
+  raffleSelectorState.page = 1;
   raffleSelectorState.selected = readPersistedSelection(raffle.campaign.id);
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
@@ -1503,6 +1564,7 @@ function closeRaffleSelector() {
   raffleSelectorState.open = false;
   raffleSelectorState.raffle = null;
   raffleSelectorState.query = "";
+  raffleSelectorState.page = 1;
   raffleSelectorState.selected = [];
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
@@ -2133,6 +2195,7 @@ app.addEventListener("input", (event) => {
   }
 
   raffleSelectorState.query = String(input.value || "").trim();
+  raffleSelectorState.page = 1;
   if (raffleSelectorState.queryTimer) {
     clearTimeout(raffleSelectorState.queryTimer);
   }
