@@ -3118,6 +3118,56 @@ button {
     font-size: 12px;
   }
 
+  .grid-3 {
+    gap: 10px;
+  }
+
+  .card-media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    line-height: 1.08;
+  }
+
+  .card-copy {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .play-overlay {
+    inset: auto 10px 10px 10px;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .play-overlay-badge {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .play-overlay-text strong {
+    font-size: 13px;
+  }
+
+  .play-overlay-text small {
+    font-size: 10px;
+  }
+
+  .card-flag {
+    top: 10px;
+    left: 10px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
   .how-it-works-track {
     gap: 10px;
   }
