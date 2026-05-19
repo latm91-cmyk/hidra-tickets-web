@@ -1838,25 +1838,32 @@ function renderHowItWorks() {
   ];
 
   return `
-      <section class="section shell section-anchor" id="como-participar">
-        <div class="section-head">
+    <section class="section shell section-anchor how-it-works-section" id="como-participar">
+      <div class="how-it-works-panel">
+        <div class="section-head how-it-works-head">
           <div>
+            <span class="section-kicker">Proceso simple</span>
             <h2>Compra en menos de 2 minutos</h2>
             <p>Una ruta clara y rápida para pasar de ver el sorteo a tener tu boleta registrada.</p>
           </div>
-      </div>
-      <div class="grid-4">
-        ${steps
-          .map(
-            ([title, text], index) => `
-              <article class="step-card">
-                <div class="step-number">${index + 1}</div>
-                <strong>${escapeHtml(title)}</strong>
-                <p>${escapeHtml(text)}</p>
-              </article>
-            `,
-          )
-          .join("")}
+          <div class="how-it-works-note">Selecciona, paga y recibe seguimiento</div>
+        </div>
+        <div class="how-it-works-track">
+          ${steps
+            .map(
+              ([title, text], index) => `
+                <article class="step-card premium-step">
+                  <div class="step-card-top">
+                    <div class="step-number">${index + 1}</div>
+                    ${index < steps.length - 1 ? '<span class="step-connector"></span>' : ""}
+                  </div>
+                  <strong>${escapeHtml(title)}</strong>
+                  <p>${escapeHtml(text)}</p>
+                </article>
+              `,
+            )
+            .join("")}
+        </div>
       </div>
     </section>
   `;
