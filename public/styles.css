@@ -2899,6 +2899,10 @@ button {
     padding: 11px 12px;
   }
 
+  .hero-media {
+    display: none;
+  }
+
   .hero-media .overlay-label,
   .raffle-feature-badge,
   .card-flag {
