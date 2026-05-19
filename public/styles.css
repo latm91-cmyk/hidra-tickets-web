@@ -780,7 +780,15 @@ button {
   padding: 13px 18px;
   border-radius: 18px;
   font-size: 15px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, #f5d978, #d79f22);
+  color: #0b2340;
+  box-shadow: 0 16px 30px rgba(214, 161, 30, 0.24);
+  text-shadow: none;
+}
+
+.raffle-feature .button.gold:hover {
+  background: linear-gradient(135deg, #ffe08e, #e0ad33);
+  color: #071629;
 }
 
 .raffle-selector-modal {
@@ -1611,7 +1619,24 @@ button {
   padding: 15px 18px;
   border-radius: 20px;
   font-size: 16px;
-  background: linear-gradient(135deg, #0b2340, #1f7a4d);
+  background: linear-gradient(135deg, #f5d978, #d79f22);
+  color: #0b2340;
+  box-shadow: 0 16px 30px rgba(214, 161, 30, 0.24);
+  text-shadow: none;
+}
+
+.raffle-card .button.gold:hover {
+  background: linear-gradient(135deg, #ffe08e, #e0ad33);
+  color: #071629;
+}
+
+.raffle-feature-body {
+  gap: 6px;
+}
+
+.raffle-price-label,
+.selector-price-label {
+  letter-spacing: 0.08em;
 }
 
 .trust-strip {
