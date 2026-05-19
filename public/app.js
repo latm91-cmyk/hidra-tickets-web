@@ -51,6 +51,10 @@ const paymentModalState = {
   requestId: 0,
 };
 
+const publicUiState = {
+  mobileMenuOpen: false,
+};
+
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
@@ -1939,12 +1943,14 @@ function renderShell(site, slug) {
     ["Ganadores", "#videos"],
     ["Ayuda", "#faq"],
   ];
+  const topNavLinks = footerQuickLinks;
   const footerSocialLinks = getFooterSocialLinks(site);
   const paymentSections = asArray(site.paymentMethods);
   const legalSections = asArray(site.legal);
   const otherSections = asArray(site.otherSections);
   raffleSelectorState.site = site;
   raffleSelectorState.slug = slug;
+  publicUiState.mobileMenuOpen = false;
   window.__PUBLIC_SITE_STATE__ = {
     site,
     slug,
@@ -1954,27 +1960,39 @@ function renderShell(site, slug) {
   app.innerHTML = `
     <div class="page">
       <header class="topbar">
-          <div class="shell topbar-inner">
-          <div class="brand">
-            <div class="brand-mark">
-              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+        <div class="shell topbar-inner">
+          <div class="topbar-main">
+            <div class="brand">
+              <div class="brand-mark">
+                <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+              </div>
+              <div>
+                <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
+                <span class="brand-subtitle">Tu portal de rifas y ganadores</span>
+              </div>
             </div>
-            <div>
-              <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
-              <span class="brand-subtitle">Tu portal de rifas y ganadores</span>
-            </div>
-          </div>
-            <nav class="top-nav" aria-label="Navegación principal">
-              <a href="#inicio">Inicio</a>
-              <a href="#sorteos">Sorteos</a>
-              <a href="#videos">Ganadores</a>
-              <a href="#como-participar">Cómo participar</a>
-              <a href="#faq">Ayuda</a>
-            </nav>
             <div class="top-actions">
+              <button
+                type="button"
+                class="button topbar-menu-toggle"
+                data-action="toggle-mobile-menu"
+                aria-expanded="${publicUiState.mobileMenuOpen ? "true" : "false"}"
+                aria-controls="topbar-mobile-menu"
+                aria-label="${publicUiState.mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}"
+              >
+                <span class="topbar-menu-icon" data-mobile-menu-icon aria-hidden="true">${publicUiState.mobileMenuOpen ? "×" : "☰"}</span>
+                <span class="topbar-menu-label" data-mobile-menu-label>Menú</span>
+              </button>
               ${settings.whatsappNumber ? `<a class="button topbar-cta" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer"><span class="whatsapp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg></span><span>Contáctanos</span></a>` : ""}
             </div>
           </div>
+          <nav class="top-nav top-nav-desktop" aria-label="Navegación principal">
+            ${topNavLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
+          </nav>
+          <div class="topbar-mobile-panel" id="topbar-mobile-menu" data-mobile-nav-panel ${publicUiState.mobileMenuOpen ? "" : "hidden"}>
+            ${topNavLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
+          </div>
+        </div>
         </header>
 
       <main>
@@ -2152,6 +2170,58 @@ function renderShell(site, slug) {
 }
 
 app.addEventListener("click", (event) => {
+  const mobileMenuToggle = event.target.closest('[data-action="toggle-mobile-menu"]');
+  if (mobileMenuToggle && app.contains(mobileMenuToggle)) {
+    event.preventDefault();
+    event.stopPropagation();
+    publicUiState.mobileMenuOpen = !publicUiState.mobileMenuOpen;
+    const topbar = app.querySelector(".topbar");
+    const panel = app.querySelector("[data-mobile-nav-panel]");
+    const label = app.querySelector("[data-mobile-menu-label]");
+    const icon = app.querySelector("[data-mobile-menu-icon]");
+    if (topbar) {
+      topbar.classList.toggle("is-menu-open", publicUiState.mobileMenuOpen);
+    }
+    if (panel) {
+      panel.hidden = !publicUiState.mobileMenuOpen;
+    }
+    if (label) {
+      label.textContent = publicUiState.mobileMenuOpen ? "Cerrar" : "Menú";
+    }
+    if (icon) {
+      icon.textContent = publicUiState.mobileMenuOpen ? "×" : "☰";
+    }
+    mobileMenuToggle.setAttribute("aria-expanded", publicUiState.mobileMenuOpen ? "true" : "false");
+    mobileMenuToggle.setAttribute("aria-label", publicUiState.mobileMenuOpen ? "Cerrar menú" : "Abrir menú");
+    return;
+  }
+
+  const mobileNavLink = event.target.closest("[data-mobile-nav-panel] a");
+  if (mobileNavLink && app.contains(mobileNavLink)) {
+    publicUiState.mobileMenuOpen = false;
+    const topbar = app.querySelector(".topbar");
+    const panel = app.querySelector("[data-mobile-nav-panel]");
+    const toggle = app.querySelector('[data-action="toggle-mobile-menu"]');
+    const label = app.querySelector("[data-mobile-menu-label]");
+    const icon = app.querySelector("[data-mobile-menu-icon]");
+    if (topbar) {
+      topbar.classList.remove("is-menu-open");
+    }
+    if (panel) {
+      panel.hidden = true;
+    }
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Abrir menú");
+    }
+    if (label) {
+      label.textContent = "Menú";
+    }
+    if (icon) {
+      icon.textContent = "☰";
+    }
+  }
+
   const openButton = event.target.closest("[data-raffle-id].js-open-raffle-selector");
   if (openButton && app.contains(openButton)) {
     event.preventDefault();
