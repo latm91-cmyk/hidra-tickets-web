@@ -1883,16 +1883,13 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div class="hero-copy">
-                <div class="hero-company-line">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
+                <div class="hero-company-line">${escapeHtml(company.nombre || settings.title || heroTitle || "Rifas publicas")}</div>
                 <div class="hero-brand">
                   <div class="hero-brand-mark">
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
                   </div>
                 </div>
-                <div class="hero-heading">
-                  <h1>${escapeHtml(heroTitle)}</h1>
-                  ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
-                </div>
+                ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
@@ -2229,4 +2226,3 @@ async function loadSite() {
 }
 
 loadSite();
-

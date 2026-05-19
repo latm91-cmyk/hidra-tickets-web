@@ -307,11 +307,11 @@ button {
 
 .hero-company-line {
   width: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   color: #fff;
-  font-size: clamp(22px, 2vw, 30px);
+  font-size: clamp(20px, 1.9vw, 26px);
   line-height: 1;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: -0.04em;
   text-align: center;
   white-space: nowrap;
@@ -325,7 +325,7 @@ button {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 0 0 18px;
+  margin: 0;
 }
 
 .hero-brand-mark {
@@ -362,30 +362,16 @@ button {
   margin-top: 12px;
 }
 
-.hero-heading {
-  display: grid;
-  gap: 10px;
-  margin: 16px 0 12px;
-  justify-items: center;
-  text-align: center;
-}
-
-.hero h1 {
-  margin: 0;
-  font-size: clamp(26px, 2.9vw, 36px);
-  line-height: 1.04;
-  letter-spacing: -0.05em;
-  max-width: 13ch;
-}
-
 .hero-slogan {
-  margin: 0;
-  max-width: 14ch;
+  margin: 18px 0 0;
+  max-width: 100%;
+  text-align: center;
   color: #fff9e1;
-  font-size: clamp(18px, 2vw, 24px);
-  line-height: 1.08;
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.02;
   letter-spacing: -0.03em;
-  font-weight: 800;
+  font-weight: 700;
+  white-space: nowrap;
   text-shadow: none;
 }
 
