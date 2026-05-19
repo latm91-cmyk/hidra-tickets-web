@@ -990,6 +990,99 @@ function renderRaffleSelectorContent() {
           <small>${escapeHtml(pricingSummary)}</small>
         </span>
       ` : "");
+  if (isMobileDevice()) {
+    return `
+      <div class="selector-head selector-head-mobile">
+        <div class="selector-head-copy">
+          <h3>${escapeHtml(title)}</h3>
+          ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+        </div>
+        <button type="button" class="selector-close" data-action="close-raffle-selector">Cerrar</button>
+      </div>
+
+      ${raffle ? `
+        <div class="selector-mobile-pricing">
+          <span class="selector-kicker">Precio de boletería</span>
+          <div class="selector-price-strip selector-price-strip-mobile">
+            ${priceChips}
+          </div>
+          <div class="selector-mobile-meta">
+            ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
+          </div>
+        </div>
+      ` : ""}
+
+      <div class="selector-mobile-toolbar">
+        <label class="selector-search">
+          <span>Buscar numero</span>
+          <input
+            type="search"
+            data-selector-search
+            value="${escapeHtml(raffleSelectorState.query || "")}"
+            placeholder="Ej. 705"
+            autocomplete="off"
+          />
+        </label>
+        <div class="selector-toolbar-actions selector-toolbar-actions-mobile">
+          <div class="selector-toolbar-note">${escapeHtml(limitInfo)}</div>
+          <button type="button" class="button secondary selector-refresh" data-action="refresh-raffle-selector">Actualizar</button>
+        </div>
+      </div>
+
+      ${notice}
+      ${liveSummary}
+
+      <div class="selector-mobile-pagination">
+        <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
+        <div class="selector-pagination-current">
+          <span>${escapeHtml(pageInfo)}</span>
+          <strong>${escapeHtml(pageRange)}</strong>
+        </div>
+        <button type="button" class="selector-page-button" data-selector-page="next" ${pagination.hasNext ? "" : "disabled"}>Siguiente</button>
+      </div>
+
+      <div class="ticket-grid-shell selector-mobile-grid-shell">
+        <div class="ticket-grid">
+          ${numbersHtml}
+        </div>
+      </div>
+
+      <div class="selector-summary-mobile selector-summary-mobile-inline">
+        <div class="selector-summary-mobile-copy">
+          <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} elegidos` : "Sin numeros aun"}</strong>
+          ${selected.length ? `<span class="selector-summary-mobile-total">${escapeHtml(formatCOP(selectedAmount))}</span>` : ""}
+          <span>${selected.length ? buildSelectionMessage(raffle, selected) : "Toca un numero para empezar."}</span>
+        </div>
+        <div class="selector-summary-mobile-chips">
+          ${selected.length
+            ? selected
+              .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>×</strong></button>`)
+              .join("")
+            : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
+        </div>
+        <div class="selector-summary-mobile-actions">
+          <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
+          <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
+          <a
+            class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
+            href="${escapeHtml(whatsappHref)}"
+            target="_blank"
+            rel="noreferrer"
+            ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
+          >
+            <span class="whatsapp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span>${escapeHtml(whatsappLabel)}</span>
+          </a>
+        </div>
+      </div>
+    `;
+  }
   return `
       <div class="selector-head">
         <div class="selector-head-copy">

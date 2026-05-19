@@ -3063,6 +3063,36 @@ button {
     display: none;
   }
 
+  .selector-mobile-pricing {
+    display: grid;
+    gap: 8px;
+    padding: 14px 14px 12px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(249, 250, 252, 0.98));
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.05);
+  }
+
+  .selector-price-strip-mobile {
+    gap: 8px;
+  }
+
+  .selector-price-strip-mobile .selector-price-chip {
+    min-width: calc(50% - 4px);
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .selector-mobile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .selector-mobile-toolbar {
+    display: grid;
+    gap: 10px;
+  }
+
   .selector-pagination {
     padding: 8px;
     gap: 6px;
@@ -3126,11 +3156,6 @@ button {
   }
 
   .selector-summary-mobile {
-    position: fixed;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
     display: grid;
     gap: 10px;
     padding: 12px;
@@ -3140,6 +3165,16 @@ button {
     box-shadow: 0 22px 46px rgba(8, 25, 47, 0.28);
     border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
+  }
+
+  .selector-summary-mobile-inline {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    width: 100%;
+    margin-top: 8px;
   }
 
   .selector-summary-mobile-copy {
@@ -3207,6 +3242,10 @@ button {
     min-height: 50px;
     font-size: 14px;
     box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+  }
+
+  .selector-mobile-grid-shell {
+    max-height: min(38vh, 360px);
   }
 
   .selector-summary-mobile-actions .button {
