@@ -61,26 +61,47 @@ button {
   box-shadow: 0 12px 30px rgba(8, 25, 47, 0.2);
 }
 
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.04) 18%,
+      rgba(255, 248, 214, 0.28) 31%,
+      rgba(255, 216, 122, 0.34) 44%,
+      rgba(255, 248, 214, 0.26) 57%,
+      rgba(255, 255, 255, 0.04) 72%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  filter: blur(12px);
+  opacity: 0.85;
+  animation: topbarGlow 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .topbar::after {
   content: "";
   position: absolute;
   left: -40%;
   right: -40%;
   bottom: 0;
-  height: 2px;
+  height: 5px;
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.88),
-    rgba(255, 216, 122, 0.96),
-    rgba(255, 255, 255, 0.88),
-    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 228, 153, 1),
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 255, 255, 0.2),
     rgba(255, 255, 255, 0)
   );
-  box-shadow: 0 0 18px rgba(255, 216, 122, 0.55);
-  opacity: 0.9;
-  animation: topbarSheen 4.8s linear infinite;
+  box-shadow: 0 0 22px rgba(255, 216, 122, 0.8);
+  opacity: 1;
+  animation: topbarSheen 3.8s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -1996,21 +2017,36 @@ button {
 
 @keyframes topbarSheen {
   0% {
-    transform: translateX(-18%);
-    opacity: 0.35;
+    transform: translateX(-22%);
+    opacity: 0.25;
   }
   25% {
-    opacity: 0.9;
+    opacity: 0.85;
   }
   50% {
-    transform: translateX(18%);
+    transform: translateX(14%);
     opacity: 1;
   }
   75% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(34%);
+    opacity: 0.25;
+  }
+}
+
+@keyframes topbarGlow {
+  0% {
+    transform: translateX(-8%);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(8%);
     opacity: 0.9;
   }
   100% {
-    transform: translateX(38%);
+    transform: translateX(-8%);
     opacity: 0.35;
   }
 }
