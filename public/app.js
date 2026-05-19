@@ -1907,6 +1907,13 @@ function renderShell(site, slug) {
     raffleCount > 0 ? `${raffleCount} sorteos visibles` : "",
     videosCount > 0 ? `${videosCount} ganadores publicados` : "",
   ].filter(Boolean);
+  const footerQuickLinks = [
+    ["Inicio", "#inicio"],
+    ["Sorteos", "#sorteos"],
+    ["Cómo participar", "#como-participar"],
+    ["Ganadores", "#videos"],
+    ["Ayuda", "#faq"],
+  ];
   const paymentSections = asArray(site.paymentMethods);
   const legalSections = asArray(site.legal);
   const otherSections = asArray(site.otherSections);
@@ -2052,17 +2059,36 @@ function renderShell(site, slug) {
           </section>
         ` : ""}
 
-        <section class="section shell">
-          <div class="footer-card">
-            <div>
-              <strong>${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</strong>
-              <small>Slug publico: /${escapeHtml(slug || "sin-slug")}</small>
+        <section class="section shell footer-shell">
+          <div class="footer-card footer-card-premium">
+            <div class="footer-brand">
+              <div class="footer-brand-mark">
+                <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
+              </div>
+              <div class="footer-brand-copy">
+                <strong>${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</strong>
+                <p>${escapeHtml(settings.slogan || settings.subtitle || "Tu portal de rifas y ganadores")}</p>
+              </div>
             </div>
-            <div class="top-actions">
-              ${settings.facebookUrl ? `<a class="button secondary" href="${escapeHtml(settings.facebookUrl)}" target="_blank" rel="noreferrer">Facebook</a>` : ""}
-              ${settings.instagramUrl ? `<a class="button secondary" href="${escapeHtml(settings.instagramUrl)}" target="_blank" rel="noreferrer">Instagram</a>` : ""}
-              ${settings.tiktokUrl ? `<a class="button secondary" href="${escapeHtml(settings.tiktokUrl)}" target="_blank" rel="noreferrer">TikTok</a>` : ""}
+            <div class="footer-links">
+              <span class="footer-label">Navegación</span>
+              <div class="footer-link-list">
+                ${footerQuickLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
+              </div>
             </div>
+            <div class="footer-contact">
+              <span class="footer-label">Contacto directo</span>
+              ${settings.whatsappNumber ? `<a class="footer-contact-pill" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">WhatsApp: ${escapeHtml(settings.whatsappNumber)}</a>` : ""}
+              <div class="top-actions footer-socials">
+                ${settings.facebookUrl ? `<a class="button secondary" href="${escapeHtml(settings.facebookUrl)}" target="_blank" rel="noreferrer">Facebook</a>` : ""}
+                ${settings.instagramUrl ? `<a class="button secondary" href="${escapeHtml(settings.instagramUrl)}" target="_blank" rel="noreferrer">Instagram</a>` : ""}
+                ${settings.tiktokUrl ? `<a class="button secondary" href="${escapeHtml(settings.tiktokUrl)}" target="_blank" rel="noreferrer">TikTok</a>` : ""}
+              </div>
+            </div>
+          </div>
+          <div class="footer-bar">
+            <span>Compra segura · Seguimiento en tiempo real · Ganadores visibles</span>
+            <span>${escapeHtml(slug || "sin-slug")}</span>
           </div>
         </section>
       </main>
