@@ -2789,19 +2789,77 @@ button {
 
   .footer-card-premium {
     grid-template-columns: 1fr;
+    padding: 18px;
+    gap: 16px;
   }
 
   .footer-brand {
     align-items: flex-start;
+    gap: 12px;
+  }
+
+  .footer-brand-mark {
+    width: 56px;
+    height: 56px;
+    flex-basis: 56px;
+    border-radius: 16px;
+  }
+
+  .footer-brand-copy strong {
+    font-size: 18px;
+  }
+
+  .footer-brand-copy p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .footer-label {
+    margin-bottom: 8px;
+  }
+
+  .footer-link-list {
+    gap: 8px;
+  }
+
+  .footer-link-list a {
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+
+  .footer-social-grid {
+    gap: 8px;
+  }
+
+  .social-link {
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 8px;
+    border-radius: 14px;
+  }
+
+  .social-link-icon {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+
+  .social-link-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .footer-contact-pill {
+    padding: 10px 12px;
+    font-size: 12px;
   }
 
   .footer-bar {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .footer-social-grid {
+    padding: 12px 14px;
     gap: 8px;
+    font-size: 12px;
   }
 
   .top-nav {
