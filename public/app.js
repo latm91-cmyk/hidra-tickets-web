@@ -1883,6 +1883,15 @@ function renderShell(site, slug) {
           <div class="shell hero-card">
             <div class="hero-grid">
               <div>
+                <div class="hero-brand">
+                  <div class="hero-brand-mark">
+                    <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
+                  </div>
+                  <div class="hero-brand-copy">
+                    <strong>${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</strong>
+                    <span>Rifas premium · Ganadores visibles</span>
+                  </div>
+                </div>
                 <span class="eyebrow">Premios reales · Compra segura</span>
                 <div class="hero-heading">
                   <h1>${escapeHtml(heroTitle)}</h1>
