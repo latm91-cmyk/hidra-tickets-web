@@ -853,11 +853,12 @@ function renderRaffleSelectorContent() {
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Selecciona un sorteo";
   const description = raffle ? getRaffleDisplayDescription(raffle) : "";
   const image = raffle ? getRaffleDisplayImage(raffle, site) : ASSETS.raffle;
-    const pricingBadge = raffle ? getRafflePricingBadge(raffle) : "";
+  const pricingBadge = raffle ? getRafflePricingBadge(raffle) : "";
   const drawDate = raffle ? getRaffleDisplayDate(raffle) : "";
   const mode = raffle ? getRaffleDisplayMode(raffle) : "";
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
+  const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
   const stats = raffleSelectorState.stats || {};
   const availableCount = Number(stats.availableCount || raffleSelectorState.numbers.length || 0);
   const inventoryTotal = Number(stats.inventoryTotal || total || 0);
@@ -867,7 +868,7 @@ function renderRaffleSelectorContent() {
     : persistedSelected;
   const selectedAmount = raffle ? getRafflePriceForQuantity(raffle, selected.length || 1) * (selected.length > 0 ? 1 : 0) : 0;
   const selectedCopy = selected.length
-      ? selected
+    ? selected
       .map((item) => `
         <button
           type="button"
@@ -879,7 +880,7 @@ function renderRaffleSelectorContent() {
         </button>
       `)
       .join("")
-    : `<div class="selector-empty">Aun no has elegido numeros. Toca alguno para armar tu seleccion.</div>`;
+    : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`;
   const numbers = getRaffleSelectorNumbers();
   const numbersHtml = raffleSelectorState.loading
     ? Array.from({ length: 18 }).map(() => `<span class="ticket-chip skeleton"></span>`).join("")
@@ -911,7 +912,32 @@ function renderRaffleSelectorContent() {
   const lastUpdated = raffleSelectorState.updatedAt ? formatRelativeTime(raffleSelectorState.updatedAt) : "Actualizando...";
   const notice = raffleSelectorState.notice
     ? `<div class="selector-notice selector-notice-${escapeHtml(raffleSelectorState.noticeTone || "info")}">${escapeHtml(raffleSelectorState.notice)}</div>`
-    : "";
+    : `<div class="selector-notice selector-notice-placeholder" aria-hidden="true"></div>`;
+  const liveSummary = `
+    <div class="selector-live-summary ${selected.length ? "is-active" : "is-empty"}">
+      <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} seleccionados` : "Selecciona tus números para empezar"}</strong>
+      <span>${selected.length ? escapeHtml(formatCOP(selectedAmount)) : "Tu total aparecerá aquí al instante."}</span>
+      <p>${selected.length ? escapeHtml(buildSelectionMessage(raffle, selected)) : "Toca cualquier boleta para apartarla."}</p>
+    </div>
+  `;
+  const priceChips = pricingPackages.length
+    ? pricingPackages.slice(0, 4).map((item) => `
+        <span class="selector-price-chip">
+          <strong>${escapeHtml(`${item.quantity} boleta${item.quantity === 1 ? "" : "s"}`)}</strong>
+          <small>${escapeHtml(currencyFormatter.format(item.value))}</small>
+        </span>
+      `).join("")
+    : (pricingSummary ? `
+        <span class="selector-price-chip selector-price-chip-wide">
+          <strong>Precio de boletería</strong>
+          <small>${escapeHtml(pricingSummary)}</small>
+        </span>
+      ` : "");
+  const benefitCards = [
+    { title: "Compra segura", text: "Aparta tus números con respaldo y control." },
+    { title: "Tiempo real", text: "Mira la disponibilidad mientras exploras." },
+    { title: "Pago fácil", text: "Continúa por WhatsApp o sube tu comprobante." },
+  ];
 
   return `
       <div class="selector-head">
@@ -924,15 +950,35 @@ function renderRaffleSelectorContent() {
 
     ${raffle ? `
       <div class="selector-hero">
-        <div class="selector-hero-media">
-          <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" />
-        </div>
         <div class="selector-hero-body">
-            <div class="chip-row">
+          <div class="selector-hero-topline">
+            <span class="selector-kicker">Precio de boletería</span>
+            <div class="selector-price-strip">
+              ${priceChips}
+            </div>
+          </div>
+          <div class="selector-premium-copy">
+            <span class="selector-premium-pill">Premio principal</span>
+            <h4>${escapeHtml(title)}</h4>
+            <p>${escapeHtml(description || "Compra segura y numeros visibles en tiempo real.")}</p>
+          </div>
+          <div class="selector-benefit-grid">
+            ${benefitCards.map((item) => `
+              <article class="selector-benefit-card">
+                <span>✦</span>
+                <strong>${escapeHtml(item.title)}</strong>
+                <p>${escapeHtml(item.text)}</p>
+              </article>
+            `).join("")}
+          </div>
+          <div class="selector-hero-cta-row">
+            <button type="button" class="button gold selector-hero-cta" data-action="focus-selector-grid">Escoger mis números</button>
+            <div class="selector-hero-chiprow">
               ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
               ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
               ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
             </div>
+          </div>
           <div class="selector-hero-stats">
             <div>
               <strong>${escapeHtml(String(availableCount))}</strong>
@@ -947,10 +993,14 @@ function renderRaffleSelectorContent() {
               <span>Actualizacion</span>
             </div>
           </div>
-          ${pricingSummary ? `
-            <div class="raffle-price-label selector-price-label">Precio de boletería:</div>
-            <p class="raffle-price-summary selector-price-summary">${escapeHtml(pricingSummary)}</p>
-          ` : ""}
+        </div>
+        <div class="selector-hero-media">
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" />
+          <div class="selector-hero-media-overlay">
+            <span class="selector-hero-media-label">${escapeHtml(raffle ? "Sorteo destacado" : "Selección premium")}</span>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(description || "Selecciona tus números favoritos y continúa al pago.")}</p>
+          </div>
         </div>
       </div>
     ` : ""}
@@ -974,13 +1024,7 @@ function renderRaffleSelectorContent() {
           </div>
         </div>
         ${notice}
-        ${selected.length ? `
-          <div class="selector-live-summary">
-            <strong>${selected.length} numero${selected.length === 1 ? "" : "s"} seleccionados</strong>
-            <span>${escapeHtml(formatCOP(selectedAmount))}</span>
-            <p>${escapeHtml(buildSelectionMessage(raffle, selected))}</p>
-          </div>
-        ` : ""}
+        ${liveSummary}
         <div class="ticket-grid">
           ${numbersHtml}
         </div>
@@ -2057,6 +2101,16 @@ app.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     fetchRaffleSelectorNumbers();
+    return;
+  }
+
+  if (actionName === "focus-selector-grid") {
+    event.preventDefault();
+    event.stopPropagation();
+    const grid = document.querySelector(".ticket-grid");
+    if (grid) {
+      grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     return;
   }
 
