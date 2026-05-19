@@ -933,8 +933,11 @@ function renderRaffleSelectorContent() {
   const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} boletas visibles`;
   const pageInfo = numbers.length > 0
-    ? `Bloque ${pagination.page} de ${pagination.totalPages} · ${pagination.start + 1}-${pagination.end}`
+    ? `Bloque ${pagination.page} de ${pagination.totalPages}`
     : "Sin paginacion";
+  const pageRange = numbers.length > 0
+    ? `${pagination.start + 1}-${pagination.end}`
+    : "";
   const notice = raffleSelectorState.notice
     ? `<div class="selector-notice selector-notice-${escapeHtml(raffleSelectorState.noticeTone || "info")}">${escapeHtml(raffleSelectorState.notice)}</div>`
     : `<div class="selector-notice selector-notice-placeholder" aria-hidden="true"></div>`;
@@ -1008,7 +1011,10 @@ function renderRaffleSelectorContent() {
         ${liveSummary}
         <div class="selector-pagination selector-pagination-top">
           <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
-          <span>${escapeHtml(pageInfo)}</span>
+          <div class="selector-pagination-current">
+            <span>${escapeHtml(pageInfo)}</span>
+            <strong>${escapeHtml(pageRange)}</strong>
+          </div>
           <button type="button" class="selector-page-button" data-selector-page="next" ${pagination.hasNext ? "" : "disabled"}>Siguiente</button>
         </div>
         </div>
@@ -1019,7 +1025,10 @@ function renderRaffleSelectorContent() {
         </div>
         <div class="selector-pagination selector-pagination-bottom">
           <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
-          <span>${escapeHtml(pageInfo)}</span>
+          <div class="selector-pagination-current">
+            <span>${escapeHtml(pageInfo)}</span>
+            <strong>${escapeHtml(pageRange)}</strong>
+          </div>
           <button type="button" class="selector-page-button" data-selector-page="next" ${pagination.hasNext ? "" : "disabled"}>Siguiente</button>
         </div>
       </div>
