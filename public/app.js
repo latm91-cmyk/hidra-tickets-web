@@ -1894,11 +1894,6 @@ function renderShell(site, slug) {
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
                 </div>
-                <div class="hero-trustline">
-                  <span>${raffleCount > 0 ? `${raffleCount} sorteos visibles` : "Sorteos visibles"}</span>
-                  <span>${videosCount > 0 ? `${videosCount} ganadores publicados` : "Ganadores publicados"}</span>
-                  <span>Atención por WhatsApp</span>
-                </div>
               </div>
 
               <div class="hero-media">
