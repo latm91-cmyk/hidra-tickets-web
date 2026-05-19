@@ -3039,7 +3039,7 @@ button {
   }
 
   .raffle-selector-content {
-    padding: 16px 16px 132px;
+    padding: 14px 14px 132px;
   }
 
   .payment-modal-content {
@@ -3048,6 +3048,7 @@ button {
 
   .selector-head {
     flex-direction: column;
+    gap: 10px;
   }
 
   .selector-hero.selector-hero-minimal {
@@ -3055,12 +3056,16 @@ button {
   }
 
   .selector-hero-body-minimal {
-    padding: 12px 12px 10px;
+    padding: 10px 10px 8px;
+  }
+
+  .selector-hero {
+    display: none;
   }
 
   .selector-pagination {
-    padding: 10px;
-    gap: 8px;
+    padding: 8px;
+    gap: 6px;
   }
 
   .selector-pagination-current {
@@ -3076,6 +3081,22 @@ button {
 
   .selector-toolbar {
     padding: 0;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .selector-toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .selector-toolbar-note {
+    width: 100%;
+    order: -1;
+  }
+
+  .selector-refresh {
+    min-width: 100%;
   }
 
   .selector-page-button {
@@ -3111,12 +3132,12 @@ button {
     bottom: 10px;
     z-index: 2;
     display: grid;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, rgba(15, 76, 129, 0.96), rgba(124, 58, 237, 0.94));
+    gap: 10px;
+    padding: 12px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(8, 25, 47, 0.96), rgba(29, 95, 70, 0.92));
     color: #fff;
-    box-shadow: 0 24px 60px rgba(15, 76, 129, 0.28);
+    box-shadow: 0 22px 46px rgba(8, 25, 47, 0.28);
     border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
   }
@@ -3127,7 +3148,7 @@ button {
   }
 
 .selector-summary-mobile-copy strong {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -3141,13 +3162,13 @@ button {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   color: #f8fafc;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
 }
 
   .selector-summary-mobile-copy span:last-child {
     color: rgba(255, 255, 255, 0.78);
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.45;
   }
 
@@ -3165,8 +3186,8 @@ button {
 
   .selected-chip.mobile {
     white-space: nowrap;
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 9px 11px;
+    font-size: 12px;
   }
 
   .selector-empty-inline {
@@ -3178,13 +3199,13 @@ button {
   .selector-summary-mobile-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
   }
 
   .selector-summary-mobile-actions .button.primary {
     grid-column: 1 / -1;
-    min-height: 54px;
-    font-size: 15px;
+    min-height: 50px;
+    font-size: 14px;
     box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
   }
 
