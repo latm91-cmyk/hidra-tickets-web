@@ -2744,14 +2744,65 @@ button {
   }
 
   .topbar-inner {
-    align-items: start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .brand {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .brand-name {
+    font-size: 15px;
+    line-height: 1.05;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .brand-subtitle {
+    display: none;
   }
 
   .top-nav {
     justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 14px 18px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .top-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .top-nav a {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .topbar-cta {
+    padding: 8px 10px;
+  }
+
+  .topbar-cta span:last-child {
+    display: none;
   }
 
   .section-head {
