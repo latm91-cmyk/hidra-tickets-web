@@ -1888,7 +1888,6 @@ function renderShell(site, slug) {
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
                   </div>
                 </div>
-                <span class="eyebrow">Premios reales · Compra segura</span>
                 <div class="hero-heading">
                   <h1>${escapeHtml(heroTitle)}</h1>
                   ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
@@ -1909,6 +1908,7 @@ function renderShell(site, slug) {
                       .join("")}
                   </div>
                 ` : ""}
+                <span class="eyebrow hero-cta-note">Premios reales · Compra segura</span>
               </div>
 
               <div class="hero-media">

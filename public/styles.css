@@ -256,19 +256,20 @@ button {
 
 .hero-brand {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .hero-brand-mark {
-  width: 68px;
-  height: 68px;
-  border-radius: 20px;
+  width: 170px;
+  height: 170px;
+  border-radius: 30px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 16px 30px rgba(8, 25, 47, 0.22);
+  box-shadow: 0 24px 44px rgba(8, 25, 47, 0.24);
   flex: 0 0 auto;
 }
 
@@ -289,6 +290,10 @@ button {
   color: #fff4cc;
   font-size: 13px;
   font-weight: 800;
+}
+
+.hero-cta-note {
+  margin-top: 12px;
 }
 
 .hero-heading {
