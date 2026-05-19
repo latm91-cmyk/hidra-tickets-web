@@ -1808,7 +1808,7 @@ function renderShell(site, slug) {
   const company = site.company || {};
   const pageTitle = [
     company.nombre || settings.title || "Rifas",
-    "Rifas publicas",
+    "Inversiones",
   ].filter(Boolean).join(" | ");
   document.title = pageTitle;
   const themePrimary = settings.primaryColor || "#0f172a";
@@ -1882,12 +1882,13 @@ function renderShell(site, slug) {
         <section class="hero" id="inicio">
           <div class="shell hero-card">
             <div class="hero-grid">
-              <div>
+              <div class="hero-copy">
                 <div class="hero-brand">
                   <div class="hero-brand-mark">
                     <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
                   </div>
                 </div>
+                <span class="eyebrow hero-kicker">Premios reales · Compra segura</span>
                 <div class="hero-heading">
                   <h1>${escapeHtml(heroTitle)}</h1>
                   ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
@@ -1897,18 +1898,11 @@ function renderShell(site, slug) {
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary" href="#videos">Ganadores reales</a>
                 </div>
-                ${heroSignals.length ? `
-                  <div class="hero-badges">
-                    ${heroSignals
-                      .map(
-                        (item) => `
-                          <span class="hero-badge">${escapeHtml(item)}</span>
-                        `,
-                      )
-                      .join("")}
-                  </div>
-                ` : ""}
-                <span class="eyebrow hero-cta-note">Premios reales · Compra segura</span>
+                <div class="hero-trustline">
+                  <span>${raffleCount > 0 ? `${raffleCount} sorteos visibles` : "Sorteos visibles"}</span>
+                  <span>${videosCount > 0 ? `${videosCount} ganadores publicados` : "Ganadores publicados"}</span>
+                  <span>Atención por WhatsApp</span>
+                </div>
               </div>
 
               <div class="hero-media">
@@ -2236,7 +2230,6 @@ async function loadSite() {
 }
 
 loadSite();
-
 
 
 

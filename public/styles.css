@@ -278,18 +278,25 @@ button {
   padding: 36px;
 }
 
+.hero-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+}
+
 .hero-brand {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 14px;
-  margin-bottom: 20px;
+  width: 100%;
+  margin: 4px 0 18px;
 }
 
 .hero-brand-mark {
-  width: 170px;
-  height: 170px;
-  border-radius: 30px;
+  width: 194px;
+  height: 194px;
+  border-radius: 34px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -323,22 +330,22 @@ button {
 .hero-heading {
   display: grid;
   gap: 10px;
-  margin: 14px 0 14px;
+  margin: 16px 0 12px;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(30px, 3.7vw, 42px);
-  line-height: 1.05;
+  font-size: clamp(29px, 3.3vw, 40px);
+  line-height: 1.03;
   letter-spacing: -0.05em;
-  max-width: 14ch;
+  max-width: 12ch;
 }
 
 .hero-slogan {
   margin: 0;
-  max-width: 16ch;
+  max-width: 13ch;
   color: #ffe08a;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(22px, 2.6vw, 28px);
   line-height: 1.02;
   letter-spacing: -0.05em;
   font-weight: 900;
@@ -346,38 +353,37 @@ button {
 
 .hero p {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.82);
-  max-width: 38ch;
+  max-width: 35ch;
 }
 
 .hero-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
-.hero-badges {
+.hero-trustline {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 18px;
 }
 
-.hero-badge {
+.hero-trustline span {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 14px;
+  min-height: 38px;
+  padding: 9px 13px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  backdrop-filter: blur(10px);
 }
 
 .overlay-label {
@@ -414,7 +420,7 @@ button {
 }
 
 .hero-media {
-  min-height: 500px;
+  min-height: 520px;
   border-radius: 32px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -453,7 +459,7 @@ button {
 .hero-media .overlay strong {
   display: block;
   margin-top: 8px;
-  font-size: 24px;
+  font-size: 23px;
   line-height: 1.02;
   letter-spacing: -0.04em;
 }
