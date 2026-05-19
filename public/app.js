@@ -1896,7 +1896,7 @@ function renderShell(site, slug) {
                 <p>${escapeHtml(heroSubtitle || "Participa por premios reales con sorteos visibles, ganadores publicados y atención por WhatsApp.")}</p>
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
-                  <a class="button secondary" href="#videos">Ganadores reales</a>
+                  <a class="button secondary hero-secondary" href="#videos">Ganadores reales</a>
                 </div>
                 <div class="hero-trustline">
                   <span>${raffleCount > 0 ? `${raffleCount} sorteos visibles` : "Sorteos visibles"}</span>
@@ -2230,7 +2230,6 @@ async function loadSite() {
 }
 
 loadSite();
-
 
 
 

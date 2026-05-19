@@ -294,13 +294,13 @@ button {
 }
 
 .hero-brand-mark {
-  width: 194px;
-  height: 194px;
-  border-radius: 34px;
+  width: 248px;
+  height: 248px;
+  border-radius: 40px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 24px 44px rgba(8, 25, 47, 0.24);
+  box-shadow: 0 28px 52px rgba(8, 25, 47, 0.26);
   flex: 0 0 auto;
 }
 
@@ -335,17 +335,17 @@ button {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(29px, 3.3vw, 40px);
-  line-height: 1.03;
+  font-size: clamp(26px, 2.9vw, 36px);
+  line-height: 1.04;
   letter-spacing: -0.05em;
-  max-width: 12ch;
+  max-width: 13ch;
 }
 
 .hero-slogan {
   margin: 0;
-  max-width: 13ch;
+  max-width: 14ch;
   color: #ffe08a;
-  font-size: clamp(22px, 2.6vw, 28px);
+  font-size: clamp(20px, 2.3vw, 26px);
   line-height: 1.02;
   letter-spacing: -0.05em;
   font-weight: 900;
@@ -384,6 +384,18 @@ button {
   color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
   font-weight: 700;
+}
+
+.hero-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0b2340;
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 10px 22px rgba(8, 25, 47, 0.12);
+}
+
+.hero-secondary:hover {
+  background: #ffffff;
+  color: #08192f;
 }
 
 .overlay-label {
