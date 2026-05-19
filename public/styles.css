@@ -2895,7 +2895,9 @@ button {
     padding: 11px 12px;
   }
 
-  .hero-media .overlay-label {
+  .hero-media .overlay-label,
+  .raffle-feature-badge,
+  .card-flag {
     display: none;
   }
 
