@@ -1607,6 +1607,10 @@ button {
   padding: 24px;
   max-height: calc(100vh - 36px);
   overflow: auto;
+  background:
+    radial-gradient(circle at top left, rgba(15, 76, 129, 0.06), transparent 32%),
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.05), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.99));
 }
 
 .payment-modal-head {
@@ -1665,17 +1669,21 @@ button {
 .payment-modal-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 16px;
+  gap: 18px;
 }
 
 .payment-modal-summary {
   display: grid;
-  gap: 14px;
-  padding: 22px;
-  border-radius: 28px;
-  background: linear-gradient(160deg, #0f4c81, #7c3aed);
+  gap: 16px;
+  padding: 24px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.16), transparent 26%),
+    linear-gradient(160deg, #0b2340 0%, #0f4c81 55%, #165a57 100%);
   color: #fff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  box-shadow:
+    0 28px 70px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .payment-modal-kicker {
@@ -1688,7 +1696,7 @@ button {
 
 .payment-modal-summary h4 {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   line-height: 1.05;
   letter-spacing: -0.04em;
 }
@@ -1703,6 +1711,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 4px;
 }
 
 .payment-chip {
@@ -1773,36 +1782,57 @@ button {
 
 .payment-modal-actions {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   align-content: start;
 }
 
 .payment-action-card {
   display: grid;
   gap: 12px;
-  padding: 18px;
-  border-radius: 24px;
-  background: #fff;
+  padding: 20px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(249, 250, 252, 0.98));
   border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .payment-contact-card {
   background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
-.payment-step-badge {
+.payment-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.payment-card-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.payment-card-kicker {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.payment-card-badge {
   display: inline-flex;
   align-items: center;
   width: fit-content;
   padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.08);
-  color: var(--primary);
+  background: rgba(124, 58, 237, 0.08);
+  color: #5b21b6;
   font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .payment-form-grid {
@@ -1843,7 +1873,8 @@ button {
 .payment-action-card strong {
   display: block;
   margin-bottom: 4px;
-  font-size: 16px;
+  font-size: 17px;
+  letter-spacing: -0.03em;
 }
 
 .payment-action-card p {
@@ -1889,35 +1920,42 @@ button {
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
 }
 
-.payment-methods-card {
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+.payment-action-icon-note {
+  background: linear-gradient(135deg, #0f4c81, #165a57);
+  box-shadow: 0 12px 24px rgba(15, 76, 129, 0.18);
 }
 
-.payment-methods-list {
+.payment-instructions-card {
+  background:
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.08), transparent 24%),
+    linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.payment-instructions-panel {
   display: grid;
   gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.03), rgba(15, 23, 42, 0.02)),
+    #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-left: 4px solid rgba(124, 58, 237, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.payment-methods-section {
-  display: grid;
-  gap: 8px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(248, 250, 252, 0.92);
-  border: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-.payment-methods-section strong {
-  display: block;
-  font-size: 15px;
-  color: var(--primary);
-}
-
-.payment-methods-section p {
+.payment-instructions-panel p {
   margin: 0;
-  color: var(--muted);
-  line-height: 1.5;
-  font-size: 13px;
+  color: #334155;
+  line-height: 1.55;
+  font-size: 14px;
+  white-space: pre-line;
+}
+
+.payment-instructions-panel p + p {
+  padding-top: 4px;
 }
 
 .payment-pse {

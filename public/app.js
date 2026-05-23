@@ -627,37 +627,38 @@ function listFromConfig(config = {}) {
   return [];
 }
 
-function getPaymentMethodSections(raffle = {}, site = {}) {
+function getPaymentInstructionsText(raffle = {}, site = {}) {
   const candidates = [
-    raffle?.publicConfig?.paymentMethods,
-    raffle?.paymentMethods,
-    site?.paymentMethods,
-    site?.settings?.paymentMethods,
+    raffle?.publicConfig?.paymentInstructions,
+    raffle?.publicConfig?.payment_instructions,
+    raffle?.paymentInstructions,
+    raffle?.payment_instructions,
+    site?.settings?.paymentInstructions,
+    site?.settings?.payment_instructions,
+    site?.paymentInstructions,
+    site?.payment_instructions,
   ];
 
   for (const candidate of candidates) {
-    if (Array.isArray(candidate) && candidate.length > 0) {
-      return candidate;
+    const text = String(candidate || "").trim();
+    if (text) {
+      return text;
     }
   }
 
-  return [];
+  return "";
 }
 
-function renderPaymentMethodsPanel(sections = []) {
-  if (!sections.length) {
-    return `<div class="selector-empty selector-empty-inline">Aun no hay medios de pago configurados para este sorteo.</div>`;
+function renderPaymentInstructionsPanel(text = "") {
+  const normalized = String(text || "").trim();
+  if (!normalized) {
+    return `<div class="selector-empty selector-empty-inline">Aun no hay instrucciones de pago configuradas para este sorteo.</div>`;
   }
 
+  const lines = normalized.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   return `
-    <div class="payment-methods-list">
-      ${sections.map((section) => `
-        <div class="payment-methods-section">
-          <strong>${escapeHtml(section?.title || "Medio de pago")}</strong>
-          ${section?.subtitle ? `<p>${escapeHtml(section.subtitle)}</p>` : ""}
-          ${sectionBody(section)}
-        </div>
-      `).join("")}
+    <div class="payment-instructions-panel">
+      ${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
     </div>
   `;
 }
@@ -1367,7 +1368,7 @@ function renderPaymentModalContent() {
   const raffle = paymentModalState.raffle || null;
   const site = paymentModalState.site || {};
   const selected = asArray(paymentModalState.selected);
-  const paymentMethodSections = getPaymentMethodSections(raffle, site);
+  const paymentInstructions = getPaymentInstructionsText(raffle, site);
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Pago";
   const description = raffle
     ? (getRaffleDisplayDescription(raffle) || "Continúa con tu pago con el método que prefieras.")
@@ -1426,21 +1427,24 @@ function renderPaymentModalContent() {
         </div>
 
         <div class="payment-modal-actions">
-          <div class="payment-action-card payment-methods-card">
-            <span class="payment-step-badge">Paso 1</span>
-            <div class="payment-action-icon payment-action-icon-methods">≋</div>
-            <div>
-              <strong>Medios de pago</strong>
-              <p>Estos son los medios configurados para este sorteo.</p>
+          <div class="payment-action-card payment-instructions-card">
+            <div class="payment-card-topline">
+              <span class="payment-card-kicker">Instrucciones de pago</span>
+              <span class="payment-card-badge">Lee antes de pagar</span>
             </div>
-            ${renderPaymentMethodsPanel(paymentMethodSections)}
+            <div class="payment-action-icon payment-action-icon-note">⌁</div>
+            <div class="payment-card-copy">
+              <strong>Así debes realizar tu pago</strong>
+              <p>Esta información viene directamente de la configuración del sorteo.</p>
+            </div>
+            ${renderPaymentInstructionsPanel(paymentInstructions)}
           </div>
 
           <div class="payment-action-card payment-contact-card">
-            <span class="payment-step-badge">Paso 2</span>
             <div class="payment-action-icon payment-action-icon-contact">✎</div>
-            <div>
-              <strong>Datos del comprador</strong>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Datos del comprador</span>
+              <strong>Completa tus datos</strong>
               <p>Necesitamos estos datos para marcar y enviarte tus boletas y dejar tu compra registrada.</p>
             </div>
             <div class="payment-form-grid">
@@ -1463,8 +1467,9 @@ function renderPaymentModalContent() {
             <div class="payment-action-icon payment-action-icon-pse">
               <img src="${escapeHtml(ASSETS.pse)}" alt="PSE" />
             </div>
-            <div>
-              <strong>Pago en línea</strong>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Pago en línea</span>
+              <strong>Completa la transacción</strong>
               <p>Abre la pasarela para completar la transacción.</p>
             </div>
             <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
@@ -1473,8 +1478,9 @@ function renderPaymentModalContent() {
 
           <div class="payment-action-card">
             <div class="payment-action-icon payment-action-icon-upload">↥</div>
-            <div>
-              <strong>Cargar comprobante</strong>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Comprobante</span>
+              <strong>Sube tu soporte</strong>
               <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
             </div>
             <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
