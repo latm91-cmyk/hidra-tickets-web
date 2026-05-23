@@ -1791,6 +1791,20 @@ button {
   background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
 
+.payment-step-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .payment-form-grid {
   display: grid;
   gap: 12px;
@@ -1869,6 +1883,41 @@ button {
 
 .payment-action-icon-contact {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.payment-action-icon-methods {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+}
+
+.payment-methods-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.payment-methods-list {
+  display: grid;
+  gap: 10px;
+}
+
+.payment-methods-section {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.payment-methods-section strong {
+  display: block;
+  font-size: 15px;
+  color: var(--primary);
+}
+
+.payment-methods-section p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 13px;
 }
 
 .payment-pse {

@@ -627,6 +627,41 @@ function listFromConfig(config = {}) {
   return [];
 }
 
+function getPaymentMethodSections(raffle = {}, site = {}) {
+  const candidates = [
+    raffle?.publicConfig?.paymentMethods,
+    raffle?.paymentMethods,
+    site?.paymentMethods,
+    site?.settings?.paymentMethods,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      return candidate;
+    }
+  }
+
+  return [];
+}
+
+function renderPaymentMethodsPanel(sections = []) {
+  if (!sections.length) {
+    return `<div class="selector-empty selector-empty-inline">Aun no hay medios de pago configurados para este sorteo.</div>`;
+  }
+
+  return `
+    <div class="payment-methods-list">
+      ${sections.map((section) => `
+        <div class="payment-methods-section">
+          <strong>${escapeHtml(section?.title || "Medio de pago")}</strong>
+          ${section?.subtitle ? `<p>${escapeHtml(section.subtitle)}</p>` : ""}
+          ${sectionBody(section)}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 function sectionBody(section) {
   const config = section?.config || {};
   const text = config.text || config.content || config.body || section.subtitle || "";
@@ -1332,6 +1367,7 @@ function renderPaymentModalContent() {
   const raffle = paymentModalState.raffle || null;
   const site = paymentModalState.site || {};
   const selected = asArray(paymentModalState.selected);
+  const paymentMethodSections = getPaymentMethodSections(raffle, site);
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Pago";
   const description = raffle
     ? (getRaffleDisplayDescription(raffle) || "Continúa con tu pago con el método que prefieras.")
@@ -1390,7 +1426,18 @@ function renderPaymentModalContent() {
         </div>
 
         <div class="payment-modal-actions">
+          <div class="payment-action-card payment-methods-card">
+            <span class="payment-step-badge">Paso 1</span>
+            <div class="payment-action-icon payment-action-icon-methods">≋</div>
+            <div>
+              <strong>Medios de pago</strong>
+              <p>Estos son los medios configurados para este sorteo.</p>
+            </div>
+            ${renderPaymentMethodsPanel(paymentMethodSections)}
+          </div>
+
           <div class="payment-action-card payment-contact-card">
+            <span class="payment-step-badge">Paso 2</span>
             <div class="payment-action-icon payment-action-icon-contact">✎</div>
             <div>
               <strong>Datos del comprador</strong>
