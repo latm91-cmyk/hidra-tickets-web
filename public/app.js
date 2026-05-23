@@ -2107,7 +2107,7 @@ function renderShell(site, slug) {
                 </div>
               </div>
 
-              <div class="hero-media">
+                <div class="hero-media">
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" />`}
                 <div class="overlay">
                   <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
@@ -2116,6 +2116,17 @@ function renderShell(site, slug) {
                   ${heroSpotlightChips.length ? `
                     <div class="overlay-meta">
                       ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                    </div>
+                  ` : ""}
+                  ${featuredRaffle ? `
+                    <div class="overlay-actions">
+                      <button
+                        type="button"
+                        class="button gold js-open-raffle-selector hero-buy-button"
+                        data-raffle-id="${escapeHtml(String(featuredRaffle?.campaign?.id || ""))}"
+                      >
+                        Comprar
+                      </button>
                     </div>
                   ` : ""}
                 </div>

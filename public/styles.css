@@ -621,6 +621,17 @@ button {
   line-height: 1.45;
 }
 
+.hero-media .overlay-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.hero-media .overlay-actions .hero-buy-button {
+  min-width: 170px;
+  justify-content: center;
+}
+
 .section {
   padding: 34px 0;
 }
