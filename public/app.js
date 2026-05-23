@@ -629,6 +629,9 @@ function listFromConfig(config = {}) {
 
 function getPaymentInstructionsText(raffle = {}, site = {}) {
   const candidates = [
+    raffle?.campaign?.instrucciones_pago,
+    raffle?.campaign?.paymentInstructions,
+    raffle?.campaign?.payment_instructions,
     raffle?.publicConfig?.paymentInstructions,
     raffle?.publicConfig?.payment_instructions,
     raffle?.paymentInstructions,
@@ -1671,9 +1674,14 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
             fecha_sorteo: payload.raffle.drawDate,
             hora_sorteo: payload.raffle.drawTime,
             valor_numero: payload.raffle.numberValue,
+            pricing_strategy: payload.raffle.pricingStrategy,
+            pricing_config: payload.raffle.pricingConfig || {},
             total_numeros: payload.raffle.totalNumeros,
             ticket_registration_mode: payload.raffle.ticketRegistrationMode,
             ticket_auto_config: payload.raffle.ticketAutoConfig || {},
+            instrucciones_pago: payload.raffle.paymentInstructions || payload.raffle.payment_instructions || "",
+            paymentInstructions: payload.raffle.paymentInstructions || payload.raffle.payment_instructions || "",
+            payment_instructions: payload.raffle.paymentInstructions || payload.raffle.payment_instructions || "",
             updated_at: payload.raffle.updatedAt,
           },
         }
