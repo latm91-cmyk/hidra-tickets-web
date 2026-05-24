@@ -1581,27 +1581,27 @@ function renderPaymentModalContent() {
     ${notice}
 
     <div class="payment-modal-grid">
+      <div class="payment-modal-left">
         <div class="payment-modal-summary">
-        <span class="payment-modal-kicker">Sorteo seleccionado</span>
-        <h4>${escapeHtml(title)}</h4>
-        <p class="payment-modal-copy">${escapeHtml(selected.length ? `Llevas ${selected.length} numero${selected.length === 1 ? "" : "s"} apartados.` : "Selecciona numeros antes de pagar.")}</p>
-        <div class="payment-modal-chips">
-          ${selectedChips}
-        </div>
-        <div class="payment-modal-total">
-          <span>Total a pagar</span>
-          <strong>${escapeHtml(formatCOP(total))}</strong>
-        </div>
-        ${pricingSummary ? `
-          <div class="payment-modal-pricing">
-            <span>Precio de boletería:</span>
-            <p>${escapeHtml(pricingSummary)}</p>
+          <span class="payment-modal-kicker">Sorteo seleccionado</span>
+          <h4>${escapeHtml(title)}</h4>
+          <p class="payment-modal-copy">${escapeHtml(selected.length ? `Llevas ${selected.length} numero${selected.length === 1 ? "" : "s"} apartados.` : "Selecciona numeros antes de pagar.")}</p>
+          <div class="payment-modal-chips">
+            ${selectedChips}
           </div>
-        ` : ""}
+          <div class="payment-modal-total">
+            <span>Total a pagar</span>
+            <strong>${escapeHtml(formatCOP(total))}</strong>
+          </div>
+          ${pricingSummary ? `
+            <div class="payment-modal-pricing">
+              <span>Precio de boletería:</span>
+              <p>${escapeHtml(pricingSummary)}</p>
+            </div>
+          ` : ""}
           <div class="payment-modal-footnote">${escapeHtml(supportLabel)}</div>
         </div>
 
-        <div class="payment-modal-actions">
           <div class="payment-action-card payment-instructions-card">
             <div class="payment-card-topline">
               <span class="payment-card-kicker">Instrucciones de pago</span>
@@ -1614,7 +1614,9 @@ function renderPaymentModalContent() {
             </div>
             ${renderPaymentInstructionsPanel(paymentInstructions)}
           </div>
+      </div>
 
+      <div class="payment-modal-right">
           <div class="payment-action-card payment-contact-card">
             <div class="payment-action-icon payment-action-icon-contact">✎</div>
             <div class="payment-card-copy">
@@ -1663,7 +1665,8 @@ function renderPaymentModalContent() {
             ${receiptLabel}
           </div>
 
-        <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
+          <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
+      </div>
       </div>
     </div>
   `;
