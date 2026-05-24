@@ -51,6 +51,23 @@ const paymentModalState = {
   requestId: 0,
 };
 
+const deliveryModalState = {
+  open: false,
+  loading: false,
+  site: null,
+  slug: "",
+  raffle: null,
+  paymentReference: "",
+  customerPhone: "",
+  assets: [],
+  whatsappUrl: "",
+  expanded: false,
+  error: "",
+  notice: "",
+  noticeTone: "info",
+  requestId: 0,
+};
+
 const publicUiState = {
   mobileMenuOpen: false,
 };
@@ -1348,6 +1365,113 @@ function closePaymentModal() {
   syncPaymentModal();
 }
 
+function syncDeliveryModal() {
+  const modal = document.getElementById("delivery-modal");
+  if (!modal) return;
+  modal.classList.toggle("is-open", deliveryModalState.open);
+  modal.setAttribute("aria-hidden", deliveryModalState.open ? "false" : "true");
+  document.body.classList.toggle("modal-open", deliveryModalState.open || raffleSelectorState.open || paymentModalState.open);
+}
+
+function closeDeliveryModal() {
+  deliveryModalState.open = false;
+  deliveryModalState.loading = false;
+  deliveryModalState.site = null;
+  deliveryModalState.slug = "";
+  deliveryModalState.raffle = null;
+  deliveryModalState.paymentReference = "";
+  deliveryModalState.customerPhone = "";
+  deliveryModalState.assets = [];
+  deliveryModalState.whatsappUrl = "";
+  deliveryModalState.expanded = false;
+  deliveryModalState.error = "";
+  deliveryModalState.notice = "";
+  deliveryModalState.noticeTone = "info";
+  deliveryModalState.requestId += 1;
+  paintDeliveryModal();
+  syncDeliveryModal();
+}
+
+function submitDeliveryNotice(message, tone = "info") {
+  deliveryModalState.notice = message;
+  deliveryModalState.noticeTone = tone;
+  deliveryModalState.error = tone === "error" ? message : "";
+  paintDeliveryModal();
+}
+
+async function loadPublicDeliveryAssets() {
+  const requestId = deliveryModalState.requestId;
+  const site = deliveryModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = deliveryModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+  const raffle = deliveryModalState.raffle || null;
+  const paymentReference = String(deliveryModalState.paymentReference || "").trim();
+  const customerPhone = String(deliveryModalState.customerPhone || "").trim();
+
+  if (!site || !slug || !raffle?.campaign?.id || !paymentReference) {
+    return;
+  }
+
+  deliveryModalState.loading = true;
+  submitDeliveryNotice("Preparando tus boletas para descarga y WhatsApp...", "info");
+
+  try {
+    const params = new URLSearchParams();
+    params.set("reference", paymentReference);
+    if (customerPhone) {
+      params.set("customer_phone", customerPhone);
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/delivery?${params.toString()}`,
+      { cache: "no-store" },
+    );
+    const payload = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(payload?.message || "No fue posible preparar tus boletas.");
+    }
+
+    if (requestId !== deliveryModalState.requestId) {
+      return;
+    }
+
+    deliveryModalState.assets = Array.isArray(payload?.tickets) ? payload.tickets : [];
+    deliveryModalState.whatsappUrl = String(payload?.whatsapp_url || "").trim();
+    deliveryModalState.loading = false;
+    deliveryModalState.expanded = deliveryModalState.assets.length > 0;
+    deliveryModalState.notice = deliveryModalState.assets.length > 0
+      ? "Ya puedes elegir como recibir tus boletas."
+      : "Tus boletas estan listas.";
+    deliveryModalState.noticeTone = "success";
+    paintDeliveryModal();
+  } catch (error) {
+    if (requestId !== deliveryModalState.requestId) {
+      return;
+    }
+    deliveryModalState.loading = false;
+    submitDeliveryNotice(error?.message || "No fue posible preparar tus boletas.", "error");
+  }
+}
+
+function openDeliveryModal({ site = null, slug = "", raffle = null, paymentReference = "", customerPhone = "" } = {}) {
+  deliveryModalState.open = true;
+  deliveryModalState.loading = false;
+  deliveryModalState.site = site || null;
+  deliveryModalState.slug = String(slug || "").trim();
+  deliveryModalState.raffle = raffle || null;
+  deliveryModalState.paymentReference = String(paymentReference || "").trim();
+  deliveryModalState.customerPhone = String(customerPhone || "").trim();
+  deliveryModalState.assets = [];
+  deliveryModalState.whatsappUrl = "";
+  deliveryModalState.expanded = false;
+  deliveryModalState.error = "";
+  deliveryModalState.notice = "";
+  deliveryModalState.noticeTone = "info";
+  deliveryModalState.requestId += 1;
+  paintDeliveryModal();
+  syncDeliveryModal();
+  loadPublicDeliveryAssets();
+}
+
 function syncPaymentModal() {
   const modal = document.getElementById("payment-modal");
   if (!modal) return;
@@ -1525,6 +1649,96 @@ function renderPaymentModal() {
       <div class="payment-modal-card">
         <div id="payment-modal-content" class="payment-modal-content">
           <div class="selector-empty selector-empty-large">Selecciona numeros para continuar con el pago.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDeliveryModalContent() {
+  const raffle = deliveryModalState.raffle || paymentModalState.raffle || null;
+  const title = raffle ? `Recibe tus boletas de ${getRaffleDisplayTitle(raffle)}` : "Recibe tus boletas";
+  const description = raffle
+    ? "El pago fue exitoso. Elige si quieres recibirlas por WhatsApp o descargarlas en tu celular."
+    : "El pago fue exitoso. Elige cómo deseas recibir tus boletas.";
+  const referenceChip = deliveryModalState.paymentReference
+    ? `<span class="delivery-reference-chip">Referencia ${escapeHtml(deliveryModalState.paymentReference)}</span>`
+    : "";
+  const notice = deliveryModalState.notice
+    ? `<div class="delivery-modal-notice delivery-modal-notice-${escapeHtml(deliveryModalState.noticeTone || "info")}">${escapeHtml(deliveryModalState.notice)}</div>`
+    : "";
+  const whatsappUrl = deliveryModalState.whatsappUrl || "";
+  const whatsappDisabled = !whatsappUrl || deliveryModalState.loading;
+  const downloadCards = deliveryModalState.assets.length > 0
+    ? deliveryModalState.assets.map((item, index) => `
+        <a class="delivery-download-card" href="${escapeHtml(item.dataUrl || "")}" download="${escapeAttr(item.fileName || `boleta-${index + 1}.png`)}" target="_blank" rel="noreferrer">
+          <span class="delivery-download-index">Boleta ${index + 1}</span>
+          <strong>${escapeHtml(item.label || item.fileName || `Boleta ${index + 1}`)}</strong>
+          <small>Descargar PNG</small>
+        </a>
+      `).join("")
+    : `<div class="delivery-empty">Aun no cargamos las boletas para descarga.</div>`;
+
+  return `
+    <div class="delivery-modal-head">
+      <div class="delivery-modal-head-copy">
+        <span class="payment-card-kicker">Pago exitoso</span>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(description)}</p>
+        ${referenceChip}
+      </div>
+      <button type="button" class="selector-close" data-action="close-delivery-modal">Cerrar</button>
+    </div>
+
+    ${notice}
+
+    <div class="delivery-choice-grid">
+      <div class="delivery-choice-card delivery-choice-whatsapp">
+        <div class="payment-action-icon payment-action-icon-whatsapp">◌</div>
+        <div class="payment-card-copy">
+          <strong>Enviar por WhatsApp</strong>
+          <p>Se abrirá WhatsApp con un mensaje que lleva tu código de compra.</p>
+        </div>
+        <a class="button payment-whatsapp ${whatsappDisabled ? "is-disabled" : ""}" href="${escapeHtml(whatsappUrl || "#")}" target="_blank" rel="noreferrer" ${whatsappDisabled ? 'aria-disabled="true"' : ""}>Enviar por WhatsApp</a>
+      </div>
+
+      <div class="delivery-choice-card delivery-choice-download">
+        <div class="payment-action-icon payment-action-icon-upload">↥</div>
+        <div class="payment-card-copy">
+          <strong>Descargar tus boletas</strong>
+          <p>Guarda las imágenes en tu celular en formato PNG.</p>
+        </div>
+        <button type="button" class="button secondary" data-action="toggle-delivery-downloads">${deliveryModalState.expanded ? "Ocultar descargas" : "Ver descargas"}</button>
+      </div>
+    </div>
+
+    ${deliveryModalState.expanded ? `
+      <div class="delivery-download-grid">
+        ${deliveryModalState.loading ? `<div class="delivery-empty">Preparando archivos...</div>` : downloadCards}
+      </div>
+    ` : ""}
+  `;
+}
+
+function paintDeliveryModal() {
+  const content = document.getElementById("delivery-modal-content");
+  if (!content) return;
+  content.innerHTML = renderDeliveryModalContent();
+  syncDeliveryModal();
+}
+
+function renderDeliveryModal() {
+  return `
+    <div
+      id="delivery-modal"
+      class="delivery-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="delivery-modal-card">
+        <div id="delivery-modal-content" class="delivery-modal-content">
+          <div class="selector-empty selector-empty-large">Estamos preparando la entrega de tus boletas.</div>
         </div>
       </div>
     </div>
@@ -1924,11 +2138,26 @@ async function submitPublicReceiptUpload(file = null) {
     raffleSelectorState.notice = "Tu compra quedo registrada y la seleccion fue limpiada.";
     raffleSelectorState.noticeTone = "success";
     paintRaffleSelector();
-    paintPaymentModal();
-    submitPublicPaymentStateNotice(
-      payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.",
-      "success",
-    );
+    if (payload?.auto_approved && payload?.payment_reference) {
+      const contactPayload = getPaymentModalContactPayload();
+      const nextSite = site || window.__PUBLIC_SITE_STATE__?.site || null;
+      const nextSlug = slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+      const nextRaffle = raffle || null;
+      closePaymentModal();
+      openDeliveryModal({
+        site: nextSite,
+        slug: nextSlug,
+        raffle: nextRaffle,
+        paymentReference: payload.payment_reference,
+        customerPhone: contactPayload.customer_phone || contactPayload.customerPhone || "",
+      });
+    } else {
+      paintPaymentModal();
+      submitPublicPaymentStateNotice(
+        payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.",
+        "success",
+      );
+    }
   } catch (error) {
     paymentModalState.loading = false;
     submitPublicPaymentStateNotice(error?.message || "No fue posible cargar el comprobante.", "error");
@@ -2326,6 +2555,7 @@ function renderShell(site, slug) {
       </main>
         ${renderRaffleSelectorModal()}
         ${renderPaymentModal()}
+        ${renderDeliveryModal()}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
           <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">×</button>
@@ -2423,6 +2653,12 @@ app.addEventListener("click", (event) => {
     return;
   }
 
+  const deliveryOverlay = event.target.closest("#delivery-modal");
+  if (deliveryOverlay && event.target.id === "delivery-modal") {
+    closeDeliveryModal();
+    return;
+  }
+
   const action = event.target.closest("[data-action]");
   if (!action) {
     return;
@@ -2490,6 +2726,24 @@ app.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     closePaymentModal();
+    return;
+  }
+
+  if (actionName === "close-delivery-modal") {
+    event.preventDefault();
+    event.stopPropagation();
+    closeDeliveryModal();
+    return;
+  }
+
+  if (actionName === "toggle-delivery-downloads") {
+    event.preventDefault();
+    event.stopPropagation();
+    deliveryModalState.expanded = !deliveryModalState.expanded;
+    paintDeliveryModal();
+    if (deliveryModalState.expanded && !deliveryModalState.assets.length && !deliveryModalState.loading) {
+      loadPublicDeliveryAssets();
+    }
     return;
   }
 

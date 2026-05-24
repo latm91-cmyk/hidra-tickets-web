@@ -1786,6 +1786,198 @@ button {
   align-content: start;
 }
 
+.delivery-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.015);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 109;
+}
+
+.delivery-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.delivery-modal-card {
+  width: min(980px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 40px 100px rgba(15, 23, 42, 0.36);
+}
+
+.delivery-modal-content {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  background:
+    radial-gradient(circle at top left, rgba(15, 76, 129, 0.06), transparent 32%),
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.05), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.99));
+}
+
+.delivery-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.delivery-modal-head-copy h3 {
+  margin: 8px 0 8px;
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.delivery-modal-head-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+.delivery-reference-chip {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.08), rgba(37, 99, 235, 0.1));
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.delivery-modal-notice {
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.delivery-modal-notice-info {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+}
+
+.delivery-modal-notice-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.delivery-modal-notice-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+}
+
+.delivery-modal-notice-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+.delivery-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.delivery-choice-card {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(249, 250, 252, 0.98));
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.delivery-choice-whatsapp {
+  background: linear-gradient(180deg, #ffffff, #f0fdf4);
+}
+
+.delivery-choice-download {
+  background: linear-gradient(180deg, #ffffff, #eff6ff);
+}
+
+.payment-action-icon-whatsapp {
+  background: linear-gradient(135deg, #0f766e, #22c55e);
+  color: #fff;
+}
+
+.payment-whatsapp {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.payment-whatsapp.is-disabled {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.delivery-download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.delivery-download-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.98));
+  text-decoration: none;
+  color: #0f172a;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+}
+
+.delivery-download-card strong {
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.delivery-download-card small,
+.delivery-download-index {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.delivery-empty {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .payment-action-card {
   display: grid;
   gap: 12px;
@@ -2913,6 +3105,10 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .delivery-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
   .selector-summary {
     position: static;
   }
@@ -3142,6 +3338,18 @@ button {
 
   .payment-modal-content {
     padding: 16px;
+  }
+
+  .delivery-modal {
+    padding: 10px;
+  }
+
+  .delivery-modal-content {
+    padding: 16px;
+  }
+
+  .delivery-modal-head {
+    flex-direction: column;
   }
 
   .selector-head {
