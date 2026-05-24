@@ -591,6 +591,14 @@ function persistSelection(raffleId, selected) {
   }
 }
 
+function clearPersistedSelection(raffleId) {
+  try {
+    window.localStorage.removeItem(getSelectionStorageKey(raffleId));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
 function formatDate(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -1909,6 +1917,14 @@ async function submitPublicReceiptUpload(file = null) {
     paymentModalState.file = null;
     paymentModalState.fileName = "";
     paymentModalState.checkoutUrl = "";
+    paymentModalState.selected = [];
+    paymentModalState.amount = 0;
+    raffleSelectorState.selected = [];
+    clearPersistedSelection(raffleSelectorState.raffle?.campaign?.id || raffle?.campaign?.id || "");
+    raffleSelectorState.notice = "Tu compra quedo registrada y la seleccion fue limpiada.";
+    raffleSelectorState.noticeTone = "success";
+    paintRaffleSelector();
+    paintPaymentModal();
     submitPublicPaymentStateNotice(
       payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.",
       "success",
