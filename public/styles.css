@@ -657,6 +657,32 @@ button {
   max-width: 62ch;
 }
 
+.section-group {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.section-group:last-child {
+  margin-bottom: 0;
+}
+
+.section-head-small {
+  margin-bottom: 0;
+}
+
+.section-head-small h3 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.section-head-small p {
+  margin-top: 6px;
+  max-width: 58ch;
+}
+
 .raffle-price-summary {
   margin: 0;
   color: var(--muted);

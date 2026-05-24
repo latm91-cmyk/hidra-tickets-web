@@ -494,6 +494,85 @@ function renderInlineVideo(url, title) {
   `;
 }
 
+function normalizePublicVideoType(value = "") {
+  const normalized = String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_");
+
+  if (["social", "social_support", "apoyo_social", "apoyos_sociales", "apoyos", "support"].includes(normalized)) {
+    return "social_support";
+  }
+
+  return "winner";
+}
+
+function groupPublicVideosByType(site = {}) {
+  const videos = asArray(site.winnerVideos).filter((video) => video && video.isVisible !== false);
+  const winner = [];
+  const socialSupport = [];
+
+  for (const video of videos) {
+    const type = normalizePublicVideoType(video.videoType || video.video_type || video.type || "winner");
+    if (type === "social_support") {
+      socialSupport.push(video);
+    } else {
+      winner.push(video);
+    }
+  }
+
+  return { winner, socialSupport };
+}
+
+function renderVideoCards(videos = [], kind = "winner") {
+  return `
+    <div class="grid-3">
+      ${videos
+        .map((video) => {
+          const preview = video.thumbnailUrl || ASSETS.winner;
+          const subtitle = kind === "social_support"
+            ? (video.winnerName || "Apoyo social")
+            : (video.winnerName || "Ganador verificado");
+          const cardBadge = kind === "social_support" ? "Apoyo social" : "Ganador";
+          return `
+            <article class="card">
+              <div class="card-media">
+                <img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" loading="lazy" decoding="async" />
+                ${video.videoUrl ? `
+                  <button
+                    type="button"
+                    class="play-overlay"
+                    data-video-url="${escapeAttr(video.videoUrl)}"
+                    data-video-title="${escapeAttr(video.title)}"
+                    data-video-subtitle="${escapeAttr(subtitle)}"
+                    aria-label="Reproducir video"
+                  >
+                    <span class="play-overlay-badge">▶</span>
+                    <span class="play-overlay-text">
+                      <strong>Ver video</strong>
+                      <small>${escapeHtml(cardBadge)}</small>
+                    </span>
+                  </button>
+                ` : ""}
+              </div>
+              <div class="card-body">
+                <div class="chip-row">
+                  <span class="chip">${escapeHtml(cardBadge)}</span>
+                  ${video.city ? `<span class="chip">${escapeHtml(video.city)}</span>` : ""}
+                  ${video.drawDate ? `<span class="chip">${escapeHtml(formatDate(video.drawDate))}</span>` : ""}
+                </div>
+                <h3 class="card-title">${escapeHtml(video.title)}</h3>
+                <p class="card-copy">${escapeHtml(subtitle)}${video.prize ? ` · ${escapeHtml(video.prize)}` : ""}</p>
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
 function escapeAttr(value) {
   return escapeHtml(value).replaceAll("`", "&#96;");
 }
@@ -902,51 +981,38 @@ function renderRaffles(site) {
 }
 
 function renderWinnerVideos(site) {
-  const videos = asArray(site.winnerVideos);
+  const { winner, socialSupport } = groupPublicVideosByType(site);
 
-  if (videos.length === 0) {
-    return `<div class="state-card"><h2>Sin videos publicados</h2><p>Cuando cargues testimonios o entregas, apareceran aqui.</p></div>`;
+  if (winner.length === 0 && socialSupport.length === 0) {
+    return `<div class="state-card"><h2>Sin videos publicados</h2><p>Cuando cargues testimonios, entregas o apoyos sociales, apareceran aqui.</p></div>`;
   }
 
   return `
-    <div class="grid-3">
-      ${videos
-        .map((video) => {
-          const preview = video.thumbnailUrl || ASSETS.winner;
-          return `
-            <article class="card">
-              <div class="card-media">
-                <img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" loading="lazy" decoding="async" />
-                ${video.videoUrl ? `
-                  <button
-                    type="button"
-                    class="play-overlay"
-                    data-video-url="${escapeAttr(video.videoUrl)}"
-                    data-video-title="${escapeAttr(video.title)}"
-                    data-video-subtitle="${escapeAttr(video.winnerName || "Ganador verificado")}"
-                    aria-label="Reproducir video"
-                  >
-                    <span class="play-overlay-badge">▶</span>
-                    <span class="play-overlay-text">
-                      <strong>Ver video</strong>
-                      <small>Reproducir testimonio</small>
-                    </span>
-                  </button>
-                ` : ""}
-              </div>
-              <div class="card-body">
-                <div class="chip-row">
-                  ${video.city ? `<span class="chip">${escapeHtml(video.city)}</span>` : ""}
-                  ${video.drawDate ? `<span class="chip">${escapeHtml(formatDate(video.drawDate))}</span>` : ""}
-                </div>
-                <h3 class="card-title">${escapeHtml(video.title)}</h3>
-                <p class="card-copy">${escapeHtml(video.winnerName || "Ganador verificado")}${video.prize ? ` · ${escapeHtml(video.prize)}` : ""}</p>
-              </div>
-            </article>
-          `;
-        })
-        .join("")}
-    </div>
+    ${winner.length ? `
+      <div class="section-group">
+        <div class="section-head section-head-small">
+          <div>
+            <span class="section-kicker">Ganadores</span>
+            <h3>Videos de ganadores</h3>
+            <p>Testimonios, entregas y momentos reales de quienes ya participaron.</p>
+          </div>
+        </div>
+        ${renderVideoCards(winner, "winner")}
+      </div>
+    ` : ""}
+
+    ${socialSupport.length ? `
+      <div class="section-group">
+        <div class="section-head section-head-small">
+          <div>
+            <span class="section-kicker">Apoyos sociales</span>
+            <h3>Historias de apoyo</h3>
+            <p>Ayudas, aportes y acciones sociales que el cliente quiera mostrar públicamente.</p>
+          </div>
+        </div>
+        ${renderVideoCards(socialSupport, "social_support")}
+      </div>
+    ` : ""}
   `;
 }
 
@@ -2401,8 +2467,8 @@ function renderTrustStrip(site) {
       text: `${asArray(site.activeRaffles).length} sorteos activos en la landing.`,
     },
     {
-      title: "Premios reales",
-      text: `${asArray(site.winnerVideos).length} videos de ganadores publicados.`,
+      title: "Videos publicados",
+      text: `${asArray(site.winnerVideos).length} videos visibles publicados.`,
     },
     {
       title: "Atención directa",
@@ -2506,7 +2572,7 @@ function renderShell(site, slug) {
   const videosCount = asArray(site.winnerVideos).length;
   const heroSignals = [
     raffleCount > 0 ? `${raffleCount} sorteos visibles` : "",
-    videosCount > 0 ? `${videosCount} ganadores publicados` : "",
+    videosCount > 0 ? `${videosCount} videos publicados` : "",
   ].filter(Boolean);
   const footerQuickLinks = [
     ["Inicio", "#inicio"],
@@ -2645,8 +2711,8 @@ function renderShell(site, slug) {
           <section class="section shell section-anchor" id="videos">
             <div class="section-head">
               <div>
-                <h2>Ganadores, historias de suerte</h2>
-                <p>Mira entregas, testimonios y momentos reales de quienes ya participaron y ganaron.</p>
+                <h2>Videos y testimonios</h2>
+                <p>Mira entregas, testimonios y apoyos sociales que el administrador decida publicar.</p>
               </div>
           </div>
           ${renderWinnerVideos(site)}
