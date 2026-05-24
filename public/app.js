@@ -51,6 +51,15 @@ const paymentModalState = {
   requestId: 0,
 };
 
+const receiptUploadState = {
+  open: false,
+  title: "Subiendo comprobante",
+  description: "Espera un momento mientras verificamos tu pago.",
+  detail: "No cierres esta ventana hasta que termine el proceso.",
+  tone: "info",
+  requestId: 0,
+};
+
 const deliveryModalState = {
   open: false,
   loading: false,
@@ -2031,6 +2040,82 @@ function submitPublicPaymentStateNotice(message, tone = "info") {
   paintPaymentModal();
 }
 
+function syncReceiptUploadModal() {
+  const modal = document.getElementById("receipt-upload-modal");
+  if (!modal) return;
+  modal.classList.toggle("is-open", receiptUploadState.open);
+  modal.setAttribute("aria-hidden", receiptUploadState.open ? "false" : "true");
+  document.body.classList.toggle("modal-open", receiptUploadState.open || deliveryModalState.open || raffleSelectorState.open || paymentModalState.open);
+}
+
+function openReceiptUploadModal({
+  title = "Subiendo comprobante",
+  description = "Espera un momento mientras verificamos tu pago.",
+  detail = "No cierres esta ventana hasta que termine el proceso.",
+  tone = "info",
+} = {}) {
+  receiptUploadState.open = true;
+  receiptUploadState.title = String(title || "Subiendo comprobante").trim();
+  receiptUploadState.description = String(description || "").trim();
+  receiptUploadState.detail = String(detail || "").trim();
+  receiptUploadState.tone = tone || "info";
+  receiptUploadState.requestId += 1;
+  paintReceiptUploadModal();
+  syncReceiptUploadModal();
+}
+
+function closeReceiptUploadModal() {
+  receiptUploadState.open = false;
+  receiptUploadState.title = "Subiendo comprobante";
+  receiptUploadState.description = "Espera un momento mientras verificamos tu pago.";
+  receiptUploadState.detail = "No cierres esta ventana hasta que termine el proceso.";
+  receiptUploadState.tone = "info";
+  receiptUploadState.requestId += 1;
+  syncReceiptUploadModal();
+}
+
+function renderReceiptUploadModalContent() {
+  return `
+    <div class="receipt-upload-modal-head">
+      <div class="receipt-upload-spinner" aria-hidden="true"></div>
+      <div class="receipt-upload-copy">
+        <span class="payment-card-kicker">Procesando</span>
+        <h3>${escapeHtml(receiptUploadState.title)}</h3>
+        <p>${escapeHtml(receiptUploadState.description)}</p>
+        <small>${escapeHtml(receiptUploadState.detail)}</small>
+      </div>
+    </div>
+    <div class="receipt-upload-dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  `;
+}
+
+function paintReceiptUploadModal() {
+  const content = document.getElementById("receipt-upload-modal-content");
+  if (!content) return;
+  content.innerHTML = renderReceiptUploadModalContent();
+  syncReceiptUploadModal();
+}
+
+function renderReceiptUploadModal() {
+  return `
+    <div
+      id="receipt-upload-modal"
+      class="receipt-upload-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="receipt-upload-card">
+        <div id="receipt-upload-modal-content" class="receipt-upload-content">
+          <div class="selector-empty selector-empty-large">Subiendo comprobante...</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function updatePaymentModalField(field, value) {
   const normalized = String(value || "");
   if (field === "customerName") {
@@ -2133,6 +2218,12 @@ async function submitPublicReceiptUpload(file = null) {
   paymentModalState.loading = true;
   paymentModalState.file = file;
   paymentModalState.fileName = file.name || "Comprobante";
+  openReceiptUploadModal({
+    title: "Subiendo comprobante",
+    description: "Espera un momento mientras verificamos tu pago.",
+    detail: "Estamos leyendo el archivo y validando la compra.",
+    tone: "info",
+  });
   submitPublicPaymentStateNotice(`Cargando ${paymentModalState.fileName}...`, "info");
 
   try {
@@ -2174,6 +2265,7 @@ async function submitPublicReceiptUpload(file = null) {
       const nextSite = site || window.__PUBLIC_SITE_STATE__?.site || null;
       const nextSlug = slug || window.__PUBLIC_SITE_STATE__?.slug || "";
       const nextRaffle = raffle || null;
+      closeReceiptUploadModal();
       closePaymentModal();
       openDeliveryModal({
         site: nextSite,
@@ -2183,13 +2275,27 @@ async function submitPublicReceiptUpload(file = null) {
         customerPhone: contactPayload.customer_phone || contactPayload.customerPhone || "",
       });
     } else {
+      closeReceiptUploadModal();
       paintPaymentModal();
-      submitPublicPaymentStateNotice(
-        payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.",
-        "success",
-      );
+      const validationReasons = asArray(payload?.validation?.reasons)
+        .map((reason) => String(reason || "").trim())
+        .filter(Boolean);
+      const rejectionReason = validationReasons.length > 0
+        ? validationReasons[0]
+        : String(payload?.receipt_warning || "").trim();
+      const reviewMessage = payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.";
+      const fallbackReason = payload?.validation?.decision === "NEEDS_MANUAL_REVIEW"
+        ? "La validacion automatica no encontro una coincidencia suficiente y quedo pendiente de revision manual."
+        : "";
+      const rejectionMessage = rejectionReason
+        ? `${reviewMessage} Motivo: ${rejectionReason}.`
+        : fallbackReason
+          ? `${reviewMessage} Motivo: ${fallbackReason}`
+          : reviewMessage;
+      submitPublicPaymentStateNotice(rejectionMessage, payload?.receipt_warning ? "warning" : "warning");
     }
   } catch (error) {
+    closeReceiptUploadModal();
     paymentModalState.loading = false;
     submitPublicPaymentStateNotice(error?.message || "No fue posible cargar el comprobante.", "error");
   }
@@ -2586,6 +2692,7 @@ function renderShell(site, slug) {
       </main>
         ${renderRaffleSelectorModal()}
         ${renderPaymentModal()}
+        ${renderReceiptUploadModal()}
         ${renderDeliveryModal()}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
