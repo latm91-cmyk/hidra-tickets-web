@@ -62,6 +62,7 @@ const deliveryModalState = {
   assets: [],
   whatsappUrl: "",
   expanded: false,
+  downloadRequested: false,
   error: "",
   notice: "",
   noticeTone: "info",
@@ -1399,6 +1400,30 @@ function submitDeliveryNotice(message, tone = "info") {
   paintDeliveryModal();
 }
 
+function triggerDeliveryAssetDownload(item = {}, index = 0) {
+  const href = String(item?.dataUrl || "").trim();
+  if (!href) return;
+
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = String(item?.fileName || `boleta-${index + 1}.png`).trim() || `boleta-${index + 1}.png`;
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+function downloadDeliveryAssets() {
+  const assets = Array.isArray(deliveryModalState.assets) ? deliveryModalState.assets : [];
+  if (!assets.length) return false;
+
+  assets.forEach((item, index) => {
+    window.setTimeout(() => triggerDeliveryAssetDownload(item, index), index * 250);
+  });
+  return true;
+}
+
 async function loadPublicDeliveryAssets() {
   const requestId = deliveryModalState.requestId;
   const site = deliveryModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
@@ -1439,10 +1464,15 @@ async function loadPublicDeliveryAssets() {
     deliveryModalState.loading = false;
     deliveryModalState.expanded = deliveryModalState.assets.length > 0;
     deliveryModalState.notice = deliveryModalState.assets.length > 0
-      ? "Ya puedes elegir como recibir tus boletas."
+      ? "Ya puedes descargar tus boletas o recibirlas por WhatsApp."
       : "Tus boletas estan listas.";
     deliveryModalState.noticeTone = "success";
     paintDeliveryModal();
+
+    if (deliveryModalState.downloadRequested && deliveryModalState.assets.length > 0) {
+      downloadDeliveryAssets();
+      deliveryModalState.downloadRequested = false;
+    }
   } catch (error) {
     if (requestId !== deliveryModalState.requestId) {
       return;
@@ -1463,6 +1493,7 @@ function openDeliveryModal({ site = null, slug = "", raffle = null, paymentRefer
   deliveryModalState.assets = [];
   deliveryModalState.whatsappUrl = "";
   deliveryModalState.expanded = false;
+  deliveryModalState.downloadRequested = false;
   deliveryModalState.error = "";
   deliveryModalState.notice = "";
   deliveryModalState.noticeTone = "info";
@@ -1706,9 +1737,9 @@ function renderDeliveryModalContent() {
         <div class="payment-action-icon payment-action-icon-upload">↥</div>
         <div class="payment-card-copy">
           <strong>Descargar tus boletas</strong>
-          <p>Guarda las imágenes en tu celular en formato PNG.</p>
+          <p>Presiona para descargar tus boletas en el celular. Tambien puedes abrir cada imagen de forma individual.</p>
         </div>
-        <button type="button" class="button secondary" data-action="toggle-delivery-downloads">${deliveryModalState.expanded ? "Ocultar descargas" : "Ver descargas"}</button>
+        <button type="button" class="button secondary" data-action="download-delivery-boletas">Descargar boletas</button>
       </div>
     </div>
 
@@ -2736,12 +2767,22 @@ app.addEventListener("click", (event) => {
     return;
   }
 
-  if (actionName === "toggle-delivery-downloads") {
+  if (actionName === "download-delivery-boletas") {
     event.preventDefault();
     event.stopPropagation();
-    deliveryModalState.expanded = !deliveryModalState.expanded;
+    deliveryModalState.downloadRequested = true;
+
+    if (deliveryModalState.assets.length > 0) {
+      downloadDeliveryAssets();
+      deliveryModalState.downloadRequested = false;
+      deliveryModalState.expanded = true;
+      paintDeliveryModal();
+      return;
+    }
+
+    deliveryModalState.expanded = true;
     paintDeliveryModal();
-    if (deliveryModalState.expanded && !deliveryModalState.assets.length && !deliveryModalState.loading) {
+    if (!deliveryModalState.loading) {
       loadPublicDeliveryAssets();
     }
     return;
