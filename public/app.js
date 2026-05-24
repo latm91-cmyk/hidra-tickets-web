@@ -704,6 +704,28 @@ async function readJsonResponse(response) {
   }
 }
 
+async function fetchFreshPublicSite(slug = "") {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(normalizedSlug)}`,
+      { cache: "no-store" },
+    );
+    if (!response.ok) {
+      return null;
+    }
+
+    const site = await response.json();
+    return site && typeof site === "object" ? site : null;
+  } catch {
+    return null;
+  }
+}
+
 function getSelectionStorageKey(raffleId) {
   const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "public";
   return `hidra-tickets-selection:${slug}:${String(raffleId || "")}`;
@@ -2077,8 +2099,11 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
   }
 }
 
-function openRaffleSelector(raffleId) {
-  const site = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+async function openRaffleSelector(raffleId) {
+  const fallbackSite = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
+  const fallbackSlug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || getSlugFromLocation();
+  const freshSite = await fetchFreshPublicSite(fallbackSlug);
+  const site = freshSite || fallbackSite;
   const raffles = asArray(site?.activeRaffles);
   const raffle =
     raffles.find((item) => String(item?.campaign?.id || "") === String(raffleId))
@@ -2090,7 +2115,7 @@ function openRaffleSelector(raffleId) {
   }
 
   raffleSelectorState.site = site;
-  raffleSelectorState.slug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || "";
+  raffleSelectorState.slug = fallbackSlug;
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
   raffleSelectorState.page = 1;
@@ -2103,6 +2128,12 @@ function openRaffleSelector(raffleId) {
   raffleSelectorState.noticeTone = "info";
   raffleSelectorState.updatedAt = "";
   raffleSelectorState.open = true;
+
+  window.__PUBLIC_SITE_STATE__ = {
+    site,
+    slug: fallbackSlug,
+    raffles: asArray(site?.activeRaffles),
+  };
 
   clearRaffleSelectorTimers();
   syncRaffleSelectorModal();
