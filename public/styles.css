@@ -1686,6 +1686,10 @@ button {
   min-width: 0;
 }
 
+.payment-modal-right {
+  gap: 18px;
+}
+
 .payment-modal-summary {
   display: grid;
   gap: 12px;

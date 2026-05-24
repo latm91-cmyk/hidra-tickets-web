@@ -1641,6 +1641,18 @@ function renderPaymentModalContent() {
           </div>
 
           <div class="payment-action-card">
+            <div class="payment-action-icon payment-action-icon-upload">↥</div>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Comprobante</span>
+              <strong>Sube tu soporte</strong>
+              <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
+            </div>
+            <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
+            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
+            ${receiptLabel}
+          </div>
+
+          <div class="payment-action-card">
             <div class="payment-action-icon payment-action-icon-pse">
               <img src="${escapeHtml(ASSETS.pse)}" alt="PSE" />
             </div>
@@ -1651,18 +1663,6 @@ function renderPaymentModalContent() {
             </div>
             <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
             ${checkoutUrl ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
-          </div>
-
-          <div class="payment-action-card">
-            <div class="payment-action-icon payment-action-icon-upload">↥</div>
-            <div class="payment-card-copy">
-              <span class="payment-card-kicker">Comprobante</span>
-              <strong>Sube tu soporte</strong>
-              <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
-            </div>
-            <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
-            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
-            ${receiptLabel}
           </div>
 
           <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
