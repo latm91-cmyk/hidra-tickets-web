@@ -917,7 +917,7 @@ button {
 }
 
 .raffle-feature-actions {
-  margin-top: 6px;
+  margin-top: 4px;
   align-self: start;
   justify-self: start;
   width: fit-content;
@@ -3019,6 +3019,28 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
+}
+
+.site-cache-banner {
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 120;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(8, 25, 47, 0.92);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  opacity: 1;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.site-cache-banner.is-hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
 }
 
 .loading-shell-minimal {

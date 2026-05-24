@@ -1,6 +1,7 @@
 ﻿const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
 const API_BASE_URL = String(CONFIG.apiBaseUrl || "http://localhost:10000").replace(/\/+$/, "");
 const app = document.getElementById("app");
+const PUBLIC_SITE_CACHE_PREFIX = "public-site-cache:v1:";
 const ASSETS = {
   brand: "/assets/logo-placeholder.webp",
   hero: "/assets/hero-caballo.webp",
@@ -497,6 +498,37 @@ function escapeAttr(value) {
   return escapeHtml(value).replaceAll("`", "&#96;");
 }
 
+function getPublicSiteCacheKey(slug = "") {
+  return `${PUBLIC_SITE_CACHE_PREFIX}${normalizeSlug(slug)}`;
+}
+
+function readCachedPublicSite(slug = "") {
+  const key = getPublicSiteCacheKey(slug);
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !parsed.site) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedPublicSite(slug = "", site = null) {
+  const key = getPublicSiteCacheKey(slug);
+  try {
+    window.localStorage.setItem(key, JSON.stringify({
+      site,
+      cachedAt: new Date().toISOString(),
+    }));
+  } catch {
+    // Ignore storage errors on restricted browsers.
+  }
+}
+
 window.__PUBLIC_VIDEO_MODAL__ = window.__PUBLIC_VIDEO_MODAL__ || null;
 
 function openVideoModal(payload = {}) {
@@ -760,7 +792,7 @@ function renderRaffles(site) {
       return `
         <article class="raffle-feature">
           <div class="raffle-feature-media">
-            <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+            <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" loading="eager" fetchpriority="high" decoding="async" />
             <div class="raffle-feature-badge">${isFeatured ? "Sorteo destacado" : "Sorteo disponible"}</div>
           </div>
             <div class="raffle-feature-body">
@@ -774,10 +806,6 @@ function renderRaffles(site) {
             ` : ""}
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
             ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
-            <div class="raffle-feature-meta">
-              <span>${escapeHtml(mode)}</span>
-              ${total ? `<span>${escapeHtml(String(total))} boletas</span>` : ""}
-            </div>
             <div class="raffle-feature-actions">
               <button
                 type="button"
@@ -787,6 +815,10 @@ function renderRaffles(site) {
                 Escoger mis números
               </button>
             </div>
+            <div class="raffle-feature-meta">
+              <span>${escapeHtml(mode)}</span>
+              ${total ? `<span>${escapeHtml(String(total))} boletas</span>` : ""}
+            </div>
           </div>
         </article>
       `;
@@ -795,7 +827,7 @@ function renderRaffles(site) {
     return `
       <article class="raffle-card raffle-card-compact">
         <div class="raffle-card-media">
-          <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" loading="lazy" decoding="async" />
           ${isFeatured ? `<div class="card-flag">Destacado</div>` : ""}
         </div>
         <div class="raffle-card-body">
@@ -840,7 +872,7 @@ function renderRaffles(site) {
             return `
               <article class="raffle-mini">
                 <div class="raffle-mini-media">
-                  <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" />
+                  <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" loading="lazy" decoding="async" />
                 </div>
                 <div class="raffle-mini-body">
                   <h4>${escapeHtml(heroTitle)}</h4>
@@ -884,7 +916,7 @@ function renderWinnerVideos(site) {
           return `
             <article class="card">
               <div class="card-media">
-                <img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" />
+                <img src="${escapeHtml(preview)}" alt="${escapeHtml(video.title)}" loading="lazy" decoding="async" />
                 ${video.videoUrl ? `
                   <button
                     type="button"
@@ -2504,7 +2536,7 @@ function renderShell(site, slug) {
           <div class="topbar-main">
             <div class="brand">
               <div class="brand-mark">
-                <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
               <div>
                 <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
@@ -2543,7 +2575,7 @@ function renderShell(site, slug) {
                 <div class="hero-company-line">${escapeHtml(settings.title || company.nombre || heroTitle || "Rifas publicas")}</div>
                 <div class="hero-brand">
                   <div class="hero-brand-mark">
-                    <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
+                    <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="lazy" decoding="async" />
                   </div>
                 </div>
                 ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
@@ -2554,7 +2586,7 @@ function renderShell(site, slug) {
               </div>
 
                 <div class="hero-media">
-                ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" />`}
+                ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" loading="eager" fetchpriority="high" decoding="async" />`}
                 <div class="overlay">
                   <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
                   <strong>${escapeHtml(heroSpotlightTitle)}</strong>
@@ -2604,7 +2636,7 @@ function renderShell(site, slug) {
               </div>
           </div>
           <div class="state-card" style="margin-bottom:18px">
-            <img src="${escapeHtml(ASSETS.payments)}" alt="Metodos de pago" style="width:100%;height:auto;border-radius:22px;display:block;margin-bottom:16px" />
+            <img src="${escapeHtml(ASSETS.payments)}" alt="Metodos de pago" loading="lazy" decoding="async" style="width:100%;height:auto;border-radius:22px;display:block;margin-bottom:16px" />
           </div>
           ${renderSections(site, paymentSections, "Metodos de pago", "Bloques administrables desde el panel.") }
           </section>
@@ -2658,7 +2690,7 @@ function renderShell(site, slug) {
           <div class="footer-card footer-card-premium">
             <div class="footer-brand">
               <div class="footer-brand-mark">
-                <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" />
+                <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="lazy" decoding="async" />
               </div>
               <div class="footer-brand-copy">
                 <strong>${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</strong>
@@ -2710,6 +2742,8 @@ function renderShell(site, slug) {
       </div>
     </div>
   `;
+
+  writeCachedPublicSite(slug, site);
 
   document.querySelectorAll("[data-video-url]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -2974,11 +3008,30 @@ async function loadSite() {
     return;
   }
 
-  app.innerHTML = `
-    <div class="loading-shell loading-shell-minimal" aria-label="Cargando sitio">
-      <div class="loading-spinner"></div>
-    </div>
-  `;
+  const cached = readCachedPublicSite(slug);
+  if (cached?.site) {
+    try {
+      renderShell(cached.site, slug);
+      const cachedBanner = document.createElement("div");
+      cachedBanner.className = "site-cache-banner";
+      cachedBanner.textContent = "Mostrando contenido cargado previamente...";
+      document.body.appendChild(cachedBanner);
+      window.setTimeout(() => {
+        cachedBanner.classList.add("is-hidden");
+        window.setTimeout(() => cachedBanner.remove(), 220);
+      }, 1800);
+    } catch {
+      // If cached render fails, fall back to loading shell below.
+    }
+  }
+
+  if (!cached?.site) {
+    app.innerHTML = `
+      <div class="loading-shell loading-shell-minimal" aria-label="Cargando sitio">
+        <div class="loading-spinner"></div>
+      </div>
+    `;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(slug)}`);
@@ -2989,20 +3042,22 @@ async function loadSite() {
     const site = await response.json();
     renderShell(site, slug);
   } catch (error) {
-    app.innerHTML = `
-      <div class="page">
-        <div class="loading-shell">
-          <div class="loading-card">
-            <div class="loading-badge">Error</div>
-            <h1>No fue posible cargar la pagina publica</h1>
-            <p>Estamos teniendo un problema temporal al abrir el sitio.</p>
-            <div style="margin-top:18px">
-              <a class="button primary" href="/" onclick="window.location.reload(); return false;">Intentar de nuevo</a>
+    if (!cached?.site) {
+      app.innerHTML = `
+        <div class="page">
+          <div class="loading-shell">
+            <div class="loading-card">
+              <div class="loading-badge">Error</div>
+              <h1>No fue posible cargar la pagina publica</h1>
+              <p>Estamos teniendo un problema temporal al abrir el sitio.</p>
+              <div style="margin-top:18px">
+                <a class="button primary" href="/" onclick="window.location.reload(); return false;">Intentar de nuevo</a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 }
 
