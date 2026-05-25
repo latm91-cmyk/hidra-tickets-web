@@ -794,6 +794,37 @@ function readPersistedSelection(raffleId) {
   }
 }
 
+function resolveRaffleSelection(raffle = {}) {
+  const raffleId = raffle?.campaign?.id;
+  const inMemory = asArray(raffleSelectorState.selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  if (inMemory.length > 0) {
+    return inMemory;
+  }
+
+  const persisted = raffleId ? readPersistedSelection(raffleId) : [];
+  if (persisted.length > 0) {
+    raffleSelectorState.selected = [...persisted];
+    return persisted;
+  }
+
+  const raffleStored = asArray(
+    raffle?.selected_numbers
+    || raffle?.selectedNumbers
+    || raffle?.campaign?.selected_numbers
+    || raffle?.campaign?.selectedNumbers,
+  )
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  if (raffleStored.length > 0) {
+    raffleSelectorState.selected = [...raffleStored];
+  }
+
+  return raffleStored;
+}
+
 function persistSelection(raffleId, selected) {
   try {
     const value = JSON.stringify(asArray(selected).map((item) => String(item || "").trim()).filter(Boolean));
@@ -1176,10 +1207,7 @@ function renderRaffleSelectorContent() {
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
-  const persistedSelected = raffle ? readPersistedSelection(raffle.campaign.id) : [];
-  const selected = raffleSelectorState.selected?.length
-    ? raffleSelectorState.selected
-    : persistedSelected;
+  const selected = raffle ? resolveRaffleSelection(raffle) : [];
   const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
     groupSize: 1,
     totalNumbers: selected.length,
@@ -1546,12 +1574,15 @@ function openPaymentModal(payload = {}) {
   const selected = asArray(payload.selected)
     .map((item) => String(item || "").trim())
     .filter(Boolean);
+  const resolvedSelected = selected.length > 0
+    ? selected
+    : raffle ? resolveRaffleSelection(raffle) : [];
 
   paymentModalState.open = true;
   paymentModalState.site = payload.site || null;
   paymentModalState.slug = String(payload.slug || "").trim();
   paymentModalState.raffle = raffle;
-  paymentModalState.selected = [...new Set(selected)];
+  paymentModalState.selected = [...new Set(resolvedSelected)];
   paymentModalState.amount = getPaymentModalSelectionTotal(raffle, paymentModalState.selected);
   paymentModalState.customerName = "";
   paymentModalState.customerCity = "";
