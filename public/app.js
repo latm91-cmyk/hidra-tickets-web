@@ -2214,8 +2214,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
 async function openRaffleSelector(raffleId) {
   const fallbackSite = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const fallbackSlug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || getSlugFromLocation();
-  const freshSite = await fetchFreshPublicSite(fallbackSlug);
-  const site = freshSite || fallbackSite;
+  const site = fallbackSite || window.__PUBLIC_SITE_STATE__?.site || null;
   const requestedId = String(raffleId || "");
   const initialRaffles = asArray(site?.activeRaffles);
   const raffle =
@@ -2224,6 +2223,47 @@ async function openRaffleSelector(raffleId) {
     || initialRaffles[0]
     || null;
   if (!raffle) {
+    const freshSite = await fetchFreshPublicSite(fallbackSlug);
+    const freshRaffles = asArray(freshSite?.activeRaffles);
+    const freshRaffle =
+      freshRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
+      || freshRaffles.find((item) => item?.publicConfig?.isFeatured)
+      || freshRaffles[0]
+      || null;
+    if (!freshRaffle) {
+      return;
+    }
+
+    raffleSelectorState.site = freshSite;
+    raffleSelectorState.slug = fallbackSlug;
+    raffleSelectorState.raffle = freshRaffle;
+    raffleSelectorState.query = "";
+    raffleSelectorState.page = 1;
+    raffleSelectorState.selected = readPersistedSelection(freshRaffle.campaign.id);
+    raffleSelectorState.numbers = [];
+    raffleSelectorState.stats = null;
+    raffleSelectorState.loading = true;
+    raffleSelectorState.error = "";
+    raffleSelectorState.notice = "Cargando numeros disponibles...";
+    raffleSelectorState.noticeTone = "info";
+    raffleSelectorState.updatedAt = "";
+    raffleSelectorState.open = true;
+
+    window.__PUBLIC_SITE_STATE__ = {
+      site: freshSite,
+      slug: fallbackSlug,
+      raffles: freshRaffles,
+    };
+
+    clearRaffleSelectorTimers();
+    syncRaffleSelectorModal();
+    paintRaffleSelector();
+    fetchRaffleSelectorNumbers();
+    raffleSelectorState.pollTimer = setInterval(() => {
+      if (raffleSelectorState.open) {
+        fetchRaffleSelectorNumbers({ silent: true });
+      }
+    }, 18000);
     return;
   }
 
