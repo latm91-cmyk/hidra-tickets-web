@@ -1211,6 +1211,9 @@ function renderRaffleSelectorContent() {
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
   const selected = raffle ? resolveRaffleSelection(raffle) : [];
+  if (raffle && selected.length > 0) {
+    raffleSelectorState.selected = [...selected];
+  }
   const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
     groupSize: 1,
     totalNumbers: selected.length,
@@ -3224,9 +3227,7 @@ app.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const currentRaffle = raffleSelectorState.raffle || null;
-    const selected = asArray(raffleSelectorState.selected).length
-      ? [...raffleSelectorState.selected]
-      : readPersistedSelection(currentRaffle?.campaign?.id);
+    const selected = currentRaffle ? resolveRaffleSelection(currentRaffle) : [];
     const site = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
     const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
     const selectionSummary = getRaffleSelectorSelectionSummary(currentRaffle || {}, selected);
