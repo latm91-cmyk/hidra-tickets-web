@@ -335,6 +335,58 @@ function getRaffleSelectorAutoConfig(raffle = {}) {
   return raw && typeof raw === "object" ? raw : {};
 }
 
+function getRaffleSelectorCombinationSize(raffle = {}) {
+  const autoConfig = getRaffleSelectorAutoConfig(raffle);
+  const configured = Number(
+    autoConfig.combinationsPerTicket
+    || autoConfig.combinations_per_ticket
+    || 0,
+  );
+
+  return Number.isFinite(configured) && configured > 0
+    ? Math.min(Math.max(configured, 1), 12)
+    : 1;
+}
+
+function getRaffleSelectorSelectionSummary(raffle = {}, selected = []) {
+  const normalizedSelected = asArray(selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  const groupSize = getRaffleSelectorCombinationSize(raffle);
+  const totalNumbers = normalizedSelected.length;
+  const completeTickets = groupSize > 0 ? Math.floor(totalNumbers / groupSize) : 0;
+  const remainder = groupSize > 0 ? totalNumbers % groupSize : totalNumbers;
+  const isComplete = totalNumbers > 0 && remainder === 0;
+  const missingForNext = isComplete ? 0 : (groupSize - remainder);
+  const total = completeTickets > 0 ? getRafflePriceForQuantity(raffle, completeTickets) : 0;
+
+  return {
+    groupSize,
+    totalNumbers,
+    completeTickets,
+    remainder,
+    isComplete,
+    missingForNext,
+    total,
+  };
+}
+
+function groupRaffleSelections(selected = [], groupSize = 1) {
+  const normalizedSelected = asArray(selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  const safeGroupSize = Number.isFinite(Number(groupSize)) && Number(groupSize) > 0
+    ? Math.max(1, Number(groupSize))
+    : 1;
+  const groups = [];
+
+  for (let index = 0; index < normalizedSelected.length; index += safeGroupSize) {
+    groups.push(normalizedSelected.slice(index, index + safeGroupSize));
+  }
+
+  return groups;
+}
+
 function getRaffleSelectorFallbackNumbers(raffle = {}) {
   const total = Number(
     raffle?.campaign?.totalNumeros
@@ -1043,11 +1095,34 @@ function getRaffleSelectorNumbers() {
   const rawNumbers = asArray(raffleSelectorState.numbers);
   const numbers = rawNumbers.length > 0 ? rawNumbers : getRaffleSelectorFallbackNumbers(raffle);
 
-  return filterRaffleSelectorNumbers(
-    numbers.map((ticket) => ({
+  const expandedNumbers = numbers.flatMap((ticket) => {
+    const ticketNumbers = Array.isArray(ticket?.numbers) && ticket.numbers.length > 0
+      ? ticket.numbers.map(normalizeTicketDisplayValue).filter(Boolean)
+      : [normalizeTicketDisplayValue(ticket?.number)].filter(Boolean);
+    const groupedDisplay = formatTicketSelectionLabel(ticket);
+
+    if (ticketNumbers.length <= 1) {
+      return ticketNumbers.map((number) => ({
+        ...ticket,
+        number,
+        display: number,
+        groupedDisplay,
+        groupSize: 1,
+      }));
+    }
+
+    return ticketNumbers.map((number, index) => ({
       ...ticket,
-      display: formatTicketSelectionLabel(ticket),
-    })),
+      number,
+      display: number,
+      groupedDisplay,
+      groupSize: ticketNumbers.length,
+      itemIndex: index,
+    }));
+  });
+
+  return filterRaffleSelectorNumbers(
+    expandedNumbers,
     raffleSelectorState.query || "",
   );
 }
@@ -1111,7 +1186,31 @@ function renderRaffleSelectorContent() {
   const selected = raffleSelectorState.selected?.length
     ? raffleSelectorState.selected
     : persistedSelected;
-  const selectedAmount = raffle ? getRafflePriceForQuantity(raffle, selected.length || 1) * (selected.length > 0 ? 1 : 0) : 0;
+  const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
+    groupSize: 1,
+    totalNumbers: selected.length,
+    completeTickets: 0,
+    remainder: 0,
+    isComplete: false,
+    missingForNext: 0,
+    total: 0,
+  };
+  const selectedAmount = selectionSummary.total;
+  const progressPercent = selectionSummary.groupSize > 0
+    ? Math.min(100, Math.round((selectionSummary.totalNumbers / selectionSummary.groupSize) * 100))
+    : 0;
+  const progressMarkup = selected.length ? `
+    <div class="selector-progress">
+      <div class="selector-progress-row">
+        <span class="selector-progress-chip is-active">${selectionSummary.totalNumbers} numero${selectionSummary.totalNumbers === 1 ? "" : "s"}</span>
+        <span class="selector-progress-chip">${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"}</span>
+        <span class="selector-progress-chip ${selectionSummary.isComplete ? "is-ready" : "is-warning"}">${selectionSummary.isComplete ? "Listo para pagar" : `Faltan ${selectionSummary.missingForNext}`}</span>
+      </div>
+      <div class="selector-progress-bar" aria-hidden="true">
+        <span style="width: ${progressPercent}%"></span>
+      </div>
+    </div>
+  ` : "";
   const selectedCopy = selected.length
     ? selected
       .map((item) => `
@@ -1149,14 +1248,15 @@ function renderRaffleSelectorContent() {
         .join("")
       : `<div class="selector-empty selector-empty-large">No hay numeros disponibles en este momento.</div>`;
   const isReady = raffle && !raffleSelectorState.loading;
+  const canContinueToPayment = Boolean(selected.length && selectionSummary.isComplete);
   const whatsappNumber = getRaffleDisplayWhatsApp(site);
   const cleanWhatsapp = String(whatsappNumber || "").replace(/\D/g, "");
   const whatsappMessage = buildSelectionMessage(raffle, selected);
   const whatsappHref = cleanWhatsapp && selected.length ? buildWhatsAppHref(cleanWhatsapp, whatsappMessage) : "#";
   const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp";
-  const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} boletas visibles`;
+  const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} numeros visibles`;
   const pageInfo = numbers.length > 0
-    ? `Bloque ${pagination.page} de ${pagination.totalPages}`
+    ? `Página ${pagination.page} de ${pagination.totalPages}`
     : "Sin paginacion";
   const pageRange = numbers.length > 0
     ? `${pagination.start + 1}-${pagination.end}`
@@ -1166,9 +1266,10 @@ function renderRaffleSelectorContent() {
     : `<div class="selector-notice selector-notice-placeholder" aria-hidden="true"></div>`;
   const liveSummary = `
     <div class="selector-live-summary ${selected.length ? "is-active" : "is-empty"}">
-      <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} seleccionados` : "Selecciona tus números para empezar"}</strong>
-      <span>${selected.length ? escapeHtml(formatCOP(selectedAmount)) : "Tu total aparecerá aquí al instante."}</span>
-      <p>${selected.length ? escapeHtml(buildSelectionMessage(raffle, selected)) : "Toca cualquier boleta para apartarla."}</p>
+      ${progressMarkup}
+      <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Selecciona tus números para empezar"}</strong>
+      <span>${selected.length ? `${escapeHtml(formatCOP(selectedAmount))} · ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"}${selectionSummary.isComplete ? "" : ` · te faltan ${selectionSummary.missingForNext} número${selectionSummary.missingForNext === 1 ? "" : "s"} para completar la siguiente boleta`}` : "Tu total aparecerá aquí al instante."}</span>
+      <p>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números. ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca cualquier número para empezar."}</p>
     </div>
   `;
   const priceChips = pricingPackages.length
@@ -1245,9 +1346,9 @@ function renderRaffleSelectorContent() {
 
       <div class="selector-summary-mobile selector-summary-mobile-inline">
         <div class="selector-summary-mobile-copy">
-          <strong>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"} elegidos` : "Sin numeros aun"}</strong>
+          <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Sin numeros aun"}</strong>
           ${selected.length ? `<span class="selector-summary-mobile-total">${escapeHtml(formatCOP(selectedAmount))}</span>` : ""}
-          <span>${selected.length ? buildSelectionMessage(raffle, selected) : "Toca un numero para empezar."}</span>
+          <span>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números. ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca un número para empezar."}</span>
         </div>
         <div class="selector-summary-mobile-chips">
           ${selected.length
@@ -1257,7 +1358,7 @@ function renderRaffleSelectorContent() {
             : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
         </div>
         <div class="selector-summary-mobile-actions">
-          <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
+          <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
           <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
           <a
             class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -1351,7 +1452,7 @@ function renderRaffleSelectorContent() {
 
       <aside class="selector-summary">
       <div class="selector-summary-head">
-          <h4>${selected.length ? `${selected.length} numero${selected.length === 1 ? "" : "s"}` : "Aun no seleccionas numeros"}</h4>
+          <h4>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Aun no seleccionas numeros"}</h4>
           ${selected.length ? `<p class="selector-summary-total">${escapeHtml(formatCOP(selectedAmount))}</p>` : ""}
         </div>
         <div class="selected-list">
@@ -1359,11 +1460,11 @@ function renderRaffleSelectorContent() {
         </div>
         <div class="selector-summary-footer">
           <div class="selector-summary-note">
-            <strong>${selected.length ? buildSelectionMessage(raffle, selected) : "Selecciona los numeros que quieras apartar."}</strong>
-            <span>${selected.length ? "Tus numeros ya estan listos para continuar al pago." : "Cuando selecciones numeros, aqui veras el acceso al pago."}</span>
+            <strong>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números.` : "Selecciona los numeros que quieras apartar."}</strong>
+            <span>${selected.length ? (selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"} para pagar.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`) : "Cuando selecciones numeros, aqui veras el acceso al pago."}</span>
           </div>
           <div class="selector-summary-actions">
-            <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
+            <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
             <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
             <a
               class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -1398,7 +1499,7 @@ function renderRaffleSelectorContent() {
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
       <div class="selector-summary-mobile-actions">
-        <button type="button" class="button primary" data-action="go-payment-section" ${selected.length ? "" : "disabled"}>Continuar al pago</button>
+        <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
         <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
         <a
           class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
@@ -1438,12 +1539,12 @@ function renderRaffleSelectorModal() {
 }
 
 function getPaymentModalSelectionTotal(raffle = {}, selected = []) {
-  const quantity = Math.max(0, asArray(selected).length);
-  if (!raffle || quantity <= 0) {
+  const summary = getRaffleSelectorSelectionSummary(raffle, selected);
+  if (!raffle || summary.completeTickets <= 0) {
     return 0;
   }
 
-  return getRafflePriceForQuantity(raffle, quantity);
+  return summary.total;
 }
 
 function openPaymentModal(payload = {}) {
@@ -1643,13 +1744,14 @@ function syncPaymentModal() {
 function refreshPaymentModalActionState() {
   const modal = document.getElementById("payment-modal");
   if (!modal) return;
+  const selectionSummary = getRaffleSelectorSelectionSummary(paymentModalState.raffle || {}, paymentModalState.selected);
   const ready = Boolean(
     paymentModalState.open
     && !paymentModalState.loading
     && String(paymentModalState.customerName || "").trim()
     && String(paymentModalState.customerCity || "").trim()
     && String(paymentModalState.customerPhone || "").trim()
-    && asArray(paymentModalState.selected).length > 0,
+    && selectionSummary.isComplete,
   );
 
   modal.querySelectorAll('[data-action="start-public-pse"], [data-action="trigger-public-receipt-upload"]').forEach((button) => {
@@ -1663,6 +1765,7 @@ function renderPaymentModalContent() {
   const raffle = paymentModalState.raffle || null;
   const site = paymentModalState.site || {};
   const selected = asArray(paymentModalState.selected);
+  const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
   const paymentInstructions = getPaymentInstructionsText(raffle, site);
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Pago";
   const description = raffle
@@ -1685,9 +1788,21 @@ function renderPaymentModalContent() {
   const customerName = String(paymentModalState.customerName || "").trim();
   const customerCity = String(paymentModalState.customerCity || "").trim();
   const customerPhone = String(paymentModalState.customerPhone || "").trim();
-  const isContactReady = Boolean(selected.length && customerName && customerCity && customerPhone);
+  const isContactReady = Boolean(selectionSummary.isComplete && customerName && customerCity && customerPhone);
   const isDisabled = !isContactReady || paymentModalState.loading;
   const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
+  const paymentProgressMarkup = selected.length ? `
+    <div class="payment-progress">
+      <div class="payment-progress-row">
+        <span class="payment-progress-chip is-active">${selectionSummary.totalNumbers} numero${selectionSummary.totalNumbers === 1 ? "" : "s"}</span>
+        <span class="payment-progress-chip">${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"}</span>
+        <span class="payment-progress-chip ${selectionSummary.isComplete ? "is-ready" : "is-warning"}">${selectionSummary.isComplete ? "Puedes pagar" : `Faltan ${selectionSummary.missingForNext}`}</span>
+      </div>
+      <div class="payment-progress-bar" aria-hidden="true">
+        <span style="width: ${progressPercent}%"></span>
+      </div>
+    </div>
+  ` : "";
 
   return `
       <div class="payment-modal-head">
@@ -1703,9 +1818,10 @@ function renderPaymentModalContent() {
     <div class="payment-modal-grid">
       <div class="payment-modal-left">
         <div class="payment-modal-summary">
+          ${paymentProgressMarkup}
           <span class="payment-modal-kicker">Sorteo seleccionado</span>
           <h4>${escapeHtml(title)}</h4>
-          <p class="payment-modal-copy">${escapeHtml(selected.length ? `Llevas ${selected.length} numero${selected.length === 1 ? "" : "s"} apartados.` : "Selecciona numeros antes de pagar.")}</p>
+          <p class="payment-modal-copy">${escapeHtml(selected.length ? (selectionSummary.isComplete ? `Llevas ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"}.` : `Llevas ${selected.length} números y te faltan ${selectionSummary.missingForNext} para completar la siguiente boleta.`) : "Selecciona numeros antes de pagar.")}</p>
           <div class="payment-modal-chips">
             ${selectedChips}
           </div>
@@ -1713,6 +1829,12 @@ function renderPaymentModalContent() {
             <span>Total a pagar</span>
             <strong>${escapeHtml(formatCOP(total))}</strong>
           </div>
+          ${selected.length && !selectionSummary.isComplete ? `
+            <div class="payment-modal-pricing">
+              <span>Estado de la selección:</span>
+              <p>Te faltan ${selectionSummary.missingForNext} número${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} números.</p>
+            </div>
+          ` : ""}
           ${pricingSummary ? `
             <div class="payment-modal-pricing">
               <span>Precio de boletería:</span>
@@ -2281,7 +2403,8 @@ async function submitPublicPseCheckout() {
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
   const selected = asArray(paymentModalState.selected);
-  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !ensurePaymentModalContactReady()) {
+  const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
     submitPublicPaymentStateNotice("Completa nombre, ciudad y teléfono para continuar.", "warning");
     return;
   }
@@ -2300,7 +2423,7 @@ async function submitPublicPseCheckout() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          selected_numbers: selected,
+          selected_numbers: groupRaffleSelections(selected, selectionSummary.groupSize),
           ...getPaymentModalContactPayload(),
         }),
         cache: "no-store",
@@ -2343,7 +2466,8 @@ async function submitPublicReceiptUpload(file = null) {
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
   const selected = asArray(paymentModalState.selected);
-  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file || !ensurePaymentModalContactReady()) {
+  const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
+  if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
     return;
   }
 
@@ -2360,7 +2484,7 @@ async function submitPublicReceiptUpload(file = null) {
 
   try {
     const formData = new FormData();
-    formData.append("selected_numbers", JSON.stringify(selected));
+    formData.append("selected_numbers", JSON.stringify(groupRaffleSelections(selected, selectionSummary.groupSize)));
     formData.append("receipt_file", file, file.name || "comprobante");
     const contactPayload = getPaymentModalContactPayload();
     formData.append("customer_name", contactPayload.customer_name);
@@ -2981,7 +3105,14 @@ app.addEventListener("click", (event) => {
       : readPersistedSelection(currentRaffle?.campaign?.id);
     const site = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
     const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
+    const selectionSummary = getRaffleSelectorSelectionSummary(currentRaffle || {}, selected);
     if (!currentRaffle || !selected.length) {
+      return;
+    }
+    if (!selectionSummary.isComplete) {
+      raffleSelectorState.notice = `Te faltan ${selectionSummary.missingForNext} número${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} números.`;
+      raffleSelectorState.noticeTone = "warning";
+      paintRaffleSelector();
       return;
     }
     closeRaffleSelector();
