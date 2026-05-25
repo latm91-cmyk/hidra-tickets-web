@@ -3795,6 +3795,10 @@ button {
     gap: 6px;
   }
 
+  .selector-mobile-meta-compact {
+    padding: 10px 12px 0;
+  }
+
   .selector-mobile-toolbar {
     display: grid;
     gap: 10px;
@@ -3845,6 +3849,10 @@ button {
     max-height: min(44vh, 420px);
   }
 
+  .selector-mobile-grid-shell {
+    max-height: min(38vh, 360px);
+  }
+
   .payment-modal-head {
     flex-direction: column;
   }
@@ -3882,6 +3890,11 @@ button {
     z-index: auto;
     width: 100%;
     margin-top: 8px;
+  }
+
+  .selector-summary-mobile-compact {
+    gap: 8px;
+    padding: 10px;
   }
 
   .selector-summary-mobile-copy {

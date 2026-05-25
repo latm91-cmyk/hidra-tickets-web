@@ -1318,16 +1318,10 @@ function renderRaffleSelectorContent() {
       </div>
 
       ${raffle ? `
-        <div class="selector-mobile-pricing">
-          <span class="selector-kicker">Precio de boletería</span>
-          <div class="selector-price-strip selector-price-strip-mobile">
-            ${priceChips}
-          </div>
-          <div class="selector-mobile-meta">
-            ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
-            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
-            ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
-          </div>
+        <div class="selector-mobile-meta selector-mobile-meta-compact">
+          ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+          ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+          ${mode ? `<span class="chip">${escapeHtml(mode)}</span>` : ""}
         </div>
       ` : ""}
 
@@ -1351,7 +1345,7 @@ function renderRaffleSelectorContent() {
       ${notice}
       ${liveSummary}
 
-      <div class="selector-mobile-pagination">
+      <div class="selector-mobile-pagination selector-mobile-pagination-compact">
         <button type="button" class="selector-page-button" data-selector-page="prev" ${pagination.hasPrev ? "" : "disabled"}>Anterior</button>
         <div class="selector-pagination-current">
           <span>${escapeHtml(pageInfo)}</span>
@@ -1366,12 +1360,7 @@ function renderRaffleSelectorContent() {
         </div>
       </div>
 
-      <div class="selector-summary-mobile selector-summary-mobile-inline">
-        <div class="selector-summary-mobile-copy">
-          <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Sin numeros aun"}</strong>
-          ${selected.length ? `<span class="selector-summary-mobile-total">${escapeHtml(formatCOP(selectedAmount))}</span>` : ""}
-          <span>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números. ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca un número para empezar."}</span>
-        </div>
+      <div class="selector-summary-mobile selector-summary-mobile-inline selector-summary-mobile-compact">
         <div class="selector-summary-mobile-chips">
           ${selected.length
             ? selected
@@ -2249,19 +2238,60 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
 async function openRaffleSelector(raffleId) {
   const fallbackSite = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const fallbackSlug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || getSlugFromLocation();
-  const freshSite = await fetchFreshPublicSite(fallbackSlug);
-  const site = freshSite || fallbackSite;
-  const raffles = asArray(site?.activeRaffles);
+  const requestedId = String(raffleId || "");
+  const initialSite = fallbackSite || window.__PUBLIC_SITE_STATE__?.site || null;
+  const initialRaffles = asArray(initialSite?.activeRaffles);
   const raffle =
-    raffles.find((item) => String(item?.campaign?.id || "") === String(raffleId))
-    || raffles.find((item) => item?.publicConfig?.isFeatured)
-    || raffles[0]
+    initialRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
+    || initialRaffles.find((item) => item?.publicConfig?.isFeatured)
+    || initialRaffles[0]
     || null;
   if (!raffle) {
+    const freshSite = await fetchFreshPublicSite(fallbackSlug);
+    const freshRaffles = asArray(freshSite?.activeRaffles);
+    const freshRaffle =
+      freshRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
+      || freshRaffles.find((item) => item?.publicConfig?.isFeatured)
+      || freshRaffles[0]
+      || null;
+    if (!freshRaffle) {
+      return;
+    }
+
+    raffleSelectorState.site = freshSite;
+    raffleSelectorState.slug = fallbackSlug;
+    raffleSelectorState.raffle = freshRaffle;
+    raffleSelectorState.query = "";
+    raffleSelectorState.page = 1;
+    raffleSelectorState.selected = readPersistedSelection(freshRaffle.campaign.id);
+    raffleSelectorState.numbers = [];
+    raffleSelectorState.stats = null;
+    raffleSelectorState.loading = true;
+    raffleSelectorState.error = "";
+    raffleSelectorState.notice = "Cargando numeros disponibles...";
+    raffleSelectorState.noticeTone = "info";
+    raffleSelectorState.updatedAt = "";
+    raffleSelectorState.open = true;
+
+    window.__PUBLIC_SITE_STATE__ = {
+      site: freshSite,
+      slug: fallbackSlug,
+      raffles: freshRaffles,
+    };
+
+    clearRaffleSelectorTimers();
+    syncRaffleSelectorModal();
+    paintRaffleSelector();
+    fetchRaffleSelectorNumbers();
+    raffleSelectorState.pollTimer = setInterval(() => {
+      if (raffleSelectorState.open) {
+        fetchRaffleSelectorNumbers({ silent: true });
+      }
+    }, 18000);
     return;
   }
 
-  raffleSelectorState.site = site;
+  raffleSelectorState.site = initialSite;
   raffleSelectorState.slug = fallbackSlug;
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
@@ -2277,9 +2307,9 @@ async function openRaffleSelector(raffleId) {
   raffleSelectorState.open = true;
 
   window.__PUBLIC_SITE_STATE__ = {
-    site,
+    site: initialSite,
     slug: fallbackSlug,
-    raffles: asArray(site?.activeRaffles),
+    raffles: initialRaffles,
   };
 
   clearRaffleSelectorTimers();
@@ -2291,6 +2321,36 @@ async function openRaffleSelector(raffleId) {
       fetchRaffleSelectorNumbers({ silent: true });
     }
   }, 18000);
+
+  void (async () => {
+    const freshSite = await fetchFreshPublicSite(fallbackSlug);
+    if (!freshSite || !raffleSelectorState.open) {
+      return;
+    }
+
+    const freshRaffles = asArray(freshSite?.activeRaffles);
+    const refreshedRaffle =
+      freshRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
+      || freshRaffles.find((item) => item?.publicConfig?.isFeatured)
+      || freshRaffles[0]
+      || null;
+    if (!refreshedRaffle) {
+      return;
+    }
+
+    raffleSelectorState.site = freshSite;
+    raffleSelectorState.slug = fallbackSlug;
+    raffleSelectorState.raffle = refreshedRaffle;
+    raffleSelectorState.selected = resolveRaffleSelection(refreshedRaffle);
+    window.__PUBLIC_SITE_STATE__ = {
+      site: freshSite,
+      slug: fallbackSlug,
+      raffles: freshRaffles,
+    };
+
+    paintRaffleSelector();
+    fetchRaffleSelectorNumbers({ silent: true });
+  })();
 }
 
 function closeRaffleSelector() {
