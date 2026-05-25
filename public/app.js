@@ -11,6 +11,7 @@ const ASSETS = {
   pse: "/assets/pse-logo.svg",
 };
 const RAFFLE_SELECTOR_LIMIT = 180;
+const RAFFLE_SELECTOR_MOBILE_LIMIT = 100;
 const RAFFLE_SELECTOR_PAGE_SIZE = 100;
 const raffleSelectorState = {
   open: false,
@@ -30,6 +31,8 @@ const raffleSelectorState = {
   requestId: 0,
   pollTimer: null,
   queryTimer: null,
+  retryTimer: null,
+  retryCount: 0,
 };
 
 const paymentModalState = {
@@ -2143,6 +2146,14 @@ function clearRaffleSelectorTimers() {
     clearTimeout(raffleSelectorState.queryTimer);
     raffleSelectorState.queryTimer = null;
   }
+  if (raffleSelectorState.retryTimer) {
+    clearTimeout(raffleSelectorState.retryTimer);
+    raffleSelectorState.retryTimer = null;
+  }
+}
+
+function getRaffleSelectorRequestLimit() {
+  return isMobileDevice() ? RAFFLE_SELECTOR_MOBILE_LIMIT : RAFFLE_SELECTOR_LIMIT;
 }
 
 async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
@@ -2164,7 +2175,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    searchParams.set("limit", String(RAFFLE_SELECTOR_LIMIT));
+    searchParams.set("limit", String(getRaffleSelectorRequestLimit()));
     if (raffleSelectorState.query) {
       searchParams.set("query", raffleSelectorState.query);
     }
@@ -2218,6 +2229,11 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
     raffleSelectorState.updatedAt = payload?.updatedAt || new Date().toISOString();
     raffleSelectorState.loading = false;
     raffleSelectorState.error = "";
+    raffleSelectorState.retryCount = 0;
+    if (raffleSelectorState.retryTimer) {
+      clearTimeout(raffleSelectorState.retryTimer);
+      raffleSelectorState.retryTimer = null;
+    }
     raffleSelectorState.notice = raffleSelectorState.query
       ? `Resultados actualizados para "${raffleSelectorState.query}".`
       : "Numeros actualizados en tiempo real.";
@@ -2227,6 +2243,27 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
     if (requestId !== raffleSelectorState.requestId) {
       return;
     }
+    const isMobileRequest = isMobileDevice();
+    if (isMobileRequest && raffleSelectorState.retryCount < 1) {
+      raffleSelectorState.retryCount += 1;
+      raffleSelectorState.loading = true;
+      raffleSelectorState.error = "";
+      raffleSelectorState.notice = "Cargando numeros disponibles...";
+      raffleSelectorState.noticeTone = "info";
+      paintRaffleSelector();
+
+      if (raffleSelectorState.retryTimer) {
+        clearTimeout(raffleSelectorState.retryTimer);
+      }
+
+      raffleSelectorState.retryTimer = window.setTimeout(() => {
+        if (raffleSelectorState.open && requestId === raffleSelectorState.requestId) {
+          void fetchRaffleSelectorNumbers({ silent: true });
+        }
+      }, 450);
+      return;
+    }
+
     raffleSelectorState.loading = false;
     raffleSelectorState.error = error?.message || "No fue posible cargar los numeros.";
     raffleSelectorState.notice = raffleSelectorState.error;
@@ -2305,6 +2342,7 @@ async function openRaffleSelector(raffleId) {
   raffleSelectorState.noticeTone = "info";
   raffleSelectorState.updatedAt = "";
   raffleSelectorState.open = true;
+  raffleSelectorState.retryCount = 0;
 
   window.__PUBLIC_SITE_STATE__ = {
     site: initialSite,
@@ -2367,6 +2405,7 @@ function closeRaffleSelector() {
   raffleSelectorState.noticeTone = "info";
   raffleSelectorState.updatedAt = "";
   raffleSelectorState.requestId += 1;
+  raffleSelectorState.retryCount = 0;
   clearRaffleSelectorTimers();
   paintRaffleSelector();
   syncRaffleSelectorModal();
