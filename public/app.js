@@ -1811,7 +1811,7 @@ function renderPaymentModalContent() {
         <span class="payment-progress-chip ${selectionSummary.isComplete ? "is-ready" : "is-warning"}">${selectionSummary.isComplete ? "Puedes pagar" : `Faltan ${selectionSummary.missingForNext}`}</span>
       </div>
       <div class="payment-progress-bar" aria-hidden="true">
-        <span style="width: ${progressPercent}%"></span>
+        <span style="width: ${selectionSummary.groupSize > 0 ? Math.min(100, Math.round((selectionSummary.totalNumbers / selectionSummary.groupSize) * 100)) : 0}%"></span>
       </div>
     </div>
   ` : "";
