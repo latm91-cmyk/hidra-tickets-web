@@ -794,6 +794,33 @@ function readPersistedSelection(raffleId) {
   }
 }
 
+function readDomSelectedTickets() {
+  return Array.from(document.querySelectorAll("#raffle-selector-content [data-selector-ticket].is-selected"))
+    .map((button) => String(button.getAttribute("data-selector-ticket") || "").trim())
+    .filter(Boolean);
+}
+
+function getCurrentRaffleSelection(raffleId) {
+  const inMemory = asArray(raffleSelectorState.selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  if (inMemory.length > 0) {
+    return [...new Set(inMemory)];
+  }
+
+  const persisted = readPersistedSelection(raffleId);
+  if (persisted.length > 0) {
+    return [...new Set(persisted)];
+  }
+
+  const fromDom = readDomSelectedTickets();
+  if (fromDom.length > 0) {
+    return [...new Set(fromDom)];
+  }
+
+  return [];
+}
+
 function persistSelection(raffleId, selected) {
   try {
     const value = JSON.stringify(asArray(selected).map((item) => String(item || "").trim()).filter(Boolean));
@@ -1176,10 +1203,7 @@ function renderRaffleSelectorContent() {
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
-  const persistedSelected = raffle ? readPersistedSelection(raffle.campaign.id) : [];
-  const selected = raffleSelectorState.selected?.length
-    ? raffleSelectorState.selected
-    : persistedSelected;
+  const selected = raffle ? getCurrentRaffleSelection(raffle.campaign.id) : [];
   const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
     groupSize: 1,
     totalNumbers: selected.length,
@@ -1538,9 +1562,7 @@ function openPaymentModal(payload = {}) {
   const resolvedSelected = selected.length > 0
     ? selected
     : raffle
-      ? (asArray(raffleSelectorState.selected).length
-        ? [...raffleSelectorState.selected]
-        : readPersistedSelection(raffle.campaign.id))
+      ? getCurrentRaffleSelection(raffle.campaign.id)
       : [];
 
   paymentModalState.open = true;
@@ -3132,9 +3154,7 @@ app.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const currentRaffle = raffleSelectorState.raffle || null;
-    const selected = asArray(raffleSelectorState.selected).length
-      ? [...raffleSelectorState.selected]
-      : readPersistedSelection(currentRaffle?.campaign?.id);
+    const selected = currentRaffle ? getCurrentRaffleSelection(currentRaffle.campaign.id) : [];
     const site = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
     const slug = raffleSelectorState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
     const selectionSummary = getRaffleSelectorSelectionSummary(currentRaffle || {}, selected);
