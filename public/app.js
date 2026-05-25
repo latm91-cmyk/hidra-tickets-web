@@ -850,16 +850,10 @@ function listFromConfig(config = {}) {
 function getPaymentInstructionsText(raffle = {}, site = {}) {
   const candidates = [
     raffle?.campaign?.instrucciones_pago,
-    raffle?.campaign?.paymentInstructions,
-    raffle?.campaign?.payment_instructions,
-    raffle?.publicConfig?.paymentInstructions,
-    raffle?.publicConfig?.payment_instructions,
-    raffle?.paymentInstructions,
-    raffle?.payment_instructions,
-    site?.settings?.paymentInstructions,
-    site?.settings?.payment_instructions,
-    site?.paymentInstructions,
-    site?.payment_instructions,
+    site?.settings?.instrucciones_pago,
+    raffle?.publicConfig?.instrucciones_pago,
+    raffle?.instrucciones_pago,
+    site?.instrucciones_pago,
   ];
 
   for (const candidate of candidates) {
