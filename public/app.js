@@ -2565,7 +2565,7 @@ async function submitPublicReceiptUpload(file = null) {
 
     const payload = await readJsonResponse(response);
     if (!response.ok) {
-      throw new Error(payload?.message || "No fue posible cargar el comprobante.");
+      throw new Error(payload?.message || payload?.error || "No fue posible cargar el comprobante.");
     }
 
     paymentModalState.loading = false;

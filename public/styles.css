@@ -3983,7 +3983,14 @@ button {
     grid-column: 1 / -1;
     min-height: 50px;
     font-size: 14px;
-    box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+    background: linear-gradient(135deg, #f3c756, #d79f22);
+    color: #08192f;
+    box-shadow: 0 16px 34px rgba(214, 161, 30, 0.28);
+  }
+
+  .selector-summary-mobile-actions .button.primary:hover {
+    background: linear-gradient(135deg, #ffe08e, #e0ad33);
+    color: #071629;
   }
 
   .selector-mobile-grid-shell {
