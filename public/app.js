@@ -2238,6 +2238,7 @@ async function openRaffleSelector(raffleId) {
   const fallbackSlug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || getSlugFromLocation();
   const site = fallbackSite || window.__PUBLIC_SITE_STATE__?.site || null;
   const requestedId = String(raffleId || "");
+  const previousRaffleId = String(raffleSelectorState.raffle?.campaign?.id || "");
   const initialRaffles = asArray(site?.activeRaffles);
   const raffle =
     initialRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
@@ -2261,7 +2262,11 @@ async function openRaffleSelector(raffleId) {
     raffleSelectorState.raffle = freshRaffle;
     raffleSelectorState.query = "";
     raffleSelectorState.page = 1;
-    raffleSelectorState.selected = readPersistedSelection(freshRaffle.campaign.id);
+    const currentSelection = previousRaffleId === String(freshRaffle.campaign?.id || "")
+      ? asArray(raffleSelectorState.selected)
+      : [];
+    const persistedSelection = readPersistedSelection(freshRaffle.campaign.id);
+    raffleSelectorState.selected = currentSelection.length > 0 ? currentSelection : persistedSelection;
     raffleSelectorState.numbers = [];
     raffleSelectorState.stats = null;
     raffleSelectorState.loading = true;
@@ -2294,7 +2299,12 @@ async function openRaffleSelector(raffleId) {
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
   raffleSelectorState.page = 1;
-  raffleSelectorState.selected = readPersistedSelection(raffle.campaign.id);
+  const currentSelection = previousRaffleId === requestedId
+    && raffleSelectorState.selected.length > 0
+    ? raffleSelectorState.selected
+    : [];
+  const persistedSelection = readPersistedSelection(raffle.campaign.id);
+  raffleSelectorState.selected = currentSelection.length > 0 ? currentSelection : persistedSelection;
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
   raffleSelectorState.loading = true;
@@ -2326,7 +2336,6 @@ function closeRaffleSelector() {
   raffleSelectorState.raffle = null;
   raffleSelectorState.query = "";
   raffleSelectorState.page = 1;
-  raffleSelectorState.selected = [];
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
   raffleSelectorState.loading = false;
