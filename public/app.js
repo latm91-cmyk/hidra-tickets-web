@@ -11,7 +11,6 @@ const ASSETS = {
   pse: "/assets/pse-logo.svg",
 };
 const RAFFLE_SELECTOR_LIMIT = 180;
-const RAFFLE_SELECTOR_MOBILE_LIMIT = 100;
 const RAFFLE_SELECTOR_PAGE_SIZE = 100;
 const raffleSelectorState = {
   open: false,
@@ -31,8 +30,6 @@ const raffleSelectorState = {
   requestId: 0,
   pollTimer: null,
   queryTimer: null,
-  retryTimer: null,
-  retryCount: 0,
 };
 
 const paymentModalState = {
@@ -2122,14 +2119,6 @@ function clearRaffleSelectorTimers() {
     clearTimeout(raffleSelectorState.queryTimer);
     raffleSelectorState.queryTimer = null;
   }
-  if (raffleSelectorState.retryTimer) {
-    clearTimeout(raffleSelectorState.retryTimer);
-    raffleSelectorState.retryTimer = null;
-  }
-}
-
-function getRaffleSelectorRequestLimit() {
-  return isMobileDevice() ? RAFFLE_SELECTOR_MOBILE_LIMIT : RAFFLE_SELECTOR_LIMIT;
 }
 
 async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
@@ -2151,7 +2140,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
 
   try {
     const searchParams = new URLSearchParams();
-    searchParams.set("limit", String(getRaffleSelectorRequestLimit()));
+    searchParams.set("limit", String(RAFFLE_SELECTOR_LIMIT));
     if (raffleSelectorState.query) {
       searchParams.set("query", raffleSelectorState.query);
     }
@@ -2205,11 +2194,6 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
     raffleSelectorState.updatedAt = payload?.updatedAt || new Date().toISOString();
     raffleSelectorState.loading = false;
     raffleSelectorState.error = "";
-    raffleSelectorState.retryCount = 0;
-    if (raffleSelectorState.retryTimer) {
-      clearTimeout(raffleSelectorState.retryTimer);
-      raffleSelectorState.retryTimer = null;
-    }
     raffleSelectorState.notice = raffleSelectorState.query
       ? `Resultados actualizados para "${raffleSelectorState.query}".`
       : "Numeros actualizados en tiempo real.";
@@ -2219,27 +2203,6 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
     if (requestId !== raffleSelectorState.requestId) {
       return;
     }
-    const isMobileRequest = isMobileDevice();
-    if (isMobileRequest && raffleSelectorState.retryCount < 1) {
-      raffleSelectorState.retryCount += 1;
-      raffleSelectorState.loading = true;
-      raffleSelectorState.error = "";
-      raffleSelectorState.notice = "Cargando numeros disponibles...";
-      raffleSelectorState.noticeTone = "info";
-      paintRaffleSelector();
-
-      if (raffleSelectorState.retryTimer) {
-        clearTimeout(raffleSelectorState.retryTimer);
-      }
-
-      raffleSelectorState.retryTimer = window.setTimeout(() => {
-        if (raffleSelectorState.open && requestId === raffleSelectorState.requestId) {
-          void fetchRaffleSelectorNumbers({ silent: true });
-        }
-      }, 450);
-      return;
-    }
-
     raffleSelectorState.loading = false;
     raffleSelectorState.error = error?.message || "No fue posible cargar los numeros.";
     raffleSelectorState.notice = raffleSelectorState.error;
@@ -2251,60 +2214,20 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
 async function openRaffleSelector(raffleId) {
   const fallbackSite = raffleSelectorState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const fallbackSlug = window.__PUBLIC_SITE_STATE__?.slug || raffleSelectorState.slug || getSlugFromLocation();
+  const freshSite = await fetchFreshPublicSite(fallbackSlug);
+  const site = freshSite || fallbackSite;
   const requestedId = String(raffleId || "");
-  const initialSite = fallbackSite || window.__PUBLIC_SITE_STATE__?.site || null;
-  const initialRaffles = asArray(initialSite?.activeRaffles);
+  const initialRaffles = asArray(site?.activeRaffles);
   const raffle =
     initialRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
     || initialRaffles.find((item) => item?.publicConfig?.isFeatured)
     || initialRaffles[0]
     || null;
   if (!raffle) {
-    const freshSite = await fetchFreshPublicSite(fallbackSlug);
-    const freshRaffles = asArray(freshSite?.activeRaffles);
-    const freshRaffle =
-      freshRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
-      || freshRaffles.find((item) => item?.publicConfig?.isFeatured)
-      || freshRaffles[0]
-      || null;
-    if (!freshRaffle) {
-      return;
-    }
-
-    raffleSelectorState.site = freshSite;
-    raffleSelectorState.slug = fallbackSlug;
-    raffleSelectorState.raffle = freshRaffle;
-    raffleSelectorState.query = "";
-    raffleSelectorState.page = 1;
-    raffleSelectorState.selected = readPersistedSelection(freshRaffle.campaign.id);
-    raffleSelectorState.numbers = [];
-    raffleSelectorState.stats = null;
-    raffleSelectorState.loading = true;
-    raffleSelectorState.error = "";
-    raffleSelectorState.notice = "Cargando numeros disponibles...";
-    raffleSelectorState.noticeTone = "info";
-    raffleSelectorState.updatedAt = "";
-    raffleSelectorState.open = true;
-
-    window.__PUBLIC_SITE_STATE__ = {
-      site: freshSite,
-      slug: fallbackSlug,
-      raffles: freshRaffles,
-    };
-
-    clearRaffleSelectorTimers();
-    syncRaffleSelectorModal();
-    paintRaffleSelector();
-    fetchRaffleSelectorNumbers();
-    raffleSelectorState.pollTimer = setInterval(() => {
-      if (raffleSelectorState.open) {
-        fetchRaffleSelectorNumbers({ silent: true });
-      }
-    }, 18000);
     return;
   }
 
-  raffleSelectorState.site = initialSite;
+  raffleSelectorState.site = site;
   raffleSelectorState.slug = fallbackSlug;
   raffleSelectorState.raffle = raffle;
   raffleSelectorState.query = "";
@@ -2318,12 +2241,11 @@ async function openRaffleSelector(raffleId) {
   raffleSelectorState.noticeTone = "info";
   raffleSelectorState.updatedAt = "";
   raffleSelectorState.open = true;
-  raffleSelectorState.retryCount = 0;
 
   window.__PUBLIC_SITE_STATE__ = {
-    site: initialSite,
+    site,
     slug: fallbackSlug,
-    raffles: initialRaffles,
+    raffles: asArray(site?.activeRaffles),
   };
 
   clearRaffleSelectorTimers();
@@ -2335,35 +2257,6 @@ async function openRaffleSelector(raffleId) {
       fetchRaffleSelectorNumbers({ silent: true });
     }
   }, 18000);
-
-  void (async () => {
-    const freshSite = await fetchFreshPublicSite(fallbackSlug);
-    if (!freshSite || !raffleSelectorState.open) {
-      return;
-    }
-
-    const freshRaffles = asArray(freshSite?.activeRaffles);
-    const refreshedRaffle =
-      freshRaffles.find((item) => String(item?.campaign?.id || "") === requestedId)
-      || freshRaffles.find((item) => item?.publicConfig?.isFeatured)
-      || freshRaffles[0]
-      || null;
-    if (!refreshedRaffle) {
-      return;
-    }
-
-    raffleSelectorState.site = freshSite;
-    raffleSelectorState.slug = fallbackSlug;
-    raffleSelectorState.raffle = refreshedRaffle;
-    window.__PUBLIC_SITE_STATE__ = {
-      site: freshSite,
-      slug: fallbackSlug,
-      raffles: freshRaffles,
-    };
-
-    paintRaffleSelector();
-    fetchRaffleSelectorNumbers({ silent: true });
-  })();
 }
 
 function closeRaffleSelector() {
