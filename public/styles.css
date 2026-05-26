@@ -3997,6 +3997,45 @@ button {
     max-height: min(38vh, 360px);
   }
 
+  .ticket-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+
+  .ticket-chip {
+    min-height: 44px;
+    border-radius: 14px;
+    font-size: 13px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(246, 248, 252, 0.97));
+    box-shadow:
+      0 8px 14px rgba(15, 23, 42, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  .ticket-chip:hover {
+    transform: none;
+  }
+
+  .ticket-chip.is-selected {
+    transform: none;
+    box-shadow:
+      0 10px 18px rgba(8, 25, 47, 0.14),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  }
+
+  .ticket-chip.is-selected::after {
+    content: "✓";
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    font-size: 10px;
+  }
+
+  .ticket-chip.skeleton {
+    min-height: 44px;
+    box-shadow: none;
+  }
+
   .selector-summary-mobile-actions .button {
     width: 100%;
   }
