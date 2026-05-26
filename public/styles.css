@@ -2557,12 +2557,6 @@ button {
   word-break: break-word;
 }
 
-.payment-receipt-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
 .payment-back {
   justify-content: center;
 }
@@ -3966,10 +3960,6 @@ button {
 
   .payment-action-card {
     padding: 16px;
-  }
-
-  .payment-receipt-actions {
-    gap: 8px;
   }
 
   .selector-summary {

@@ -1918,17 +1918,13 @@ function renderPaymentModalContent() {
 
           <div class="payment-action-card">
             <div class="payment-action-icon payment-action-icon-upload">↥</div>
-          <div class="payment-card-copy">
+            <div class="payment-card-copy">
               <span class="payment-card-kicker">Comprobante</span>
               <strong>Sube tu soporte</strong>
               <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
             </div>
-            <div class="payment-receipt-actions">
-              <input type="file" accept="image/*" data-public-receipt-gallery-input hidden />
-              <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
-              <button type="button" class="button secondary" data-action="trigger-public-receipt-gallery" ${isDisabled ? "disabled" : ""}>Galería de fotos</button>
-              <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Archivo o PDF</button>
-            </div>
+            <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
+            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
             ${receiptLabel}
           </div>
 
@@ -3266,19 +3262,6 @@ app.addEventListener("click", (event) => {
     }
     return;
   }
-
-  if (actionName === "trigger-public-receipt-gallery") {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!ensurePaymentModalContactReady()) {
-      return;
-    }
-    const galleryInput = app.querySelector("[data-public-receipt-gallery-input]");
-    if (galleryInput) {
-      galleryInput.click();
-    }
-    return;
-  }
 });
 
 app.addEventListener("input", (event) => {
@@ -3299,7 +3282,7 @@ app.addEventListener("input", (event) => {
 });
 
 app.addEventListener("change", (event) => {
-  const receiptInput = event.target.closest("[data-public-receipt-input], [data-public-receipt-gallery-input]");
+  const receiptInput = event.target.closest("[data-public-receipt-input]");
   if (!receiptInput || !app.contains(receiptInput)) {
     return;
   }
