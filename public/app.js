@@ -821,6 +821,22 @@ function getCurrentRaffleSelection(raffleId) {
   return [];
 }
 
+function getCurrentRaffleSelectionForRender(raffleId) {
+  const inMemory = asArray(raffleSelectorState.selected)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  if (inMemory.length > 0) {
+    return [...new Set(inMemory)];
+  }
+
+  const persisted = readPersistedSelection(raffleId);
+  if (persisted.length > 0) {
+    return [...new Set(persisted)];
+  }
+
+  return [];
+}
+
 function persistSelection(raffleId, selected) {
   try {
     const value = JSON.stringify(asArray(selected).map((item) => String(item || "").trim()).filter(Boolean));
@@ -1203,7 +1219,7 @@ function renderRaffleSelectorContent() {
   const total = raffle ? getRaffleDisplayTotal(raffle) : 0;
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const pricingPackages = raffle ? getRafflePricingPackages(raffle) : [];
-  const selected = raffle ? getCurrentRaffleSelection(raffle.campaign.id) : [];
+  const selected = raffle ? getCurrentRaffleSelectionForRender(raffle.campaign.id) : [];
   const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
     groupSize: 1,
     totalNumbers: selected.length,
