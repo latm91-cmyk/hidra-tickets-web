@@ -1921,9 +1921,9 @@ function renderPaymentModalContent() {
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Comprobante</span>
               <strong>Sube tu soporte</strong>
-              <p>Sube una imagen o un PDF para enviarlo a revisión.</p>
+              <p>Sube una imagen de tu comprobante para enviarlo a revisión.</p>
             </div>
-            <input type="file" accept="image/*,application/pdf" data-public-receipt-input hidden />
+            <input type="file" accept="image/*" data-public-receipt-input hidden />
             <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
             ${receiptLabel}
           </div>
