@@ -1262,7 +1262,13 @@ function renderRaffleSelectorContent() {
   const numbers = getRaffleSelectorNumbers();
   const pagination = getRaffleSelectorPagination(numbers);
   const numbersHtml = raffleSelectorState.loading
-    ? Array.from({ length: RAFFLE_SELECTOR_PAGE_SIZE }).map(() => `<span class="ticket-chip skeleton"></span>`).join("")
+    ? `
+      <div class="selector-loading-panel">
+        <div class="selector-loading-clock" aria-hidden="true"></div>
+        <strong>Cargando numeros disponibles...</strong>
+        <span>Estamos preparando la seleccion real del sorteo.</span>
+      </div>
+    `
     : pagination.pageNumbers.length > 0
       ? pagination.pageNumbers
         .map((ticket) => {
