@@ -683,6 +683,19 @@ button {
   max-width: 58ch;
 }
 
+.section-scroll-hint {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .raffle-price-summary {
   margin: 0;
   color: var(--muted);
@@ -822,8 +835,29 @@ button {
 
 .raffle-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 320px);
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 10px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) rgba(15, 23, 42, 0.05);
+}
+
+.raffle-list::-webkit-scrollbar {
+  height: 10px;
+}
+
+.raffle-list::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 999px;
+}
+
+.raffle-list::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 999px;
 }
 
 .raffle-mini {
@@ -835,6 +869,7 @@ button {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  scroll-snap-align: start;
 }
 
 .raffle-mini-media {
@@ -2627,6 +2662,37 @@ button {
   color: #071629;
 }
 
+.video-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 320px);
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 10px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) rgba(15, 23, 42, 0.05);
+}
+
+.video-strip::-webkit-scrollbar {
+  height: 10px;
+}
+
+.video-strip::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 999px;
+}
+
+.video-strip::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 999px;
+}
+
+.video-strip .card {
+  scroll-snap-align: start;
+}
+
 .raffle-feature-body {
   gap: 6px;
 }
@@ -4144,6 +4210,22 @@ button {
   .hero-grid {
     padding: 18px;
     gap: 14px;
+  }
+
+  .video-strip {
+    grid-auto-columns: minmax(250px, 84vw);
+    gap: 12px;
+    padding-bottom: 8px;
+  }
+
+  .raffle-list {
+    grid-auto-columns: minmax(250px, 84vw);
+    gap: 12px;
+    padding-bottom: 8px;
+  }
+
+  .section-scroll-hint {
+    align-self: flex-start;
   }
 
   .hero-media {

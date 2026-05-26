@@ -577,9 +577,10 @@ function groupPublicVideosByType(site = {}) {
   return { winner, socialSupport };
 }
 
-function renderVideoCards(videos = [], kind = "winner") {
+function renderVideoCards(videos = [], kind = "winner", layout = "grid") {
+  const containerClass = layout === "strip" ? "grid-3 video-strip" : "grid-3";
   return `
-    <div class="grid-3">
+    <div class="${containerClass}">
       ${videos
         .map((video) => {
           const preview = video.thumbnailUrl || ASSETS.winner;
@@ -1051,7 +1052,7 @@ function renderRaffles(site) {
       ${renderRaffleCard(featured, true)}
       ${rest.length ? `
         <div class="raffle-list">
-          ${rest.slice(0, 2).map((raffle) => {
+          ${rest.map((raffle) => {
             const campaign = raffle.campaign || {};
             const publicConfig = raffle.publicConfig || {};
             const heroTitle = getRaffleDisplayTitle({ campaign, publicConfig });
@@ -1107,8 +1108,9 @@ function renderWinnerVideos(site) {
             <h3>Videos de ganadores</h3>
             <p>Testimonios, entregas y momentos reales de quienes ya participaron.</p>
           </div>
+          <div class="section-scroll-hint">Desliza hacia los lados</div>
         </div>
-        ${renderVideoCards(winner, "winner")}
+        ${renderVideoCards(winner, "winner", "strip")}
       </div>
     ` : ""}
 
@@ -1120,6 +1122,7 @@ function renderWinnerVideos(site) {
             <h3>Historias de apoyo</h3>
             <p>Ayudas, aportes y acciones sociales que el cliente quiera mostrar públicamente.</p>
           </div>
+          <div class="section-scroll-hint">Desliza hacia los lados</div>
         </div>
         ${renderVideoCards(socialSupport, "social_support")}
       </div>
