@@ -4654,3 +4654,43 @@ button {
   }
 }
 
+
+@media (min-width: 901px) {
+  .hero .raffle-progress {
+    padding: 10px 12px 9px;
+    border-radius: 18px;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .hero .raffle-progress-head {
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .hero .raffle-progress-label,
+  .hero .raffle-progress-meta {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .hero .raffle-progress-value {
+    font-size: 15px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .hero .raffle-progress-track {
+    height: 6px;
+    border-radius: 999px;
+  }
+
+  .hero .raffle-progress-meta {
+    margin-top: 6px;
+  }
+
+  .hero .hero-media .overlay {
+    padding-bottom: 16px;
+  }
+}
