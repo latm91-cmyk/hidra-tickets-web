@@ -4664,21 +4664,13 @@ button {
   }
 
   .hero .raffle-progress-head {
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
   }
 
   .hero .raffle-progress-label,
   .hero .raffle-progress-meta {
     font-size: 11px;
     line-height: 1.2;
-  }
-
-  .hero .raffle-progress-value {
-    font-size: 15px;
-    line-height: 1;
-    white-space: nowrap;
   }
 
   .hero .raffle-progress-track {
