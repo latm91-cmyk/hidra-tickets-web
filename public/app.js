@@ -346,7 +346,7 @@ function renderRaffleAdvanceBlock(raffle = {}) {
         <span class="raffle-progress-fill" data-raffle-progress-fill style="width: 0%"></span>
       </div>
       <div class="raffle-progress-meta" data-raffle-progress-meta>
-        ${total ? `0 de ${escapeHtml(String(total))} boletas avanzadas` : "Cargando avance del sorteo..."}
+        ${total ? `${escapeHtml(String(fallbackAdvance.percent))}% de avance` : "Cargando avance del sorteo..."}
       </div>
     </div>
   `;
@@ -3150,7 +3150,7 @@ async function refreshFeaturedRaffleAdvance(site, slug) {
 
     if (meta) {
       meta.textContent = advance.total > 0
-        ? `${advance.processed} de ${advance.total} boletas avanzadas`
+        ? `${advance.percent}% de avance`
         : "Avance del sorteo";
     }
 
