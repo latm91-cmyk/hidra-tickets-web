@@ -300,6 +300,58 @@ function getRaffleDisplayTotal(raffle = {}) {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
+function getRaffleAdvanceStats(site = {}) {
+  const stats = site?.raffleStats || site?.stats || null;
+  const total = Number(stats?.inventoryTotal || stats?.inventory_total || 0);
+  const sold = Number(stats?.soldCount || stats?.sold_count || 0);
+  const reserved = Number(stats?.reservedCount || stats?.reserved_count || 0);
+  const processed = Math.max(0, sold + reserved);
+  const percent = total > 0 ? Math.min(100, Math.max(0, (processed / total) * 100)) : 0;
+  return {
+    total,
+    sold,
+    reserved,
+    processed,
+    percent: Math.round(percent),
+  };
+}
+
+function formatRaffleAdvanceLabel(advance = {}) {
+  if (!advance.total) {
+    return "Avance del sorteo";
+  }
+
+  return `${advance.percent}% vendido`;
+}
+
+function renderRaffleAdvanceBlock(raffle = {}) {
+  const campaignId = String(raffle?.campaign?.id || "");
+  const title = getRaffleDisplayTitle(raffle);
+  const total = getRaffleDisplayTotal(raffle);
+  const fallbackAdvance = {
+    total,
+    sold: 0,
+    reserved: 0,
+    processed: 0,
+    percent: 0,
+  };
+
+  return `
+    <div class="raffle-progress" data-raffle-progress data-raffle-id="${escapeHtml(campaignId)}" data-raffle-title="${escapeHtml(title)}">
+      <div class="raffle-progress-head">
+        <span class="raffle-progress-label">Avance del sorteo</span>
+        <strong class="raffle-progress-value" data-raffle-progress-value>${escapeHtml(formatRaffleAdvanceLabel(fallbackAdvance))}</strong>
+      </div>
+      <div class="raffle-progress-track" aria-hidden="true">
+        <span class="raffle-progress-fill" data-raffle-progress-fill style="width: 0%"></span>
+      </div>
+      <div class="raffle-progress-meta" data-raffle-progress-meta>
+        ${total ? `0 de ${escapeHtml(String(total))} boletas avanzadas` : "Cargando avance del sorteo..."}
+      </div>
+    </div>
+  `;
+}
+
 function getRaffleDisplayWhatsApp(site = {}) {
   return site?.settings?.whatsappNumber || site?.company?.whatsapp_number || "";
 }
@@ -997,6 +1049,7 @@ function renderRaffles(site) {
             ` : ""}
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
             ${description ? `<p class="raffle-feature-copy">${escapeHtml(description)}</p>` : ""}
+            ${renderRaffleAdvanceBlock({ campaign, publicConfig })}
             <div class="raffle-feature-actions">
               <button
                 type="button"
@@ -2900,11 +2953,12 @@ function renderShell(site, slug) {
                   <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
                   <strong>${escapeHtml(heroSpotlightTitle)}</strong>
                   <div>${escapeHtml(heroSpotlightDescription)}</div>
-                  ${heroSpotlightChips.length ? `
+            ${heroSpotlightChips.length ? `
                     <div class="overlay-meta">
                       ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
                     </div>
                   ` : ""}
+                  ${featuredRaffle ? renderRaffleAdvanceBlock(featuredRaffle) : ""}
                   ${featuredRaffle ? `
                     <div class="overlay-actions">
                       <button
@@ -3063,6 +3117,52 @@ function renderShell(site, slug) {
       });
     });
   });
+}
+
+async function refreshFeaturedRaffleAdvance(site, slug) {
+  const featuredRaffle = asArray(site?.activeRaffles)[0] || null;
+  if (!featuredRaffle?.campaign?.id) {
+    return;
+  }
+
+  const progressRoot = app.querySelector(`[data-raffle-progress][data-raffle-id="${CSS.escape(String(featuredRaffle.campaign.id))}"]`);
+  if (!progressRoot) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(featuredRaffle.campaign.id)}/availability?limit=1`,
+    );
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    const advance = getRaffleAdvanceStats(payload);
+    const fill = progressRoot.querySelector("[data-raffle-progress-fill]");
+    const value = progressRoot.querySelector("[data-raffle-progress-value]");
+    const meta = progressRoot.querySelector("[data-raffle-progress-meta]");
+
+    if (value) {
+      value.textContent = formatRaffleAdvanceLabel(advance);
+    }
+
+    if (meta) {
+      meta.textContent = advance.total > 0
+        ? `${advance.processed} de ${advance.total} boletas avanzadas`
+        : "Avance del sorteo";
+    }
+
+    if (fill) {
+      fill.style.width = "0%";
+      window.requestAnimationFrame(() => {
+        fill.style.width = `${advance.percent}%`;
+      });
+    }
+  } catch {
+    // Se deja silencioso para no romper la landing si el avance no responde.
+  }
 }
 
 app.addEventListener("click", (event) => {
@@ -3326,6 +3426,7 @@ async function loadSite() {
   if (cached?.site) {
     try {
       renderShell(cached.site, slug);
+      void refreshFeaturedRaffleAdvance(cached.site, slug);
       const cachedBanner = document.createElement("div");
       cachedBanner.className = "site-cache-banner";
       cachedBanner.textContent = "Mostrando contenido cargado previamente...";
@@ -3355,6 +3456,7 @@ async function loadSite() {
 
     const site = await response.json();
     renderShell(site, slug);
+    void refreshFeaturedRaffleAdvance(site, slug);
   } catch (error) {
     if (!cached?.site) {
       app.innerHTML = `
