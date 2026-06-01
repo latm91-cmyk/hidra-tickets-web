@@ -2950,7 +2950,7 @@ function renderShell(site, slug) {
                     <div class="overlay-copy">
                       <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
                       <strong>${escapeHtml(heroSpotlightTitle)}</strong>
-                      <div>${escapeHtml(heroSpotlightDescription)}</div>
+                      <div class="overlay-description">${escapeHtml(heroSpotlightDescription)}</div>
                       ${heroSpotlightChips.length ? `
                         <div class="overlay-meta">
                           ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}

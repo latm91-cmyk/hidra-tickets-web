@@ -627,7 +627,7 @@ button {
   letter-spacing: -0.04em;
 }
 
-.hero-media .overlay div {
+.hero-media .overlay-description {
   margin-top: 8px;
   color: rgba(255, 255, 255, 0.78);
   font-size: 14px;
@@ -638,12 +638,18 @@ button {
   display: flex;
   justify-content: flex-end;
   align-self: start;
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .hero-media .overlay-actions .hero-buy-button {
-  min-width: 170px;
+  min-width: 160px;
   justify-content: center;
+}
+
+.hero-media .raffle-progress {
+  grid-area: auto;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .section {
@@ -4692,6 +4698,6 @@ button {
   }
 
   .hero .hero-media .overlay {
-    padding-bottom: 14px;
+    padding-bottom: 12px;
   }
 }
