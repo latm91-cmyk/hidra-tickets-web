@@ -11,7 +11,7 @@ const apiBaseUrl = (
   process.env.API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.PUBLIC_API_URL ||
-  "http://localhost:10000"
+  ""
 ).replace(/\/+$/, "");
 
 const contentTypes = {

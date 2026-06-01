@@ -1,5 +1,18 @@
 ﻿const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
-const API_BASE_URL = String(CONFIG.apiBaseUrl || "http://localhost:10000").replace(/\/+$/, "");
+function resolvePublicApiBaseUrl() {
+  const configured = String(CONFIG.apiBaseUrl || "").trim().replace(/\/+$/, "");
+  if (configured && configured !== "__API_BASE_URL__") {
+    return configured;
+  }
+
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://localhost:10000";
+  }
+
+  return window.location.origin.replace(/\/+$/, "");
+}
+
+const API_BASE_URL = resolvePublicApiBaseUrl();
 const app = document.getElementById("app");
 const PUBLIC_SITE_CACHE_PREFIX = "public-site-cache:v1:";
 const ASSETS = {
