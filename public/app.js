@@ -338,9 +338,6 @@ function renderRaffleAdvanceBlock(raffle = {}) {
 
   return `
     <div class="raffle-progress" data-raffle-progress data-raffle-id="${escapeHtml(campaignId)}" data-raffle-title="${escapeHtml(title)}">
-      <div class="raffle-progress-head">
-        <span class="raffle-progress-label">Avance del sorteo</span>
-      </div>
       <div class="raffle-progress-track" aria-hidden="true">
         <span class="raffle-progress-fill" data-raffle-progress-fill style="width: 0%"></span>
       </div>
