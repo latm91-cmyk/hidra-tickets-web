@@ -2946,26 +2946,30 @@ function renderShell(site, slug) {
                 <div class="hero-media">
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" loading="eager" fetchpriority="high" decoding="async" />`}
                 <div class="overlay">
-                  <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
-                  <strong>${escapeHtml(heroSpotlightTitle)}</strong>
-                  <div>${escapeHtml(heroSpotlightDescription)}</div>
-            ${heroSpotlightChips.length ? `
-                    <div class="overlay-meta">
-                      ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                  <div class="overlay-top">
+                    <div class="overlay-copy">
+                      <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
+                      <strong>${escapeHtml(heroSpotlightTitle)}</strong>
+                      <div>${escapeHtml(heroSpotlightDescription)}</div>
+                      ${heroSpotlightChips.length ? `
+                        <div class="overlay-meta">
+                          ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                        </div>
+                      ` : ""}
                     </div>
-                  ` : ""}
+                    ${featuredRaffle ? `
+                      <div class="overlay-actions">
+                        <button
+                          type="button"
+                          class="button gold js-open-raffle-selector hero-buy-button"
+                          data-raffle-id="${escapeHtml(String(featuredRaffle?.campaign?.id || ""))}"
+                        >
+                          Comprar
+                        </button>
+                      </div>
+                    ` : ""}
+                  </div>
                   ${featuredRaffle ? renderRaffleAdvanceBlock(featuredRaffle) : ""}
-                  ${featuredRaffle ? `
-                    <div class="overlay-actions">
-                      <button
-                        type="button"
-                        class="button gold js-open-raffle-selector hero-buy-button"
-                        data-raffle-id="${escapeHtml(String(featuredRaffle?.campaign?.id || ""))}"
-                      >
-                        Comprar
-                      </button>
-                    </div>
-                  ` : ""}
                 </div>
               </div>
             </div>

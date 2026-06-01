@@ -604,6 +604,19 @@ button {
   padding: 16px 18px 14px;
   color: white;
   backdrop-filter: blur(10px);
+  display: grid;
+  gap: 12px;
+}
+
+.hero-media .overlay-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.hero-media .overlay-copy {
+  min-width: 0;
 }
 
 .hero-media .overlay strong {
@@ -624,7 +637,8 @@ button {
 .hero-media .overlay-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 14px;
+  align-self: start;
+  margin-top: 4px;
 }
 
 .hero-media .overlay-actions .hero-buy-button {
@@ -4678,6 +4692,6 @@ button {
   }
 
   .hero .hero-media .overlay {
-    padding-bottom: 16px;
+    padding-bottom: 14px;
   }
 }
