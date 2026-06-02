@@ -337,10 +337,11 @@ function formatRaffleAdvanceLabel(advance = {}) {
   return `${advance.percent}% vendido`;
 }
 
-function renderRaffleAdvanceBlock(raffle = {}) {
+function renderRaffleAdvanceBlock(raffle = {}, options = {}) {
   const campaignId = String(raffle?.campaign?.id || "");
   const title = getRaffleDisplayTitle(raffle);
   const total = getRaffleDisplayTotal(raffle);
+  const compact = Boolean(options.compact);
   const fallbackAdvance = {
     total,
     sold: 0,
@@ -350,7 +351,7 @@ function renderRaffleAdvanceBlock(raffle = {}) {
   };
 
   return `
-    <div class="raffle-progress" data-raffle-progress data-raffle-id="${escapeHtml(campaignId)}" data-raffle-title="${escapeHtml(title)}">
+    <div class="raffle-progress${compact ? " raffle-progress--subtle" : ""}" data-raffle-progress data-raffle-id="${escapeHtml(campaignId)}" data-raffle-title="${escapeHtml(title)}">
       <div class="raffle-progress-track" aria-hidden="true">
         <span class="raffle-progress-fill" data-raffle-progress-fill style="width: 0%"></span>
       </div>
@@ -1093,6 +1094,7 @@ function renderRaffles(site) {
             ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             ${total ? `<span class="chip">${escapeHtml(String(total))} boletas</span>` : ""}
           </div>
+          ${renderRaffleAdvanceBlock({ campaign, publicConfig }, { compact: true })}
           <div class="raffle-card-actions">
             <button
               type="button"
