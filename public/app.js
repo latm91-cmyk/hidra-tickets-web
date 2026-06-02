@@ -1117,17 +1117,19 @@ function renderRaffles(site) {
 
   return `
     <div class="raffle-showcase">
-      <div class="raffle-carousel" data-raffle-carousel style="--raffle-slide-count:${raffles.length}; --raffle-slide-duration:5.8s;">
+      <div class="raffle-carousel" data-raffle-carousel style="--raffle-slide-count:${raffles.length}; --raffle-slide-duration:7.8s;">
         <div class="raffle-carousel-stage">
           ${raffles.map((raffle, index) => `
             <div class="raffle-carousel-slide${index === 0 ? " is-active" : ""}" data-raffle-carousel-slide data-slide-index="${index}">
               ${renderRaffleCard(raffle, true)}
             </div>
           `).join("")}
-        </div>
-        <div class="raffle-carousel-controls" aria-label="Controles del carrusel de sorteos">
-          <button type="button" class="button secondary raffle-carousel-control" data-action="raffle-carousel-prev" aria-label="Sorteo anterior">Anterior</button>
-          <button type="button" class="button secondary raffle-carousel-control" data-action="raffle-carousel-next" aria-label="Siguiente sorteo">Siguiente</button>
+          <button type="button" class="raffle-carousel-arrow raffle-carousel-arrow-prev" data-action="raffle-carousel-prev" aria-label="Sorteo anterior">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button type="button" class="raffle-carousel-arrow raffle-carousel-arrow-next" data-action="raffle-carousel-next" aria-label="Siguiente sorteo">
+            <span aria-hidden="true">›</span>
+          </button>
         </div>
         <div class="raffle-carousel-indicators" aria-hidden="true">
           ${raffles.map((raffle, index) => {
@@ -1146,6 +1148,9 @@ const raffleCarouselState = {
   count: 0,
   activeIndex: 0,
   hoverPaused: false,
+  touchStartX: 0,
+  touchStartY: 0,
+  touchTracking: false,
 };
 
 function stopRaffleCarouselAutoplay() {
@@ -1157,6 +1162,50 @@ function stopRaffleCarouselAutoplay() {
 
 function getRaffleCarouselRoot() {
   return app.querySelector("[data-raffle-carousel]");
+}
+
+function bindRaffleCarouselInteractions(root) {
+  if (!root || root.dataset.carouselBound === "true") {
+    return;
+  }
+
+  root.dataset.carouselBound = "true";
+
+  root.addEventListener("touchstart", (event) => {
+    const touch = event.touches?.[0];
+    if (!touch) {
+      return;
+    }
+    raffleCarouselState.touchStartX = touch.clientX;
+    raffleCarouselState.touchStartY = touch.clientY;
+    raffleCarouselState.touchTracking = true;
+  }, { passive: true });
+
+  root.addEventListener("touchend", (event) => {
+    if (!raffleCarouselState.touchTracking) {
+      return;
+    }
+
+    const touch = event.changedTouches?.[0];
+    if (!touch) {
+      raffleCarouselState.touchTracking = false;
+      return;
+    }
+
+    const deltaX = touch.clientX - raffleCarouselState.touchStartX;
+    const deltaY = touch.clientY - raffleCarouselState.touchStartY;
+    raffleCarouselState.touchTracking = false;
+
+    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    stepRaffleCarousel(deltaX < 0 ? 1 : -1);
+  }, { passive: true });
+
+  root.addEventListener("touchcancel", () => {
+    raffleCarouselState.touchTracking = false;
+  }, { passive: true });
 }
 
 function setRaffleCarouselIndex(nextIndex) {
@@ -1226,6 +1275,7 @@ function startRaffleCarouselAutoplay() {
   raffleCarouselState.root = root;
   raffleCarouselState.count = total;
   raffleCarouselState.hoverPaused = false;
+  bindRaffleCarouselInteractions(root);
 
   root.addEventListener("mouseenter", () => {
     raffleCarouselState.hoverPaused = true;
@@ -1240,7 +1290,7 @@ function startRaffleCarouselAutoplay() {
       return;
     }
     stepRaffleCarousel(1);
-  }, 8500);
+  }, 11500);
 }
 
 function initRaffleCarousel() {
