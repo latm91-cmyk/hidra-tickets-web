@@ -2831,6 +2831,7 @@ async function submitPublicReceiptUpload(file = null) {
     const formData = new FormData();
     formData.append("selected_numbers", JSON.stringify(groupRaffleSelections(selected, selectionSummary.groupSize)));
     formData.append("receipt_file", file, file.name || (supportUploadMode ? "captura" : "comprobante"));
+    formData.append("support_upload", supportUploadMode ? "true" : "false");
     const contactPayload = getPaymentModalContactPayload();
     formData.append("customer_name", contactPayload.customer_name);
     formData.append("customer_city", contactPayload.customer_city);
