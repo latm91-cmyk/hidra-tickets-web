@@ -1027,8 +1027,6 @@ function renderRaffles(site) {
     `;
   }
 
-  const featured = raffles[0];
-  const rest = raffles.slice(1);
   const renderRaffleCard = ({ campaign, publicConfig }, featuredMode = false) => {
     const image = getRaffleDisplayImage({ campaign, publicConfig }, site);
     const isFeatured = featuredMode || publicConfig?.isFeatured;
@@ -1109,47 +1107,31 @@ function renderRaffles(site) {
     `;
   };
 
+  if (raffles.length === 1) {
+    return `
+      <div class="raffle-showcase">
+        ${renderRaffleCard(raffles[0], true)}
+      </div>
+    `;
+  }
+
   return `
     <div class="raffle-showcase">
-      ${renderRaffleCard(featured, true)}
-      ${rest.length ? `
-        <div class="raffle-list">
-          ${rest.map((raffle) => {
-            const campaign = raffle.campaign || {};
-            const publicConfig = raffle.publicConfig || {};
-            const heroTitle = getRaffleDisplayTitle({ campaign, publicConfig });
-            const image = getRaffleDisplayImage({ campaign, publicConfig }, site);
-            const drawDate = getRaffleDisplayDate({ campaign, publicConfig });
-            const pricingBadge = getRafflePricingBadge({ campaign, publicConfig });
-            const pricingSummary = formatRafflePricingSummary({ campaign, publicConfig });
-            return `
-              <article class="raffle-mini">
-                <div class="raffle-mini-media">
-                  <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" loading="lazy" decoding="async" />
-                </div>
-                <div class="raffle-mini-body">
-                  <h4>${escapeHtml(heroTitle)}</h4>
-                  <div class="chip-row">
-                    ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
-                    ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
-                  </div>
-                  ${pricingSummary ? `
-                    <div class="raffle-price-label">Precio de boletería:</div>
-                    <p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>
-                  ` : ""}
-                  <button
-                    type="button"
-                    class="button secondary js-open-raffle-selector"
-                    data-raffle-id="${escapeAttr(String(campaign?.id || ""))}"
-                  >
-                    Ver números
-                  </button>
-                </div>
-              </article>
-            `;
+      <div class="raffle-carousel" data-raffle-carousel style="--raffle-slide-count:${raffles.length}; --raffle-slide-duration:5.8s;">
+        <div class="raffle-carousel-stage">
+          ${raffles.map((raffle, index) => `
+            <div class="raffle-carousel-slide" style="--raffle-slide-index:${index};">
+              ${renderRaffleCard(raffle, true)}
+            </div>
+          `).join("")}
+        </div>
+        <div class="raffle-carousel-indicators" aria-hidden="true">
+          ${raffles.map((raffle, index) => {
+            const label = getRaffleDisplayTitle(raffle);
+            return `<span class="raffle-carousel-dot${index === 0 ? " is-active" : ""}" title="${escapeAttr(label)}"></span>`;
           }).join("")}
         </div>
-      ` : ""}
+      </div>
     </div>
   `;
 }

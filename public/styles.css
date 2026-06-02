@@ -764,6 +764,89 @@ button {
   margin: 0 auto;
 }
 
+.raffle-carousel {
+  display: grid;
+  gap: 14px;
+}
+
+.raffle-carousel-stage {
+  position: relative;
+  min-height: 620px;
+  overflow: hidden;
+}
+
+.raffle-carousel-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  filter: blur(2px);
+  animation: raffleCarouselSlide calc(var(--raffle-slide-count, 1) * var(--raffle-slide-duration, 5.8s)) ease-in-out infinite;
+  animation-delay: calc(var(--raffle-slide-index, 0) * var(--raffle-slide-duration, 5.8s));
+}
+
+.raffle-carousel-slide .raffle-feature {
+  height: 100%;
+}
+
+.raffle-carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.raffle-carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.16);
+  transition: transform 0.25s ease, background 0.25s ease, width 0.25s ease;
+}
+
+.raffle-carousel-dot.is-active {
+  width: 28px;
+  background: linear-gradient(135deg, #f5d978, #d79f22);
+  box-shadow: 0 8px 18px rgba(214, 161, 30, 0.24);
+}
+
+@keyframes raffleCarouselSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+    filter: blur(2px);
+  }
+  6% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  36% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.985);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.985);
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raffle-carousel-slide {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4346,6 +4429,10 @@ button {
     grid-auto-columns: minmax(250px, 84vw);
     gap: 12px;
     padding-bottom: 8px;
+  }
+
+  .raffle-carousel-stage {
+    min-height: 540px;
   }
 
   .section-scroll-hint {
