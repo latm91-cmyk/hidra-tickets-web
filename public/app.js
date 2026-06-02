@@ -1107,6 +1107,49 @@ function renderRaffles(site) {
     `;
   };
 
+  const renderRaffleCarouselCard = (raffle = {}, index = 0) => {
+    const campaign = raffle?.campaign || {};
+    const publicConfig = raffle?.publicConfig || {};
+    const heroTitle = getRaffleDisplayTitle({ campaign, publicConfig });
+    const image = getRaffleDisplayImage({ campaign, publicConfig }, site);
+    const description = getRaffleDisplayDescription({ campaign, publicConfig });
+    const drawDate = getRaffleDisplayDate({ campaign, publicConfig });
+    const pricingBadge = getRafflePricingBadge({ campaign, publicConfig });
+    const pricingSummary = formatRafflePricingSummary({ campaign, publicConfig });
+    const mode = getRaffleDisplayMode({ campaign, publicConfig });
+    const total = getRaffleDisplayTotal({ campaign, publicConfig });
+
+    return `
+      <article class="raffle-carousel-card">
+        <div class="raffle-carousel-card-media">
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(heroTitle)}" loading="${index === 0 ? "eager" : "lazy"}" fetchpriority="${index === 0 ? "high" : "auto"}" decoding="async" />
+          <div class="raffle-carousel-card-badge">${index === 0 ? "Sorteo destacado" : "Sorteo activo"}</div>
+        </div>
+        <div class="raffle-carousel-card-body">
+          <div class="chip-row">
+            ${pricingBadge ? `<span class="chip">${escapeHtml(pricingBadge)}</span>` : ""}
+            ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
+            <span class="chip">${escapeHtml(mode)}</span>
+            ${total ? `<span class="chip">${escapeHtml(String(total))} boletas</span>` : ""}
+          </div>
+          <h3 class="raffle-carousel-card-title">${escapeHtml(heroTitle)}</h3>
+          ${description ? `<p class="raffle-carousel-card-copy">${escapeHtml(description)}</p>` : ""}
+          ${pricingSummary ? `<p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>` : ""}
+          ${renderRaffleAdvanceBlock({ campaign, publicConfig })}
+          <div class="raffle-carousel-card-actions">
+            <button
+              type="button"
+              class="button gold js-open-raffle-selector"
+              data-raffle-id="${escapeAttr(String(campaign?.id || ""))}"
+            >
+              Escoger mis números
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  };
+
   if (raffles.length === 1) {
     return `
       <div class="raffle-showcase">
@@ -1121,7 +1164,7 @@ function renderRaffles(site) {
         <div class="raffle-carousel-stage">
           ${raffles.map((raffle, index) => `
             <div class="raffle-carousel-slide${index === 0 ? " is-active" : ""}" data-raffle-carousel-slide data-slide-index="${index}">
-              ${renderRaffleCard(raffle, true)}
+              ${renderRaffleCarouselCard(raffle, index)}
             </div>
           `).join("")}
           <button type="button" class="raffle-carousel-arrow raffle-carousel-arrow-prev" data-action="raffle-carousel-prev" aria-label="Sorteo anterior">
