@@ -1889,6 +1889,7 @@ function renderPaymentModalContent() {
   const customerPhone = String(paymentModalState.customerPhone || "").trim();
   const isContactReady = Boolean(selectionSummary.isComplete && customerName && customerCity && customerPhone);
   const isDisabled = !isContactReady || paymentModalState.loading;
+  const supportUploadMode = Boolean(raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
   const paymentProgressMarkup = selected.length ? `
     <div class="payment-progress">
@@ -1984,12 +1985,12 @@ function renderPaymentModalContent() {
           <div class="payment-action-card">
             <div class="payment-action-icon payment-action-icon-upload">↥</div>
             <div class="payment-card-copy">
-              <span class="payment-card-kicker">Comprobante</span>
-              <strong>Sube tu soporte</strong>
-              <p>Sube una imagen de tu comprobante para enviarlo a revisión.</p>
+              <span class="payment-card-kicker">${supportUploadMode ? "Captura de fidelizacion" : "Comprobante"}</span>
+              <strong>${supportUploadMode ? "Sube tu captura" : "Sube tu soporte"}</strong>
+              <p>${supportUploadMode ? "Sube una captura que demuestre que sigues la fan page. Este sorteo usa capturas en lugar de comprobantes de pago." : "Sube una imagen de tu comprobante para enviarlo a revisión."}</p>
             </div>
             <input type="file" accept="image/*" data-public-receipt-input hidden />
-            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>Cargar comprobante</button>
+            <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>${supportUploadMode ? "Cargar captura" : "Cargar comprobante"}</button>
             ${receiptLabel}
           </div>
 
@@ -2615,6 +2616,7 @@ async function submitPublicReceiptUpload(file = null) {
   const site = paymentModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
+  const supportUploadMode = Boolean(raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const selected = asArray(paymentModalState.selected);
   const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
   if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
@@ -2623,11 +2625,15 @@ async function submitPublicReceiptUpload(file = null) {
 
   paymentModalState.loading = true;
   paymentModalState.file = file;
-  paymentModalState.fileName = file.name || "Comprobante";
+  paymentModalState.fileName = file.name || (supportUploadMode ? "Captura" : "Comprobante");
   openReceiptUploadModal({
-    title: "Subiendo comprobante",
-    description: "Espera un momento mientras verificamos tu pago.",
-    detail: "Estamos leyendo el archivo y validando la compra.",
+    title: supportUploadMode ? "Subiendo captura" : "Subiendo comprobante",
+    description: supportUploadMode
+      ? "Espera un momento mientras registramos tu captura."
+      : "Espera un momento mientras verificamos tu pago.",
+    detail: supportUploadMode
+      ? "Estamos leyendo el archivo y confirmando la fidelizacion."
+      : "Estamos leyendo el archivo y validando la compra.",
     tone: "info",
   });
   submitPublicPaymentStateNotice(`Cargando ${paymentModalState.fileName}...`, "info");
@@ -2635,7 +2641,7 @@ async function submitPublicReceiptUpload(file = null) {
   try {
     const formData = new FormData();
     formData.append("selected_numbers", JSON.stringify(groupRaffleSelections(selected, selectionSummary.groupSize)));
-    formData.append("receipt_file", file, file.name || "comprobante");
+    formData.append("receipt_file", file, file.name || (supportUploadMode ? "captura" : "comprobante"));
     const contactPayload = getPaymentModalContactPayload();
     formData.append("customer_name", contactPayload.customer_name);
     formData.append("customer_city", contactPayload.customer_city);
@@ -2652,7 +2658,7 @@ async function submitPublicReceiptUpload(file = null) {
 
     const payload = await readJsonResponse(response);
     if (!response.ok) {
-      throw new Error(payload?.message || payload?.error || "No fue posible cargar el comprobante.");
+      throw new Error(payload?.message || payload?.error || (supportUploadMode ? "No fue posible cargar la captura." : "No fue posible cargar el comprobante."));
     }
 
     paymentModalState.loading = false;
@@ -2663,7 +2669,9 @@ async function submitPublicReceiptUpload(file = null) {
     paymentModalState.amount = 0;
     raffleSelectorState.selected = [];
     clearPersistedSelection(raffleSelectorState.raffle?.campaign?.id || raffle?.campaign?.id || "");
-    raffleSelectorState.notice = "Tu compra quedo registrada y la seleccion fue limpiada.";
+      raffleSelectorState.notice = supportUploadMode
+        ? "Tu captura quedo registrada y la seleccion fue limpiada."
+        : "Tu compra quedo registrada y la seleccion fue limpiada.";
     raffleSelectorState.noticeTone = "success";
     paintRaffleSelector();
     if (payload?.auto_approved && payload?.payment_reference) {
@@ -2689,7 +2697,7 @@ async function submitPublicReceiptUpload(file = null) {
       const rejectionReason = validationReasons.length > 0
         ? validationReasons[0]
         : String(payload?.receipt_warning || "").trim();
-      const reviewMessage = payload?.client_message || "Tu comprobante quedo cargado y ya esta en revision.";
+      const reviewMessage = payload?.client_message || (supportUploadMode ? "Tu captura quedo cargada y ya esta en revision." : "Tu comprobante quedo cargado y ya esta en revision.");
       const fallbackReason = payload?.validation?.decision === "NEEDS_MANUAL_REVIEW"
         ? "La validacion automatica no encontro una coincidencia suficiente y quedo pendiente de revision manual."
         : "";
@@ -2703,7 +2711,7 @@ async function submitPublicReceiptUpload(file = null) {
   } catch (error) {
     closeReceiptUploadModal();
     paymentModalState.loading = false;
-    submitPublicPaymentStateNotice(error?.message || "No fue posible cargar el comprobante.", "error");
+    submitPublicPaymentStateNotice(error?.message || (supportUploadMode ? "No fue posible cargar la captura." : "No fue posible cargar el comprobante."), "error");
   }
 }
 
