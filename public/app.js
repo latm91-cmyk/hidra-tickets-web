@@ -1159,27 +1159,9 @@ function renderRaffles(site) {
   }
 
   return `
-    <div class="raffle-showcase">
-      <div class="raffle-carousel" data-raffle-carousel style="--raffle-slide-count:${raffles.length}; --raffle-slide-duration:7.8s;">
-        <div class="raffle-carousel-stage">
-          ${raffles.map((raffle, index) => `
-            <div class="raffle-carousel-slide${index === 0 ? " is-active" : ""}" data-raffle-carousel-slide data-slide-index="${index}">
-              ${renderRaffleCarouselCard(raffle, index)}
-            </div>
-          `).join("")}
-          <button type="button" class="raffle-carousel-arrow raffle-carousel-arrow-prev" data-action="raffle-carousel-prev" aria-label="Sorteo anterior">
-            <span aria-hidden="true">‹</span>
-          </button>
-          <button type="button" class="raffle-carousel-arrow raffle-carousel-arrow-next" data-action="raffle-carousel-next" aria-label="Siguiente sorteo">
-            <span aria-hidden="true">›</span>
-          </button>
-        </div>
-        <div class="raffle-carousel-indicators" aria-hidden="true">
-          ${raffles.map((raffle, index) => {
-            const label = getRaffleDisplayTitle(raffle);
-            return `<span class="raffle-carousel-dot${index === 0 ? " is-active" : ""}" title="${escapeAttr(label)}"></span>`;
-          }).join("")}
-        </div>
+    <div class="raffle-showcase raffle-showcase-grid">
+      <div class="raffles-grid">
+        ${raffles.map((raffle) => renderRaffleCard(raffle, false)).join("")}
       </div>
     </div>
   `;

@@ -790,6 +790,10 @@ button {
   gap: 24px;
 }
 
+.raffle-showcase-grid {
+  max-width: 1200px;
+}
+
 .raffle-showcase {
   display: grid;
   gap: 16px;
@@ -1094,8 +1098,9 @@ button {
 }
 
 .raffle-card-compact {
-  max-width: 520px;
-  justify-self: start;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
 }
 
 .raffle-list {
@@ -4757,6 +4762,10 @@ button {
 
   .raffle-showcase {
     gap: 12px;
+  }
+
+  .raffle-showcase-grid {
+    max-width: none;
   }
 
   .raffle-card-compact .raffle-card-actions {
