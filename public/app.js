@@ -2182,12 +2182,12 @@ function renderPaymentModalContent() {
               <img src="${escapeHtml(ASSETS.pse)}" alt="PSE" />
             </div>
             <div class="payment-card-copy">
-              <span class="payment-card-kicker">Pago en línea</span>
-              <strong>Completa la transacción</strong>
-              <p>Abre la pasarela para completar la transacción.</p>
+              <span class="payment-card-kicker">${supportUploadMode ? "Sin pago en línea" : "Pago en línea"}</span>
+              <strong>${supportUploadMode ? "Este sorteo usa capturas" : "Completa la transacción"}</strong>
+              <p>${supportUploadMode ? "No necesitas abrir PSE para este sorteo. Usa la opción de subir captura." : "Abre la pasarela para completar la transacción."}</p>
             </div>
-            <button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>
-            ${checkoutUrl ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
+            ${supportUploadMode ? "" : `<button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>`}
+            ${checkoutUrl && !supportUploadMode ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
           </div>
 
           <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
@@ -2736,10 +2736,16 @@ async function submitPublicPseCheckout() {
   const site = paymentModalState.site || window.__PUBLIC_SITE_STATE__?.site || null;
   const slug = paymentModalState.slug || window.__PUBLIC_SITE_STATE__?.slug || "";
   const raffle = paymentModalState.raffle || null;
+  const supportUploadMode = Boolean(raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const selected = asArray(paymentModalState.selected);
   const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
   if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
     submitPublicPaymentStateNotice("Completa nombre, ciudad y teléfono para continuar.", "warning");
+    return;
+  }
+
+  if (supportUploadMode) {
+    submitPublicPaymentStateNotice("Este sorteo usa capturas de fidelizacion. Usa el boton de subir captura.", "warning");
     return;
   }
 
