@@ -1120,10 +1120,14 @@ function renderRaffles(site) {
       <div class="raffle-carousel" data-raffle-carousel style="--raffle-slide-count:${raffles.length}; --raffle-slide-duration:5.8s;">
         <div class="raffle-carousel-stage">
           ${raffles.map((raffle, index) => `
-            <div class="raffle-carousel-slide" style="--raffle-slide-index:${index};">
+            <div class="raffle-carousel-slide${index === 0 ? " is-active" : ""}" data-raffle-carousel-slide data-slide-index="${index}">
               ${renderRaffleCard(raffle, true)}
             </div>
           `).join("")}
+        </div>
+        <div class="raffle-carousel-controls" aria-label="Controles del carrusel de sorteos">
+          <button type="button" class="button secondary raffle-carousel-control" data-action="raffle-carousel-prev" aria-label="Sorteo anterior">Anterior</button>
+          <button type="button" class="button secondary raffle-carousel-control" data-action="raffle-carousel-next" aria-label="Siguiente sorteo">Siguiente</button>
         </div>
         <div class="raffle-carousel-indicators" aria-hidden="true">
           ${raffles.map((raffle, index) => {
@@ -1134,6 +1138,126 @@ function renderRaffles(site) {
       </div>
     </div>
   `;
+}
+
+const raffleCarouselState = {
+  timer: null,
+  root: null,
+  count: 0,
+  activeIndex: 0,
+  hoverPaused: false,
+};
+
+function stopRaffleCarouselAutoplay() {
+  if (raffleCarouselState.timer) {
+    clearInterval(raffleCarouselState.timer);
+    raffleCarouselState.timer = null;
+  }
+}
+
+function getRaffleCarouselRoot() {
+  return app.querySelector("[data-raffle-carousel]");
+}
+
+function setRaffleCarouselIndex(nextIndex) {
+  const root = getRaffleCarouselRoot();
+  if (!root) {
+    return;
+  }
+
+  const slides = Array.from(root.querySelectorAll("[data-raffle-carousel-slide]"));
+  const dots = Array.from(root.querySelectorAll(".raffle-carousel-dot"));
+  const total = slides.length;
+  if (total < 2) {
+    stopRaffleCarouselAutoplay();
+    return;
+  }
+
+  const normalizedIndex = ((Number(nextIndex) || 0) % total + total) % total;
+  raffleCarouselState.root = root;
+  raffleCarouselState.count = total;
+  raffleCarouselState.activeIndex = normalizedIndex;
+  root.dataset.activeIndex = String(normalizedIndex);
+
+  slides.forEach((slide, index) => {
+    const isActive = index === normalizedIndex;
+    const isPrev = index === ((normalizedIndex - 1 + total) % total);
+    const isNext = index === ((normalizedIndex + 1) % total);
+    slide.classList.toggle("is-active", isActive);
+    slide.classList.toggle("is-prev", isPrev);
+    slide.classList.toggle("is-next", isNext);
+    slide.classList.toggle("is-hidden", !isActive && !isPrev && !isNext);
+  });
+
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("is-active", index === normalizedIndex);
+  });
+}
+
+function stepRaffleCarousel(direction = 1) {
+  const root = getRaffleCarouselRoot();
+  if (!root) {
+    return;
+  }
+
+  const total = Array.from(root.querySelectorAll("[data-raffle-carousel-slide]")).length;
+  if (total < 2) {
+    return;
+  }
+
+  const currentIndex = Number.parseInt(root.dataset.activeIndex || "0", 10) || 0;
+  setRaffleCarouselIndex(currentIndex + direction);
+}
+
+function startRaffleCarouselAutoplay() {
+  const root = getRaffleCarouselRoot();
+  const total = Array.from(root?.querySelectorAll("[data-raffle-carousel-slide]") || []).length;
+  if (!root || total < 2) {
+    stopRaffleCarouselAutoplay();
+    return;
+  }
+
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    stopRaffleCarouselAutoplay();
+    return;
+  }
+
+  stopRaffleCarouselAutoplay();
+  raffleCarouselState.root = root;
+  raffleCarouselState.count = total;
+  raffleCarouselState.hoverPaused = false;
+
+  root.addEventListener("mouseenter", () => {
+    raffleCarouselState.hoverPaused = true;
+  });
+  root.addEventListener("mouseleave", () => {
+    raffleCarouselState.hoverPaused = false;
+  });
+
+  raffleCarouselState.timer = window.setInterval(() => {
+    const currentRoot = getRaffleCarouselRoot();
+    if (!currentRoot || raffleCarouselState.hoverPaused) {
+      return;
+    }
+    stepRaffleCarousel(1);
+  }, 8500);
+}
+
+function initRaffleCarousel() {
+  const root = getRaffleCarouselRoot();
+  if (!root) {
+    stopRaffleCarouselAutoplay();
+    return;
+  }
+
+  const total = Array.from(root.querySelectorAll("[data-raffle-carousel-slide]")).length;
+  if (total < 2) {
+    stopRaffleCarouselAutoplay();
+    return;
+  }
+
+  setRaffleCarouselIndex(Number.parseInt(root.dataset.activeIndex || "0", 10) || 0);
+  startRaffleCarouselAutoplay();
 }
 
 function renderWinnerVideos(site) {
@@ -3110,6 +3234,7 @@ function renderShell(site, slug) {
   `;
 
   writeCachedPublicSite(slug, site);
+  initRaffleCarousel();
 
   document.querySelectorAll("[data-video-url]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -3279,6 +3404,20 @@ app.addEventListener("click", (event) => {
     raffleSelectorState.notice = "Seleccion limpiada.";
     raffleSelectorState.noticeTone = "info";
     paintRaffleSelector();
+    return;
+  }
+
+  if (actionName === "raffle-carousel-prev") {
+    event.preventDefault();
+    event.stopPropagation();
+    stepRaffleCarousel(-1);
+    return;
+  }
+
+  if (actionName === "raffle-carousel-next") {
+    event.preventDefault();
+    event.stopPropagation();
+    stepRaffleCarousel(1);
     return;
   }
 
