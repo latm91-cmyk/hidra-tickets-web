@@ -3163,21 +3163,21 @@ function renderShell(site, slug) {
                 </div>
               </div>
 
-                <div class="hero-media">
+                <div class="hero-media hero-media-with-footer">
                 ${heroVideo ? renderInlineVideo(heroVideo, heroTitle) : `<img src="${escapeHtml(heroSpotlightImage)}" alt="${escapeHtml(heroSpotlightTitle)}" loading="eager" fetchpriority="high" decoding="async" />`}
-                <div class="overlay">
-                  <div class="overlay-top">
-                    <div class="overlay-copy">
-                      <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
-                      <strong>${escapeHtml(heroSpotlightTitle)}</strong>
-                      <div class="overlay-description">${escapeHtml(heroSpotlightDescription)}</div>
-                      ${heroSpotlightChips.length ? `
-                        <div class="overlay-meta">
-                          ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-                        </div>
-                      ` : ""}
-                    </div>
-                    ${featuredRaffle ? `
+                ${featuredRaffle ? `
+                  <div class="overlay hero-media-footer">
+                    <div class="overlay-top">
+                      <div class="overlay-copy">
+                        <span class="${escapeHtml(heroSpotlightLabelClass)}">${escapeHtml(heroSpotlightLabel)}</span>
+                        <strong>${escapeHtml(heroSpotlightTitle)}</strong>
+                        <div class="overlay-description">${escapeHtml(heroSpotlightDescription)}</div>
+                        ${heroSpotlightChips.length ? `
+                          <div class="overlay-meta">
+                            ${heroSpotlightChips.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+                          </div>
+                        ` : ""}
+                      </div>
                       <div class="overlay-actions">
                         <button
                           type="button"
@@ -3187,10 +3187,10 @@ function renderShell(site, slug) {
                           Comprar
                         </button>
                       </div>
-                    ` : ""}
+                    </div>
+                    ${renderRaffleAdvanceBlock(featuredRaffle)}
                   </div>
-                  ${featuredRaffle ? renderRaffleAdvanceBlock(featuredRaffle) : ""}
-                </div>
+                ` : ""}
               </div>
             </div>
           </div>

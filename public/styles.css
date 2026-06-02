@@ -579,6 +579,11 @@ button {
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
 }
 
+.hero-media-with-footer {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 .hero-media img,
 .hero-media video {
   width: 100%;
@@ -596,16 +601,44 @@ button {
 }
 
 .hero-media .overlay {
-  position: absolute;
-  inset: auto 18px 18px 18px;
-  background: linear-gradient(135deg, rgba(8, 25, 47, 0.94), rgba(12, 34, 58, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
+  position: relative;
+  inset: auto;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(8, 25, 47, 0.96), rgba(12, 34, 58, 0.92));
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0;
   padding: 16px 18px 14px;
   color: white;
   backdrop-filter: blur(10px);
   display: grid;
   gap: 12px;
+}
+
+.hero-media .hero-media-footer {
+  align-self: stretch;
+}
+
+.hero-media-with-footer .overlay-top {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.hero-media-with-footer .overlay-actions {
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.hero-media-with-footer .hero-buy-button {
+  min-width: 180px;
+}
+
+.hero-media-with-footer .overlay strong {
+  font-size: 24px;
+  line-height: 1.02;
+}
+
+.hero-media-with-footer .overlay-description {
+  font-size: 14px;
 }
 
 .hero-media .overlay-top {
