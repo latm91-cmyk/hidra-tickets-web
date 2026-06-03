@@ -2237,16 +2237,6 @@ function renderDeliveryModalContent() {
     : "";
   const whatsappUrl = deliveryModalState.whatsappUrl || "";
   const whatsappDisabled = !whatsappUrl || deliveryModalState.loading;
-  const downloadCards = deliveryModalState.assets.length > 0
-    ? deliveryModalState.assets.map((item, index) => `
-        <a class="delivery-download-card" href="${escapeHtml(item.dataUrl || "")}" download="${escapeAttr(item.fileName || `boleta-${index + 1}.png`)}" target="_blank" rel="noreferrer">
-          <span class="delivery-download-index">Boleta ${index + 1}</span>
-          <strong>${escapeHtml(item.label || item.fileName || `Boleta ${index + 1}`)}</strong>
-          <small>Descargar PNG</small>
-        </a>
-      `).join("")
-    : `<div class="delivery-empty">Aun no cargamos las boletas para descarga.</div>`;
-
   return `
     <div class="delivery-modal-head">
       <div class="delivery-modal-head-copy">
@@ -2269,22 +2259,7 @@ function renderDeliveryModalContent() {
         </div>
         <a class="button payment-whatsapp ${whatsappDisabled ? "is-disabled" : ""}" href="${escapeHtml(whatsappUrl || "#")}" target="_blank" rel="noreferrer" ${whatsappDisabled ? 'aria-disabled="true"' : ""}>Enviar por WhatsApp</a>
       </div>
-
-      <div class="delivery-choice-card delivery-choice-download">
-        <div class="payment-action-icon payment-action-icon-upload">↥</div>
-        <div class="payment-card-copy">
-          <strong>Descargar tus boletas</strong>
-          <p>Presiona para descargar tus boletas en el celular. Tambien puedes abrir cada imagen de forma individual.</p>
-        </div>
-        <button type="button" class="button secondary" data-action="download-delivery-boletas">Descargar boletas</button>
-      </div>
     </div>
-
-    ${deliveryModalState.expanded ? `
-      <div class="delivery-download-grid">
-        ${deliveryModalState.loading ? `<div class="delivery-empty">Preparando archivos...</div>` : downloadCards}
-      </div>
-    ` : ""}
   `;
 }
 
@@ -3058,7 +3033,8 @@ function renderShell(site, slug) {
   const heroButton = settings.heroButtonUrl || "#sorteos";
   const heroLabel = settings.heroButtonLabel || (settings.heroButtonUrl ? "Escríbenos" : "Ver sorteos");
   const slogan = settings.slogan || "";
-  const featuredRaffle = asArray(site.activeRaffles)[0] || null;
+  const activeRaffles = asArray(site.activeRaffles);
+  const featuredRaffle = activeRaffles[0] || null;
   const heroSpotlightTitle = featuredRaffle ? getRaffleDisplayTitle(featuredRaffle) : heroTitle;
   const heroSpotlightDescription = featuredRaffle
     ? (getRaffleDisplayDescription(featuredRaffle) || "Compra segura y numeros visibles en tiempo real.")
@@ -3066,6 +3042,9 @@ function renderShell(site, slug) {
   const heroSpotlightImage = featuredRaffle ? getRaffleDisplayImage(featuredRaffle, site) : heroImage;
   const heroSpotlightLabel = featuredRaffle ? "Sorteo destacado" : "Compra segura";
   const heroSpotlightLabelClass = featuredRaffle ? "overlay-label overlay-label-featured" : "overlay-label";
+  const heroGreeting = activeRaffles.length > 1
+    ? (featuredRaffle?.commercialSettings?.greeting || "")
+    : "";
   const heroSpotlightChips = [
     featuredRaffle ? getRaffleDisplayDate(featuredRaffle) : "",
     featuredRaffle ? getRaffleDisplayPrice(featuredRaffle) : "",
@@ -3148,6 +3127,7 @@ function renderShell(site, slug) {
                   </div>
                 </div>
                 ${slogan ? `<p class="hero-slogan">${escapeHtml(slogan)}</p>` : ""}
+                ${heroGreeting ? `<div class="hero-raffle-greeting">${escapeHtml(heroGreeting)}</div>` : ""}
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
                   <a class="button secondary hero-secondary" href="#videos">Ver Ganadores</a>
