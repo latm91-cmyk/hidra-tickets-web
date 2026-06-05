@@ -23,7 +23,7 @@ const ASSETS = {
   payments: "/assets/payment-methods.webp",
   pse: "/assets/pse-logo.svg",
 };
-const RAFFLE_SELECTOR_LIMIT = 180;
+const RAFFLE_SELECTOR_LIMIT = 100;
 const RAFFLE_SELECTOR_PAGE_SIZE = 100;
 const raffleSelectorState = {
   open: false,
@@ -35,6 +35,7 @@ const raffleSelectorState = {
   selected: [],
   numbers: [],
   stats: null,
+  pagination: null,
   loading: false,
   error: "",
   notice: "",
@@ -1413,6 +1414,27 @@ function getRaffleSelectorNumbers() {
 }
 
 function getRaffleSelectorPagination(numbers = []) {
+  const serverPagination = raffleSelectorState.pagination || null;
+  if (serverPagination) {
+    const page = Math.max(1, Number.parseInt(serverPagination.page, 10) || 1);
+    const pageSize = Math.max(1, Number.parseInt(serverPagination.pageSize, 10) || RAFFLE_SELECTOR_PAGE_SIZE);
+    const total = Math.max(0, Number.parseInt(serverPagination.total, 10) || 0);
+    const totalPages = Math.max(1, Number.parseInt(serverPagination.totalPages, 10) || Math.ceil(total / pageSize) || 1);
+    const start = total > 0 ? ((page - 1) * pageSize) + 1 : 0;
+    const end = total > 0 ? Math.min(page * pageSize, total) : 0;
+
+    return {
+      page,
+      total,
+      totalPages,
+      start,
+      end,
+      pageNumbers: Array.isArray(numbers) ? numbers : [],
+      hasPrev: page > 1,
+      hasNext: page < totalPages,
+    };
+  }
+
   const total = Array.isArray(numbers) ? numbers.length : 0;
   const totalPages = Math.max(1, Math.ceil(total / RAFFLE_SELECTOR_PAGE_SIZE));
   const requestedPage = Number.parseInt(raffleSelectorState.page, 10) || 1;
@@ -2372,7 +2394,7 @@ function bindRaffleSelectorActions(content) {
         } else {
           return;
         }
-        paintRaffleSelector();
+        fetchRaffleSelectorNumbers();
       }
     });
   }
@@ -2409,6 +2431,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
   try {
     const searchParams = new URLSearchParams();
     searchParams.set("limit", String(RAFFLE_SELECTOR_LIMIT));
+    searchParams.set("page", String(raffleSelectorState.page || 1));
     if (raffleSelectorState.query) {
       searchParams.set("query", raffleSelectorState.query);
     }
@@ -2459,6 +2482,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
       ? payloadNumbers
       : getRaffleSelectorFallbackNumbers(raffleSelectorState.raffle);
     raffleSelectorState.stats = payload?.stats || null;
+    raffleSelectorState.pagination = payload?.pagination || null;
     raffleSelectorState.updatedAt = payload?.updatedAt || new Date().toISOString();
     raffleSelectorState.loading = false;
     raffleSelectorState.error = "";
@@ -2475,6 +2499,7 @@ async function fetchRaffleSelectorNumbers({ silent = false } = {}) {
     raffleSelectorState.error = error?.message || "No fue posible cargar los numeros.";
     raffleSelectorState.notice = raffleSelectorState.error;
     raffleSelectorState.noticeTone = "error";
+    raffleSelectorState.pagination = null;
     paintRaffleSelector();
   }
 }
@@ -2515,6 +2540,7 @@ async function openRaffleSelector(raffleId) {
     raffleSelectorState.selected = currentSelection.length > 0 ? currentSelection : persistedSelection;
     raffleSelectorState.numbers = [];
     raffleSelectorState.stats = null;
+    raffleSelectorState.pagination = null;
     raffleSelectorState.loading = true;
     raffleSelectorState.error = "";
     raffleSelectorState.notice = "Cargando numeros disponibles...";
@@ -2553,6 +2579,7 @@ async function openRaffleSelector(raffleId) {
   raffleSelectorState.selected = currentSelection.length > 0 ? currentSelection : persistedSelection;
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
+  raffleSelectorState.pagination = null;
   raffleSelectorState.loading = true;
   raffleSelectorState.error = "";
   raffleSelectorState.notice = "Cargando numeros disponibles...";
@@ -2584,6 +2611,7 @@ function closeRaffleSelector() {
   raffleSelectorState.page = 1;
   raffleSelectorState.numbers = [];
   raffleSelectorState.stats = null;
+  raffleSelectorState.pagination = null;
   raffleSelectorState.loading = false;
   raffleSelectorState.error = "";
   raffleSelectorState.notice = "";
