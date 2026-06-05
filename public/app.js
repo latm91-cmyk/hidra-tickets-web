@@ -416,6 +416,7 @@ function getRaffleSelectorSelectionSummary(raffle = {}, selected = []) {
     .map((item) => String(item || "").trim())
     .filter(Boolean);
   const groupSize = getRaffleSelectorCombinationSize(raffle);
+  const supportUploadMode = Boolean(raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const totalNumbers = normalizedSelected.length;
   const completeTickets = groupSize > 0 ? Math.floor(totalNumbers / groupSize) : 0;
   const remainder = groupSize > 0 ? totalNumbers % groupSize : totalNumbers;
@@ -425,6 +426,7 @@ function getRaffleSelectorSelectionSummary(raffle = {}, selected = []) {
 
   return {
     groupSize,
+    supportUploadMode,
     totalNumbers,
     completeTickets,
     remainder,
@@ -1492,6 +1494,7 @@ function renderRaffleSelectorContent() {
   const selected = raffle ? getCurrentRaffleSelectionForRender(raffle.campaign.id) : [];
   const selectionSummary = raffle ? getRaffleSelectorSelectionSummary(raffle, selected) : {
     groupSize: 1,
+    supportUploadMode: false,
     totalNumbers: selected.length,
     completeTickets: 0,
     remainder: 0,
@@ -1500,6 +1503,7 @@ function renderRaffleSelectorContent() {
     total: 0,
   };
   const selectedAmount = selectionSummary.total;
+  const fidelitySingleTicketOnly = Boolean(selectionSummary.supportUploadMode);
   const progressPercent = selectionSummary.groupSize > 0
     ? Math.min(100, Math.round((selectionSummary.totalNumbers / selectionSummary.groupSize) * 100))
     : 0;
@@ -1558,7 +1562,11 @@ function renderRaffleSelectorContent() {
         .join("")
       : `<div class="selector-empty selector-empty-large">No hay numeros disponibles en este momento.</div>`;
   const isReady = raffle && !raffleSelectorState.loading;
-  const canContinueToPayment = Boolean(selected.length && selectionSummary.isComplete);
+  const canContinueToPayment = Boolean(
+    selected.length
+    && selectionSummary.isComplete
+    && (!fidelitySingleTicketOnly || selectionSummary.completeTickets === 1),
+  );
   const whatsappNumber = getRaffleDisplayWhatsApp(site);
   const cleanWhatsapp = String(whatsappNumber || "").replace(/\D/g, "");
   const whatsappMessage = buildSelectionMessage(raffle, selected);
@@ -1579,7 +1587,7 @@ function renderRaffleSelectorContent() {
       ${progressMarkup}
       <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Selecciona tus números para empezar"}</strong>
       <span>${selected.length ? `${escapeHtml(formatCOP(selectedAmount))} · ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"}${selectionSummary.isComplete ? "" : ` · te faltan ${selectionSummary.missingForNext} número${selectionSummary.missingForNext === 1 ? "" : "s"} para completar la siguiente boleta`}` : "Tu total aparecerá aquí al instante."}</span>
-      <p>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números. ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca cualquier número para empezar."}</p>
+      <p>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} números.${fidelitySingleTicketOnly ? " En fidelizacion solo se permite una boleta por cliente." : ""} ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} números y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} números: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca cualquier número para empezar."}</p>
     </div>
   `;
   const priceChips = pricingPackages.length
@@ -2049,13 +2057,15 @@ function refreshPaymentModalActionState() {
   const modal = document.getElementById("payment-modal");
   if (!modal) return;
   const selectionSummary = getRaffleSelectorSelectionSummary(paymentModalState.raffle || {}, paymentModalState.selected);
+  const supportUploadMode = Boolean(paymentModalState.raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const ready = Boolean(
     paymentModalState.open
     && !paymentModalState.loading
     && String(paymentModalState.customerName || "").trim()
     && String(paymentModalState.customerCity || "").trim()
     && String(paymentModalState.customerPhone || "").trim()
-    && selectionSummary.isComplete,
+    && selectionSummary.isComplete
+    && (!supportUploadMode || selectionSummary.completeTickets === 1)
   );
 
   modal.querySelectorAll('[data-action="start-public-pse"], [data-action="trigger-public-receipt-upload"]').forEach((button) => {
@@ -2093,8 +2103,9 @@ function renderPaymentModalContent() {
   const customerCity = String(paymentModalState.customerCity || "").trim();
   const customerPhone = String(paymentModalState.customerPhone || "").trim();
   const isContactReady = Boolean(selectionSummary.isComplete && customerName && customerCity && customerPhone);
-  const isDisabled = !isContactReady || paymentModalState.loading;
   const supportUploadMode = Boolean(raffle?.campaign?.ticket_auto_config?.public_support_upload);
+  const isFidelitySingleTicketValid = !supportUploadMode || selectionSummary.completeTickets === 1;
+  const isDisabled = !isContactReady || paymentModalState.loading || !isFidelitySingleTicketValid;
   const supportLabel = getRaffleDisplayWhatsApp(site) ? `Soporte por WhatsApp: ${getRaffleDisplayWhatsApp(site)}` : "Soporte por WhatsApp";
   const paymentProgressMarkup = selected.length ? `
     <div class="payment-progress">
@@ -2332,7 +2343,16 @@ function handleRaffleSelectorTicketValue(rawValue) {
     return;
   }
 
+  const selectionSummary = getRaffleSelectorSelectionSummary(raffleSelectorState.raffle, raffleSelectorState.selected);
+  const supportUploadMode = Boolean(raffleSelectorState.raffle?.campaign?.ticket_auto_config?.public_support_upload);
   const exists = raffleSelectorState.selected.includes(value);
+  if (supportUploadMode && !exists && selectionSummary.totalNumbers >= selectionSummary.groupSize) {
+    raffleSelectorState.notice = "En fidelizacion solo puedes registrar una boleta por cliente.";
+    raffleSelectorState.noticeTone = "warning";
+    paintRaffleSelector();
+    return;
+  }
+
   raffleSelectorState.selected = exists
     ? raffleSelectorState.selected.filter((item) => item !== value)
     : [...raffleSelectorState.selected, value];
@@ -2748,6 +2768,10 @@ async function submitPublicPseCheckout() {
   }
 
   if (supportUploadMode) {
+    if (selectionSummary.completeTickets !== 1) {
+      submitPublicPaymentStateNotice("En fidelizacion solo puedes registrar una boleta por cliente.", "warning");
+      return;
+    }
     submitPublicPaymentStateNotice("Este sorteo usa capturas de fidelizacion. Usa el boton de subir captura.", "warning");
     return;
   }
@@ -2812,6 +2836,11 @@ async function submitPublicReceiptUpload(file = null) {
   const selected = asArray(paymentModalState.selected);
   const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
   if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !file || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
+    return;
+  }
+
+  if (supportUploadMode && selectionSummary.completeTickets !== 1) {
+    submitPublicPaymentStateNotice("En fidelizacion solo puedes registrar una boleta por cliente.", "warning");
     return;
   }
 
