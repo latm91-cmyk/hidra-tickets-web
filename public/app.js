@@ -9,7 +9,7 @@ function resolvePublicApiBaseUrl() {
     return "http://localhost:10000";
   }
 
-  return window.location.origin.replace(/\/+$/, "");
+  return "https://luis-d038.onrender.com";
 }
 
 const API_BASE_URL = resolvePublicApiBaseUrl();

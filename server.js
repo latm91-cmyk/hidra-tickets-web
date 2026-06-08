@@ -9,8 +9,10 @@ const publicDir = path.join(__dirname, "public");
 const port = Number.parseInt(process.env.PORT || "3000", 10);
 const apiBaseUrl = (
   process.env.API_BASE_URL ||
+  process.env.VITE_API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.PUBLIC_API_URL ||
+  "https://luis-d038.onrender.com" ||
   ""
 ).replace(/\/+$/, "");
 
