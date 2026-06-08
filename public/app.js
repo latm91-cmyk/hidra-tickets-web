@@ -15,6 +15,7 @@ function resolvePublicApiBaseUrl() {
 const API_BASE_URL = resolvePublicApiBaseUrl();
 const app = document.getElementById("app");
 const PUBLIC_SITE_CACHE_PREFIX = "public-site-cache:v1:";
+const RAFFLE_SELECTOR_SEARCH_DELAY_MS = 1500;
 const ASSETS = {
   brand: "/assets/logo-placeholder.webp",
   hero: "/assets/hero-caballo.webp",
@@ -3639,7 +3640,7 @@ app.addEventListener("input", (event) => {
 
   raffleSelectorState.queryTimer = setTimeout(() => {
     fetchRaffleSelectorNumbers();
-  }, 300);
+  }, RAFFLE_SELECTOR_SEARCH_DELAY_MS);
 });
 
 app.addEventListener("change", (event) => {
