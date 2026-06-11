@@ -3087,9 +3087,7 @@ function renderShell(site, slug) {
   const heroSpotlightImage = featuredRaffle ? getRaffleDisplayImage(featuredRaffle, site) : heroImage;
   const heroSpotlightLabel = featuredRaffle ? "Sorteo destacado" : "Compra segura";
   const heroSpotlightLabelClass = featuredRaffle ? "overlay-label overlay-label-featured" : "overlay-label";
-  const heroGreeting = activeRaffles.length > 1
-    ? (featuredRaffle?.commercialSettings?.greeting || "")
-    : "";
+  const heroGreeting = "";
   const heroSpotlightChips = [
     featuredRaffle ? getRaffleDisplayDate(featuredRaffle) : "",
     featuredRaffle ? getRaffleDisplayPrice(featuredRaffle) : "",
