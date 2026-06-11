@@ -2211,19 +2211,6 @@ function renderPaymentModalContent() {
             ${receiptLabel}
           </div>
 
-          <div class="payment-action-card">
-            <div class="payment-action-icon payment-action-icon-pse">
-              <img src="${escapeHtml(ASSETS.pse)}" alt="PSE" />
-            </div>
-            <div class="payment-card-copy">
-              <span class="payment-card-kicker">${supportUploadMode ? "Sin pago en línea" : "Pago en línea"}</span>
-              <strong>${supportUploadMode ? "Este sorteo usa capturas" : "Completa la transacción"}</strong>
-              <p>${supportUploadMode ? "No necesitas abrir PSE para este sorteo. Usa la opción de subir captura." : "Abre la pasarela para completar la transacción."}</p>
-            </div>
-            ${supportUploadMode ? "" : `<button type="button" class="button payment-pse" data-action="start-public-pse" ${isDisabled ? "disabled" : ""}>PSE</button>`}
-            ${checkoutUrl && !supportUploadMode ? `<a class="button secondary payment-checkout-link" href="${escapeHtml(checkoutUrl)}" target="_blank" rel="noreferrer">Abrir checkout</a>` : ""}
-          </div>
-
           <button type="button" class="button secondary payment-back" data-action="close-payment-modal">Volver</button>
       </div>
       </div>
