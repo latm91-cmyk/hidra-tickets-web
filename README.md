@@ -1,11 +1,13 @@
-# Sitio publico de rifas
+# Sitio publico de rifas y retail
 
 Primera version del sitio publico conectado al backend por slug.
 
 ## Como funciona
 
-- La ruta publica se resuelve por slug, por ejemplo: `/agropecuario`
-- El frontend consulta el backend en `GET /public-site/:slug`
+- Rifas: `/agropecuario`
+- Retail: `/negocio/mi-tienda`
+- El frontend consulta `GET /public-site/:slug` para rifas
+- El frontend consulta `GET /public-retail/:slug` para retail
 - El backend es la fuente de verdad del contenido
 - El panel administrativo define los datos que se muestran
 
@@ -25,6 +27,7 @@ Luego abre:
 
 - `http://localhost:3000/agropecuario`
 - o `http://localhost:3000/?slug=agropecuario`
+- retail: `http://localhost:3000/negocio/mi-tienda`
 
 ## Produccion
 
@@ -36,10 +39,10 @@ En Render:
 
 ## Estado actual
 
-- Hero dinamico
+- Hero dinamico para rifas
 - Sorteos visibles
 - Metodos de pago
 - Videos de ganadores
 - FAQ
 - Legal
-- Vista previa del snapshot
+- Vitrina retail separada para catalogo y ventas

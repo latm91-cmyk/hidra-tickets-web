@@ -14,6 +14,19 @@ function resolvePublicApiBaseUrl() {
 
 const API_BASE_URL = resolvePublicApiBaseUrl();
 const app = document.getElementById("app");
+const PUBLIC_SITE_MODE = (() => {
+  const configured = String((window.__PUBLIC_SITE_CONFIG__ || {}).mode || "").trim().toLowerCase();
+  if (configured === "retail" || configured === "raffles") {
+    return configured;
+  }
+
+  const pathname = String(window.location.pathname || "").toLowerCase();
+  if (pathname.startsWith("/negocio/") || pathname === "/negocio" || pathname.startsWith("/retail/")) {
+    return "retail";
+  }
+
+  return "raffles";
+})();
 const PUBLIC_SITE_CACHE_PREFIX = "public-site-cache:v1:";
 const RAFFLE_SELECTOR_SEARCH_DELAY_MS = 1500;
 const ASSETS = {
@@ -140,7 +153,10 @@ function normalizeSlug(value = "") {
 
 function getSlugFromLocation() {
   const fromQuery = new URL(window.location.href).searchParams.get("slug");
-  const fromPath = normalizeSlug(window.location.pathname);
+  const normalizedPath = normalizeSlug(window.location.pathname);
+  const fromPath = (normalizedPath === "negocio" || normalizedPath === "retail")
+    ? normalizeSlug(window.location.pathname.split("/").slice(2).join("/"))
+    : normalizedPath;
   return normalizeSlug(fromQuery || fromPath);
 }
 
@@ -697,7 +713,7 @@ function escapeAttr(value) {
 }
 
 function getPublicSiteCacheKey(slug = "") {
-  return `${PUBLIC_SITE_CACHE_PREFIX}${normalizeSlug(slug)}`;
+  return `${PUBLIC_SITE_CACHE_PREFIX}${PUBLIC_SITE_MODE}:${normalizeSlug(slug)}`;
 }
 
 function readCachedPublicSite(slug = "") {
@@ -3058,6 +3074,166 @@ function renderHowItWorks() {
   `;
 }
 
+function getRetailProductImage(product = {}) {
+  return (
+    product?.imageUrl
+    || product?.image_url
+    || product?.coverImageUrl
+    || product?.cover_image_url
+    || ASSETS.raffle
+  );
+}
+
+function getRetailProductDescription(product = {}) {
+  return String(product?.description || product?.descriptionText || "").trim();
+}
+
+function getRetailProductPrice(product = {}) {
+  const raw = product?.price ?? product?.unitPrice ?? product?.valor ?? 0;
+  return formatCOP(Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0);
+}
+
+function buildRetailWhatsAppLink(storefront = {}, product = null) {
+  const number = String(storefront?.whatsappNumber || storefront?.whatsapp_number || "").replace(/\D/g, "");
+  if (!number) {
+    return "";
+  }
+
+  const title = product?.name || product?.title || storefront?.title || "el producto";
+  const message = product
+    ? `Hola, quiero comprar ${title}.`
+    : `Hola, quiero revisar el catalogo de ${storefront?.title || "la tienda"}.`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+function renderRetailShell(payload = {}, slug = "") {
+  const storefront = payload?.storefront || {};
+  const categories = asArray(payload?.categories);
+  const products = asArray(payload?.products);
+  const companyName = storefront.title || storefront.name || "Tienda";
+  const heroText = storefront.subtitle || storefront.description || "Vitrina virtual para comprar fácil, rápido y por WhatsApp.";
+  const contactLink = buildRetailWhatsAppLink(storefront);
+  const featuredProducts = products.slice(0, 8);
+  const sections = categories.length
+    ? categories
+    : [{ name: "Productos destacados", slug: "destacados" }];
+
+  document.title = `${companyName} | Vitrina virtual`;
+  window.__PUBLIC_SITE_STATE__ = {
+    site: payload,
+    slug,
+    mode: "retail",
+    storefront,
+    categories,
+    products,
+  };
+
+  app.innerHTML = `
+    <div class="page retail-page">
+      <header class="topbar">
+        <div class="shell topbar-inner">
+          <div class="topbar-main">
+            <div class="brand">
+              <div class="brand-mark">
+                <img src="${escapeHtml(storefront.logoUrl || storefront.logo_url || ASSETS.brand)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+              </div>
+              <div>
+                <div class="brand-name">${escapeHtml(companyName)}</div>
+                <span class="brand-subtitle">Vitrina virtual de ventas</span>
+              </div>
+            </div>
+            <div class="top-actions">
+              ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" id="inicio">
+          <div class="shell hero-card">
+            <div class="hero-grid">
+              <div class="hero-copy">
+                <div class="hero-company-line">${escapeHtml(companyName)}</div>
+                <h1 style="margin: 0; font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.02; color: #0f172a;">${escapeHtml(storefront.title || companyName)}</h1>
+                <p class="hero-slogan">${escapeHtml(heroText)}</p>
+                <div class="hero-actions">
+                  ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar ahora</a>` : ""}
+                  <a class="button secondary hero-secondary" href="#catalogo">Ver catalogo</a>
+                </div>
+                <div class="chip-row" style="margin-top: 18px;">
+                  ${storefront.currency ? `<span class="chip">${escapeHtml(storefront.currency)}</span>` : ""}
+                  ${products.length ? `<span class="chip">${escapeHtml(String(products.length))} productos</span>` : ""}
+                  ${categories.length ? `<span class="chip">${escapeHtml(String(categories.length))} categorias</span>` : ""}
+                </div>
+              </div>
+              <div class="hero-media hero-media-with-footer">
+                <img src="${escapeHtml(storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero)}" alt="${escapeHtml(companyName)}" loading="eager" fetchpriority="high" decoding="async" />
+                <div class="overlay hero-media-footer">
+                  <div class="overlay-top">
+                    <div class="overlay-copy">
+                      <span class="overlay-label overlay-label-featured">Compra directa</span>
+                      <strong>${escapeHtml(storefront.subtitle || "Catálogo listo para vender")}</strong>
+                      <div class="overlay-description">${escapeHtml(storefront.deliveryMessage || "Haz tu pedido por WhatsApp y recibe atención inmediata.")}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section shell section-anchor" id="catalogo">
+          <div class="section-head">
+            <div>
+              <h2>Catálogo</h2>
+              <p>Explora los productos publicados por la tienda.</p>
+            </div>
+          </div>
+          ${sections.length ? `<div class="chip-row" style="margin-bottom:16px">${sections.map((category) => `<span class="chip">${escapeHtml(category.name || category.title || "Categoria")}</span>`).join("")}</div>` : ""}
+          <div class="raffles-grid retail-grid">
+            ${featuredProducts.length ? featuredProducts.map((product) => `
+              <article class="raffle-card retail-product-card">
+                <div class="raffle-card-media">
+                  <img src="${escapeHtml(getRetailProductImage(product))}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" />
+                </div>
+                <div class="raffle-card-body">
+                  <div class="chip-row">
+                    ${product.category_name ? `<span class="chip">${escapeHtml(product.category_name)}</span>` : ""}
+                    ${product.sku ? `<span class="chip">${escapeHtml(product.sku)}</span>` : ""}
+                  </div>
+                  <h3 class="raffle-card-title">${escapeHtml(product.name || product.title || "Producto")}</h3>
+                  <p class="raffle-card-copy">${escapeHtml(getRetailProductDescription(product) || "Producto disponible en la vitrina virtual.")}</p>
+                  <div class="raffle-price-summary">${escapeHtml(getRetailProductPrice(product))}</div>
+                  <div class="raffle-card-actions">
+                    ${buildRetailWhatsAppLink(storefront, product) ? `<a class="button gold" href="${escapeHtml(buildRetailWhatsAppLink(storefront, product))}" target="_blank" rel="noreferrer">Pedir por WhatsApp</a>` : ""}
+                  </div>
+                </div>
+              </article>
+            `).join("") : `<div class="state-card">Aún no hay productos visibles en esta vitrina.</div>`}
+          </div>
+        </section>
+
+        <section class="section shell section-anchor">
+          <div class="section-head">
+            <div>
+              <h2>Como comprar</h2>
+              <p>Proceso corto para una venta rapida.</p>
+            </div>
+          </div>
+          <div class="raffles-grid">
+            <div class="state-card"><strong>1. Elige</strong><p>Selecciona el producto que te interesa.</p></div>
+            <div class="state-card"><strong>2. Escribe</strong><p>Abre WhatsApp y pide el producto o la asesoria.</p></div>
+            <div class="state-card"><strong>3. Recibe</strong><p>La tienda confirma tu pedido y coordina la entrega.</p></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  `;
+
+  writeCachedPublicSite(slug, payload);
+}
+
 function renderShell(site, slug) {
   const settings = site.settings || {};
   const company = site.company || {};
@@ -3652,7 +3828,79 @@ app.addEventListener("input", (event) => {
   updatePaymentModalField(field.getAttribute("data-payment-field"), field.value);
 });
 
+async function loadRetailSite() {
+  const slug = getSlugFromLocation();
+
+  if (!slug) {
+    app.innerHTML = `
+      <div class="page">
+        <div class="loading-shell loading-shell-minimal" aria-label="Cargando vitrina">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const cached = readCachedPublicSite(slug);
+  if (cached?.site) {
+    try {
+      renderRetailShell(cached.site, slug);
+      const cachedBanner = document.createElement("div");
+      cachedBanner.className = "site-cache-banner";
+      cachedBanner.textContent = "Mostrando catalogo cargado previamente...";
+      document.body.appendChild(cachedBanner);
+      window.setTimeout(() => {
+        cachedBanner.classList.add("is-hidden");
+        window.setTimeout(() => cachedBanner.remove(), 220);
+      }, 1800);
+    } catch {
+      // If cached render fails, fall back to loading shell below.
+    }
+  }
+
+  if (!cached?.site) {
+    app.innerHTML = `
+      <div class="loading-shell loading-shell-minimal" aria-label="Cargando vitrina">
+        <div class="loading-spinner"></div>
+      </div>
+    `;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/public-retail/${encodeURIComponent(slug)}`);
+    if (!response.ok) {
+      throw new Error(`No se encontro la vitrina para /${slug}`);
+    }
+
+    const payload = await response.json();
+    renderRetailShell(payload, slug);
+  } catch (error) {
+    if (!cached?.site) {
+      app.innerHTML = `
+        <div class="page">
+          <div class="loading-shell">
+            <div class="loading-card">
+              <div class="loading-badge">Error</div>
+              <h1>No fue posible cargar la vitrina</h1>
+              <p>Estamos teniendo un problema temporal al abrir la tienda.</p>
+              <div style="margin-top:18px">
+                <a class="button primary" href="/" onclick="window.location.reload(); return false;">Intentar de nuevo</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+}
+
 async function loadSite() {
+  if (PUBLIC_SITE_MODE === "retail") {
+    await loadRetailSite();
+    return;
+  }
+
   const slug = getSlugFromLocation();
 
   if (!slug) {

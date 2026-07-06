@@ -76,8 +76,8 @@ async function serveAsset(res, filePath) {
   res.end(content);
 }
 
-async function serveIndex(res) {
-  const template = await fs.readFile(path.join(publicDir, "index.html"), "utf8");
+async function serveHtml(res, templateName) {
+  const template = await fs.readFile(path.join(publicDir, templateName), "utf8");
   const assetVersion = await getAssetVersion();
   const html = template
     .replaceAll("__API_BASE_URL__", apiBaseUrl)
@@ -100,13 +100,19 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    const retailPath = pathname === "/negocio" || pathname.startsWith("/negocio/") || pathname.startsWith("/retail/");
+    if (retailPath) {
+      await serveHtml(res, "retail.html");
+      return;
+    }
+
     const assetPath = safeJoin(publicDir, pathname === "/" ? "/index.html" : pathname);
     if (await fileExists(assetPath) && path.extname(assetPath)) {
       await serveAsset(res, assetPath);
       return;
     }
 
-    await serveIndex(res);
+    await serveHtml(res, "index.html");
   } catch (error) {
     res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify({ error: error?.message || "Internal server error" }));
