@@ -4240,8 +4240,7 @@ function getRetailProductOfferBadge(product = {}) {
   const price = getRetailProductValue(product);
   const comparePrice = getRetailProductCompareValue(product);
   if (comparePrice > price && price > 0) {
-    const discount = Math.max(1, Math.round(((comparePrice - price) / comparePrice) * 100));
-    return `-${discount}%`;
+    return "Oferta";
   }
   if (product?.isFeatured) {
     return "Oferta";
@@ -4454,102 +4453,52 @@ function renderRetailShell(payload = {}, slug = "") {
             </div>
 
             <div style="display:grid; gap: 10px; min-width: 0;">
-              <div style="display:grid; gap: 10px; padding: 8px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden; width: 100%;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
-                  <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.82); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Ofertas</div>
-                  <span style="color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 700;">Selección rápida</span>
-                </div>
-                <div style="display:grid; gap: 8px;">
-                  ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
-                    const image = getRetailProductActiveImage(product);
-                    const categoryLabel = product?.category_name || product?.categoryName || "Oferta";
-                    const name = product?.name || product?.title || "Producto";
-                    const price = getRetailProductPrice(product);
-                    const badge = getRetailProductOfferBadge(product);
-                    return `
-                      <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:flex; align-items:center; gap: 10px; text-align:left; padding: 8px; border-radius: 16px; background: rgba(8,25,47,0.42); border: 1px solid rgba(255,255,255,0.08); cursor:pointer;">
-                        <div style="width: 54px; height: 54px; border-radius: 14px; overflow:hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08);">
-                          <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                        </div>
-                        <div style="min-width:0; flex:1 1 auto;">
-                          <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px;">
-                            <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.68); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(categoryLabel)}</div>
-                            ${badge ? `<span style="display:inline-flex; padding: 6px 10px; border-radius: 999px; background: rgba(255,214,102,0.18); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">${escapeHtml(badge)}</span>` : ""}
-                          </div>
-                          <strong style="display:block; margin-top: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(name)}</strong>
-                          <div style="margin-top: 3px; color: rgba(255,255,255,0.82); font-size: 12px;">${escapeHtml(price)}</div>
-                        </div>
-                      </button>
-                    `;
-                  }).join("") : `<div style="padding: 12px; border-radius: 16px; background: rgba(8,25,47,0.42); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.78); font-size: 13px;">No hay ofertas cargadas aún.</div>`}
-                </div>
-              </div>
               ${contactLink ? `<div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;"><a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a></div>` : ""}
             </div>
           </div>
         </div>
       </header>
 
-      <main>
-        <section class="hero" id="inicio" style="padding-top: 28px;">
-          <div class="shell hero-card" style="overflow: hidden; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(10,36,61,0.96) 52%, rgba(18,68,53,0.92)); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 26px 60px rgba(8,25,47,0.22);">
-            <div class="hero-grid" style="grid-template-columns: 1.08fr 0.92fr; align-items: stretch; gap: 22px;">
-              <div class="hero-copy" style="display:grid; gap: 18px; align-content: center; padding: 18px 0 10px; color: #fff;">
-                <div style="display:inline-flex; width: fit-content; align-items:center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 214, 102, 0.12); color: #ffd766; border: 1px solid rgba(255, 214, 102, 0.18); font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;">
-                  <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background:#ffd766; box-shadow:0 0 0 6px rgba(255,214,102,0.14);"></span>
-                  Tienda abierta
+      <section class="section shell section-anchor" id="ofertas" style="margin-top: 18px;">
+        <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; margin-bottom: 14px;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Ofertas</div>
+            <h2 style="margin-top: 14px;">Productos en promoción</h2>
+            <p style="max-width: 58ch;">Selección destacada con formato horizontal para abrir el espacio que dejó el hero.</p>
+          </div>
+          ${contactLink ? `<a class="button secondary" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="white-space: nowrap;">Pedir por WhatsApp</a>` : ""}
+        </div>
+        <div style="display:grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 290px); gap: 14px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; overscroll-behavior-x: contain;">
+          ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
+            const image = getRetailProductActiveImage(product);
+            const categoryLabel = product?.category_name || product?.categoryName || "Oferta";
+            const name = product?.name || product?.title || "Producto";
+            const price = getRetailProductPrice(product);
+            const badge = getRetailProductOfferBadge(product);
+            return `
+              <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:grid; gap: 12px; text-align:left; padding: 12px; border-radius: 22px; background: linear-gradient(180deg, #ffffff, #f7f9fc); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 16px 34px rgba(8,25,47,0.08); cursor:pointer; min-width: 250px;">
+                <div style="position: relative; width: 100%; aspect-ratio: 1.45; border-radius: 18px; overflow:hidden; background: rgba(8,25,47,0.06);">
+                  <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                  ${badge ? `<span style="position:absolute; top: 12px; left: 12px; display:inline-flex; align-items:center; gap: 4px; padding: 7px 12px; border-radius: 999px; background: rgba(8,25,47,0.92); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta <span aria-hidden="true">›</span></span>` : ""}
                 </div>
                 <div style="display:grid; gap: 8px;">
-                  <div class="hero-company-line" style="color: rgba(255,255,255,0.74); letter-spacing: .16em;">${escapeHtml(companyName)}</div>
-                  <h1 style="margin: 0; font-size: clamp(2.7rem, 5vw, 4.8rem); line-height: .96; color: #fff; letter-spacing: -0.05em; max-width: 12ch;">${escapeHtml(storefront.title || companyName)}</h1>
-                  <p class="hero-slogan" style="font-size: 1.04rem; color: rgba(255,255,255,0.86); max-width: 46ch; margin: 0;">${escapeHtml(heroText)}</p>
-                </div>
-                <div style="display:flex; flex-wrap: wrap; gap: 10px;">
-                  ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="box-shadow: 0 14px 30px rgba(214,161,30,0.22);">Comprar ahora</a>` : ""}
-                  <a class="button secondary hero-secondary" href="#catalogo" style="background: rgba(255,255,255,0.92); border-color: transparent; color: #0f172a;">Ver catalogo</a>
-                </div>
-                <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 2px;">
-                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
-                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Atencion</div>
-                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[0])}</strong>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px;">
+                    <div style="font-size: 11px; font-weight: 800; color: rgba(15,23,42,0.58); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(categoryLabel)}</div>
+                    <span aria-hidden="true" style="display:inline-flex; width: 30px; height: 30px; align-items:center; justify-content:center; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 18px;">›</span>
                   </div>
-                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
-                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Logistica</div>
-                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[1])}</strong>
-                  </div>
-                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
-                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Moneda</div>
-                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[2])}</strong>
+                  <strong style="display:block; color: #0f172a; font-size: 1.02rem; line-height: 1.12;">${escapeHtml(name)}</strong>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px; color: #0f172a;">
+                    <span style="font-size: 1rem; font-weight: 900;">${escapeHtml(price)}</span>
+                    <span style="font-size: 12px; font-weight: 700; color: rgba(15,23,42,0.62);">Ver detalle</span>
                   </div>
                 </div>
-              </div>
-              <div class="hero-media hero-media-with-footer" style="min-height: 520px; position: relative; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.07);">
-                <img src="${escapeHtml(heroImage)}" alt="${escapeHtml(companyName)}" loading="eager" fetchpriority="high" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit: cover; filter: saturate(1.02) contrast(1.02);" />
-                <div style="position:absolute; inset: 18px 18px auto 18px; display:flex; justify-content: space-between; gap: 10px; align-items: flex-start; z-index: 2;">
-                  <div style="max-width: 72%;">
-                    <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.84); color: #ffd766; font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Selección destacada</div>
-                  </div>
-                  <div style="display:inline-flex; padding: 10px 14px; border-radius: 16px; background: rgba(8,25,47,0.72); color: #fff; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;">${escapeHtml(currency)}</div>
-                </div>
-                <div style="position:absolute; inset: auto 18px 18px 18px; z-index: 2;">
-                  <div style="padding: 16px 18px; border-radius: 22px; background: linear-gradient(180deg, rgba(8,25,47,0.36), rgba(8,25,47,0.84)); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); color: #fff;">
-                    <div style="display:flex; gap: 14px; align-items: center;">
-                      <div style="width: 64px; height: 64px; border-radius: 18px; overflow: hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
-                        <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
-                      </div>
-                      <div style="min-width: 0;">
-                        <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: #ffd766;">Compra directa</div>
-                        <div style="margin-top: 4px; font-size: 22px; font-weight: 900; line-height: 1.05;">${escapeHtml(storefront.subtitle || "Catálogo listo para vender")}</div>
-                        <div style="margin-top: 7px; color: rgba(255,255,255,0.84); font-size: 13px; line-height: 1.5;">${escapeHtml(storefront.deliveryMessage || "Haz tu pedido por WhatsApp y recibe atención inmediata.")}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+              </button>
+            `;
+          }).join("") : `<div style="padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(8,25,47,0.08); color: rgba(15,23,42,0.72); font-size: 13px;">No hay ofertas cargadas aún.</div>`}
+        </div>
+      </section>
 
+      <main>
         <section class="section shell section-anchor" id="catalogo" style="margin-top: 32px;">
           <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px;">
             <div>
