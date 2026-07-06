@@ -4377,7 +4377,7 @@ function renderRetailShell(payload = {}, slug = "") {
     ? categories
     : [{ name: "Productos destacados", slug: "destacados" }];
   const heroImage = storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero;
-  const heroLogo = storefront.logoUrl || storefront.logo_url || ASSETS.brand;
+  const heroLogo = storefront.logoUrl || storefront.logo_url || storefront.companyLogoUrl || storefront.company_logo_url || ASSETS.brand;
   const currency = storefront.currency || "COP";
   const trustPoints = [
     storefront.whatsappNumber || storefront.whatsapp_number ? "Atencion por WhatsApp" : "Contacto inmediato",
@@ -4486,8 +4486,8 @@ function renderRetailShell(payload = {}, slug = "") {
           </div>
         </div>
         <div style="position: relative;">
-          <button type="button" class="button secondary" data-action="retail-offers-scroll-prev" aria-label="Mover ofertas a la izquierda" style="position:absolute; left:-12px; top:50%; transform: translateY(-50%); z-index:2; width: 44px; min-width: 44px; height: 44px; padding: 0; justify-content:center; border-radius: 999px; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">‹</button>
-          <button type="button" class="button secondary" data-action="retail-offers-scroll-next" aria-label="Mover ofertas a la derecha" style="position:absolute; right:-12px; top:50%; transform: translateY(-50%); z-index:2; width: 44px; min-width: 44px; height: 44px; padding: 0; justify-content:center; border-radius: 999px; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">›</button>
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-prev" aria-label="Mover ofertas a la izquierda" style="position:absolute; left:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">‹</button>
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-next" aria-label="Mover ofertas a la derecha" style="position:absolute; right:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">›</button>
           <div id="retail-offers-track" class="retail-offers-track" style="display:grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 250px); gap: 12px; overflow-x: auto; padding: 2px 28px 10px; overscroll-behavior-x: contain;">
           ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
             const image = getRetailProductActiveImage(product);
