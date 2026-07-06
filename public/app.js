@@ -4377,7 +4377,7 @@ function renderRetailShell(payload = {}, slug = "") {
     ? categories
     : [{ name: "Productos destacados", slug: "destacados" }];
   const heroImage = storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero;
-  const heroLogo = storefront.logoUrl || storefront.logo_url || storefront.companyLogoUrl || storefront.company_logo_url || ASSETS.brand;
+  const heroLogo = storefront.logoUrl || storefront.logo_url || storefront.webPageLogoUrl || storefront.web_page_logo_url || storefront.companyLogoUrl || storefront.company_logo_url || ASSETS.brand;
   const currency = storefront.currency || "COP";
   const trustPoints = [
     storefront.whatsappNumber || storefront.whatsapp_number ? "Atencion por WhatsApp" : "Contacto inmediato",
