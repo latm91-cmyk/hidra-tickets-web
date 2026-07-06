@@ -3877,20 +3877,17 @@ async function loadRetailSite() {
     renderRetailShell(payload, slug);
   } catch (error) {
     if (!cached?.site) {
-      app.innerHTML = `
-        <div class="page">
-          <div class="loading-shell">
-            <div class="loading-card">
-              <div class="loading-badge">Error</div>
-              <h1>No fue posible cargar la vitrina</h1>
-              <p>Estamos teniendo un problema temporal al abrir la tienda.</p>
-              <div style="margin-top:18px">
-                <a class="button primary" href="/" onclick="window.location.reload(); return false;">Intentar de nuevo</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+      renderRetailShell({
+        storefront: {
+          title: slug ? slug.replace(/[-_]+/g, " ") : "Vitrina retail",
+          subtitle: "Vitrina virtual para comprar fácil, rápido y por WhatsApp.",
+          description: "Estamos preparando el catalogo para esta tienda.",
+          currency: "COP",
+          deliveryMessage: "Aun no hay productos publicados, pero la vitrina ya esta activa.",
+        },
+        categories: [],
+        products: [],
+      }, slug);
     }
   }
 }
@@ -3970,3 +3967,4 @@ async function loadSite() {
 }
 
 loadSite();
+
