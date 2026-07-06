@@ -3117,6 +3117,16 @@ function renderRetailShell(payload = {}, slug = "") {
   const sections = categories.length
     ? categories
     : [{ name: "Productos destacados", slug: "destacados" }];
+  const heroImage = storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero;
+  const heroLogo = storefront.logoUrl || storefront.logo_url || ASSETS.brand;
+  const currency = storefront.currency || "COP";
+  const productCountLabel = products.length ? `${String(products.length)} productos` : "Catalogo en preparacion";
+  const categoryCountLabel = categories.length ? `${String(categories.length)} categorias` : "Sin categorias aun";
+  const trustPoints = [
+    storefront.whatsappNumber || storefront.whatsapp_number ? "Atencion por WhatsApp" : "Contacto inmediato",
+    storefront.deliveryMessage ? "Entrega coordinada" : "Compra asistida",
+    currency,
+  ];
 
   document.title = `${companyName} | Vitrina virtual`;
   window.__PUBLIC_SITE_STATE__ = {
@@ -3135,7 +3145,7 @@ function renderRetailShell(payload = {}, slug = "") {
           <div class="topbar-main">
             <div class="brand">
               <div class="brand-mark">
-                <img src="${escapeHtml(storefront.logoUrl || storefront.logo_url || ASSETS.brand)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+                <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
               <div>
                 <div class="brand-name">${escapeHtml(companyName)}</div>
@@ -3143,38 +3153,70 @@ function renderRetailShell(payload = {}, slug = "") {
               </div>
             </div>
             <div class="top-actions">
+              <div style="display:none"></div>
               ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
             </div>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 6px;">
+            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(productCountLabel)}</div>
+            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(categoryCountLabel)}</div>
+            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(currency)}</div>
           </div>
         </div>
       </header>
 
       <main>
-        <section class="hero" id="inicio">
-          <div class="shell hero-card">
-            <div class="hero-grid">
-              <div class="hero-copy">
-                <div class="hero-company-line">${escapeHtml(companyName)}</div>
-                <h1 style="margin: 0; font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.02; color: #0f172a;">${escapeHtml(storefront.title || companyName)}</h1>
-                <p class="hero-slogan">${escapeHtml(heroText)}</p>
-                <div class="hero-actions">
-                  ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar ahora</a>` : ""}
-                  <a class="button secondary hero-secondary" href="#catalogo">Ver catalogo</a>
+        <section class="hero" id="inicio" style="padding-top: 28px;">
+          <div class="shell hero-card" style="overflow: hidden; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(10,36,61,0.96) 52%, rgba(18,68,53,0.92)); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 26px 60px rgba(8,25,47,0.22);">
+            <div class="hero-grid" style="grid-template-columns: 1.08fr 0.92fr; align-items: stretch; gap: 22px;">
+              <div class="hero-copy" style="display:grid; gap: 18px; align-content: center; padding: 18px 0 10px; color: #fff;">
+                <div style="display:inline-flex; width: fit-content; align-items:center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 214, 102, 0.12); color: #ffd766; border: 1px solid rgba(255, 214, 102, 0.18); font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background:#ffd766; box-shadow:0 0 0 6px rgba(255,214,102,0.14);"></span>
+                  Tienda abierta
                 </div>
-                <div class="chip-row" style="margin-top: 18px;">
-                  ${storefront.currency ? `<span class="chip">${escapeHtml(storefront.currency)}</span>` : ""}
-                  ${products.length ? `<span class="chip">${escapeHtml(String(products.length))} productos</span>` : ""}
-                  ${categories.length ? `<span class="chip">${escapeHtml(String(categories.length))} categorias</span>` : ""}
+                <div style="display:grid; gap: 8px;">
+                  <div class="hero-company-line" style="color: rgba(255,255,255,0.74); letter-spacing: .16em;">${escapeHtml(companyName)}</div>
+                  <h1 style="margin: 0; font-size: clamp(2.7rem, 5vw, 4.8rem); line-height: .96; color: #fff; letter-spacing: -0.05em; max-width: 12ch;">${escapeHtml(storefront.title || companyName)}</h1>
+                  <p class="hero-slogan" style="font-size: 1.04rem; color: rgba(255,255,255,0.86); max-width: 46ch; margin: 0;">${escapeHtml(heroText)}</p>
+                </div>
+                <div style="display:flex; flex-wrap: wrap; gap: 10px;">
+                  ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="box-shadow: 0 14px 30px rgba(214,161,30,0.22);">Comprar ahora</a>` : ""}
+                  <a class="button secondary hero-secondary" href="#catalogo" style="background: rgba(255,255,255,0.92); border-color: transparent; color: #0f172a;">Ver catalogo</a>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 2px;">
+                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Atencion</div>
+                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[0])}</strong>
+                  </div>
+                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Logistica</div>
+                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[1])}</strong>
+                  </div>
+                  <div style="padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.07);">
+                    <div style="font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.58); font-weight: 800;">Moneda</div>
+                    <strong style="display:block; margin-top: 8px; color: #fff; font-size: 15px;">${escapeHtml(trustPoints[2])}</strong>
+                  </div>
                 </div>
               </div>
-              <div class="hero-media hero-media-with-footer">
-                <img src="${escapeHtml(storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero)}" alt="${escapeHtml(companyName)}" loading="eager" fetchpriority="high" decoding="async" />
-                <div class="overlay hero-media-footer">
-                  <div class="overlay-top">
-                    <div class="overlay-copy">
-                      <span class="overlay-label overlay-label-featured">Compra directa</span>
-                      <strong>${escapeHtml(storefront.subtitle || "Catálogo listo para vender")}</strong>
-                      <div class="overlay-description">${escapeHtml(storefront.deliveryMessage || "Haz tu pedido por WhatsApp y recibe atención inmediata.")}</div>
+              <div class="hero-media hero-media-with-footer" style="min-height: 520px; position: relative; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.07);">
+                <img src="${escapeHtml(heroImage)}" alt="${escapeHtml(companyName)}" loading="eager" fetchpriority="high" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit: cover; filter: saturate(1.02) contrast(1.02);" />
+                <div style="position:absolute; inset: 18px 18px auto 18px; display:flex; justify-content: space-between; gap: 10px; align-items: flex-start; z-index: 2;">
+                  <div style="max-width: 72%;">
+                    <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.84); color: #ffd766; font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Selección destacada</div>
+                  </div>
+                  <div style="display:inline-flex; padding: 10px 14px; border-radius: 16px; background: rgba(8,25,47,0.72); color: #fff; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;">${escapeHtml(currency)}</div>
+                </div>
+                <div style="position:absolute; inset: auto 18px 18px 18px; z-index: 2;">
+                  <div style="padding: 16px 18px; border-radius: 22px; background: linear-gradient(180deg, rgba(8,25,47,0.36), rgba(8,25,47,0.84)); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); color: #fff;">
+                    <div style="display:flex; gap: 14px; align-items: center;">
+                      <div style="width: 64px; height: 64px; border-radius: 18px; overflow: hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
+                        <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+                      </div>
+                      <div style="min-width: 0;">
+                        <div style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: #ffd766;">Compra directa</div>
+                        <div style="margin-top: 4px; font-size: 22px; font-weight: 900; line-height: 1.05;">${escapeHtml(storefront.subtitle || "Catálogo listo para vender")}</div>
+                        <div style="margin-top: 7px; color: rgba(255,255,255,0.84); font-size: 13px; line-height: 1.5;">${escapeHtml(storefront.deliveryMessage || "Haz tu pedido por WhatsApp y recibe atención inmediata.")}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3183,48 +3225,64 @@ function renderRetailShell(payload = {}, slug = "") {
           </div>
         </section>
 
-        <section class="section shell section-anchor" id="catalogo">
-          <div class="section-head">
+        <section class="section shell section-anchor" id="catalogo" style="margin-top: 32px;">
+          <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px;">
             <div>
-              <h2>Catálogo</h2>
-              <p>Explora los productos publicados por la tienda.</p>
+              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Catálogo</div>
+              <h2 style="margin-top: 14px;">Explora la vitrina</h2>
+              <p style="max-width: 58ch;">Productos publicados por la tienda, organizados para compra rápida y atención directa.</p>
             </div>
           </div>
-          ${sections.length ? `<div class="chip-row" style="margin-bottom:16px">${sections.map((category) => `<span class="chip">${escapeHtml(category.name || category.title || "Categoria")}</span>`).join("")}</div>` : ""}
+          ${sections.length ? `<div class="chip-row" style="margin-bottom:18px; flex-wrap: wrap; gap: 8px;">${sections.map((category) => `<span class="chip" style="padding: 10px 14px; background: #fff; border-color: rgba(8,25,47,0.08); box-shadow: 0 10px 18px rgba(8,25,47,0.05);">${escapeHtml(category.name || category.title || "Categoria")}</span>`).join("")}</div>` : ""}
           <div class="raffles-grid retail-grid">
             ${featuredProducts.length ? featuredProducts.map((product) => `
-              <article class="raffle-card retail-product-card">
-                <div class="raffle-card-media">
-                  <img src="${escapeHtml(getRetailProductImage(product))}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" />
+              <article class="raffle-card retail-product-card" style="overflow:hidden; border-radius: 24px; border-color: rgba(8,25,47,0.08); box-shadow: 0 16px 40px rgba(8,25,47,0.09); background: linear-gradient(180deg, #fff, #fbfcfe);">
+                <div class="raffle-card-media" style="aspect-ratio: 1.02; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02));">
+                  <img src="${escapeHtml(getRetailProductImage(product))}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="object-fit: cover;" />
                 </div>
-                <div class="raffle-card-body">
-                  <div class="chip-row">
-                    ${product.category_name ? `<span class="chip">${escapeHtml(product.category_name)}</span>` : ""}
-                    ${product.sku ? `<span class="chip">${escapeHtml(product.sku)}</span>` : ""}
+                <div class="raffle-card-body" style="padding: 18px 18px 20px; display: grid; gap: 12px;">
+                  <div class="chip-row" style="gap: 8px; flex-wrap: wrap;">
+                    ${product.category_name ? `<span class="chip" style="background:#f8fafc; border-color: rgba(8,25,47,0.08);">${escapeHtml(product.category_name)}</span>` : ""}
+                    ${product.sku ? `<span class="chip" style="background:#f8fafc; border-color: rgba(8,25,47,0.08);">${escapeHtml(product.sku)}</span>` : ""}
                   </div>
-                  <h3 class="raffle-card-title">${escapeHtml(product.name || product.title || "Producto")}</h3>
-                  <p class="raffle-card-copy">${escapeHtml(getRetailProductDescription(product) || "Producto disponible en la vitrina virtual.")}</p>
-                  <div class="raffle-price-summary">${escapeHtml(getRetailProductPrice(product))}</div>
-                  <div class="raffle-card-actions">
-                    ${buildRetailWhatsAppLink(storefront, product) ? `<a class="button gold" href="${escapeHtml(buildRetailWhatsAppLink(storefront, product))}" target="_blank" rel="noreferrer">Pedir por WhatsApp</a>` : ""}
+                  <h3 class="raffle-card-title" style="font-size: 1.15rem; line-height: 1.08;">${escapeHtml(product.name || product.title || "Producto")}</h3>
+                  <p class="raffle-card-copy" style="min-height: 54px; color: #526074;">${escapeHtml(getRetailProductDescription(product) || "Producto disponible en la vitrina virtual.")}</p>
+                  <div style="display:flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, rgba(8,25,47,0.96), rgba(29,95,70,0.92)); color: #fff;">
+                    <div>
+                      <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.72); font-weight: 800;">Precio</div>
+                      <div style="font-size: 1.15rem; font-weight: 900; margin-top: 4px;">${escapeHtml(getRetailProductPrice(product))}</div>
+                    </div>
+                    <div style="font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.86); text-align: right;">Pago y entrega<br/>asistidos por WhatsApp</div>
+                  </div>
+                  <div class="raffle-card-actions" style="margin-top: 2px;">
+                    ${buildRetailWhatsAppLink(storefront, product) ? `<a class="button gold" href="${escapeHtml(buildRetailWhatsAppLink(storefront, product))}" target="_blank" rel="noreferrer" style="width:100%; justify-content:center;">Pedir por WhatsApp</a>` : ""}
                   </div>
                 </div>
               </article>
-            `).join("") : `<div class="state-card">Aún no hay productos visibles en esta vitrina.</div>`}
+            `).join("") : `
+              <div class="state-card" style="padding: 28px; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(17,32,56,0.96)); color: #fff; border: 1px solid rgba(8,25,47,0.06); box-shadow: 0 18px 40px rgba(8,25,47,0.12);">
+                <div style="display:grid; gap: 10px; max-width: 56ch;">
+                  <div style="display:inline-flex; width: fit-content; padding: 8px 12px; border-radius: 999px; background: rgba(255,214,102,0.12); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Catálogo en construcción</div>
+                  <h3 style="margin: 0; font-size: 1.6rem; line-height: 1.08;">Todavía no hay productos visibles</h3>
+                  <p style="margin: 0; color: rgba(255,255,255,0.82); line-height: 1.6;">La vitrina ya está lista para recibir productos. Cuando publiques inventario, aparecerá aquí con tarjetas destacadas, precio y compra por WhatsApp.</p>
+                  ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="width: fit-content; margin-top: 8px;">Escribir a la tienda</a>` : ""}
+                </div>
+              </div>`}
           </div>
         </section>
 
-        <section class="section shell section-anchor">
+        <section class="section shell section-anchor" style="margin-top: 30px; padding-bottom: 24px;">
           <div class="section-head">
             <div>
-              <h2>Como comprar</h2>
-              <p>Proceso corto para una venta rapida.</p>
+              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Cómo comprar</div>
+              <h2 style="margin-top: 14px;">Ruta de compra simple</h2>
+              <p>Flujo corto para cerrar la venta rápido, sin fricción.</p>
             </div>
           </div>
-          <div class="raffles-grid">
-            <div class="state-card"><strong>1. Elige</strong><p>Selecciona el producto que te interesa.</p></div>
-            <div class="state-card"><strong>2. Escribe</strong><p>Abre WhatsApp y pide el producto o la asesoria.</p></div>
-            <div class="state-card"><strong>3. Recibe</strong><p>La tienda confirma tu pedido y coordina la entrega.</p></div>
+          <div class="raffles-grid" style="gap: 14px;">
+            <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">1. Revisa</strong><p style="margin:10px 0 0; color:#526074;">Explora la vitrina y abre la ficha del producto que te interesa.</p></div>
+            <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">2. Escríbenos</strong><p style="margin:10px 0 0; color:#526074;">Usa WhatsApp para pedir asesoría, disponibilidad o compra directa.</p></div>
+            <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">3. Recibe</strong><p style="margin:10px 0 0; color:#526074;">La tienda confirma tu pedido y coordina la entrega contigo.</p></div>
           </div>
         </section>
       </main>
@@ -3967,4 +4025,5 @@ async function loadSite() {
 }
 
 loadSite();
+
 
