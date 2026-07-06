@@ -116,8 +116,6 @@ const retailUiState = {
   imageIndexByProductId: {},
   searchQuery: "",
   selectedCategorySlug: "",
-  headerTickerIndex: 0,
-  headerTickerTimer: null,
   shellRenderTimer: null,
 };
 
@@ -4143,10 +4141,6 @@ function ensureRetailModalStyles() {
     #retail-checkout-modal .payment-modal-head {
       margin-bottom: 2px;
     }
-    @keyframes retailHeaderPulse {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
   `;
   document.head.appendChild(style);
 }
@@ -4229,8 +4223,52 @@ function getRetailProductDescription(product = {}) {
 }
 
 function getRetailProductPrice(product = {}) {
+  return formatCOP(getRetailProductValue(product));
+}
+
+function getRetailProductValue(product = {}) {
   const raw = product?.price ?? product?.unitPrice ?? product?.valor ?? 0;
-  return formatCOP(Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0);
+  return Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0;
+}
+
+function getRetailProductCompareValue(product = {}) {
+  const raw = product?.compareAtPrice ?? product?.compare_at_price ?? product?.comparePrice ?? 0;
+  return Number(String(raw || "").replace(/[^\d.-]/g, "")) || 0;
+}
+
+function getRetailProductOfferBadge(product = {}) {
+  const price = getRetailProductValue(product);
+  const comparePrice = getRetailProductCompareValue(product);
+  if (comparePrice > price && price > 0) {
+    const discount = Math.max(1, Math.round(((comparePrice - price) / comparePrice) * 100));
+    return `-${discount}%`;
+  }
+  if (product?.isFeatured) {
+    return "Oferta";
+  }
+  return "";
+}
+
+function getRetailOfferProducts(products = [], count = 3) {
+  const list = asArray(products);
+  if (!list.length) {
+    return [];
+  }
+
+  const ranked = list
+    .map((product, index) => {
+      const price = getRetailProductValue(product);
+      const comparePrice = getRetailProductCompareValue(product);
+      const isOffer = Boolean(product?.isFeatured || comparePrice > price);
+      const score = (product?.isFeatured ? 100000 : 0) + (comparePrice > price ? (comparePrice - price) * 10 : 0) + (isOffer ? 1000 : 0) - index;
+      return { product, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.product);
+
+  const offers = ranked.filter((product) => product?.isFeatured || getRetailProductCompareValue(product) > getRetailProductValue(product));
+  const source = offers.length ? offers : ranked;
+  return source.slice(0, Math.max(1, Math.min(Number(count) || 3, source.length)));
 }
 
 function buildRetailWhatsAppLink(storefront = {}, product = null) {
@@ -4285,42 +4323,7 @@ function getRetailFilteredProducts(products = [], categories = []) {
 }
 
 function getRetailHeaderSpotlightProducts(products = [], count = 3) {
-  const list = asArray(products);
-  if (!list.length) {
-    return [];
-  }
-
-  const size = Math.max(1, Math.min(Number(count) || 3, list.length));
-  const start = list.length > 1 ? (Number(retailUiState.headerTickerIndex) || 0) % list.length : 0;
-  const spotlight = [];
-
-  for (let index = 0; index < size; index += 1) {
-    spotlight.push(list[(start + index) % list.length]);
-  }
-
-  return spotlight;
-}
-
-function ensureRetailHeaderTicker(site, slug) {
-  if (retailUiState.headerTickerTimer) {
-    return;
-  }
-
-  retailUiState.headerTickerTimer = window.setInterval(() => {
-    const currentSite = window.__PUBLIC_SITE_STATE__?.site || null;
-    const currentSlug = window.__PUBLIC_SITE_STATE__?.slug || "";
-    if (!currentSite || currentSlug !== slug) {
-      return;
-    }
-
-    const totalProducts = asArray(currentSite?.products).length;
-    if (totalProducts < 2) {
-      return;
-    }
-
-    retailUiState.headerTickerIndex = (Number(retailUiState.headerTickerIndex) || 0) + 1;
-    renderRetailShell(currentSite, currentSlug);
-  }, 4800);
+  return getRetailOfferProducts(products, count);
 }
 
 function scheduleRetailShellRender(site, slug, delay = 120) {
@@ -4347,7 +4350,6 @@ function renderRetailShell(payload = {}, slug = "") {
     retailUiState.imageIndexByProductId = {};
     retailUiState.searchQuery = "";
     retailUiState.selectedCategorySlug = "";
-    retailUiState.headerTickerIndex = 0;
   }
   retailUiState.slug = slug;
   if (retailCartState.slug && retailCartState.slug !== slug) {
@@ -4372,9 +4374,6 @@ function renderRetailShell(payload = {}, slug = "") {
   const heroImage = storefront.bannerUrl || storefront.banner_url || storefront.coverImageUrl || storefront.cover_image_url || ASSETS.hero;
   const heroLogo = storefront.logoUrl || storefront.logo_url || ASSETS.brand;
   const currency = storefront.currency || "COP";
-  const productCountLabel = products.length ? `${String(products.length)} productos` : "Catalogo en preparacion";
-  const categoryCountLabel = categories.length ? `${String(categories.length)} categorias` : "Sin categorias aun";
-  const filteredCountLabel = filteredProducts.length ? `${String(filteredProducts.length)} resultados` : "Sin coincidencias";
   const trustPoints = [
     storefront.whatsappNumber || storefront.whatsapp_number ? "Atencion por WhatsApp" : "Contacto inmediato",
     storefront.deliveryMessage ? "Entrega coordinada" : "Compra asistida",
@@ -4390,15 +4389,10 @@ function renderRetailShell(payload = {}, slug = "") {
     categories,
     products,
   };
-  ensureRetailHeaderTicker(payload, slug);
 
   app.innerHTML = `
     <div class="page retail-page">
       <style>
-        @keyframes retailHeaderPulse {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
         @media (max-width: 1180px) {
           .retail-page .topbar .topbar-main {
             grid-template-columns: 1fr !important;
@@ -4415,14 +4409,21 @@ function renderRetailShell(payload = {}, slug = "") {
       </style>
       <header class="topbar">
         <div class="shell topbar-inner">
-          <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(300px, 380px); gap: 14px; align-items: center;">
-            <div class="brand" style="min-width: 0;">
+          <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px); gap: 14px; align-items: center;">
+            <div class="brand" style="min-width: 0; display:grid; gap: 10px;">
               <div class="brand-mark">
                 <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
               <div style="min-width: 0;">
                 <div class="brand-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(companyName)}</div>
                 <span class="brand-subtitle">Vitrina virtual de ventas</span>
+              </div>
+              <div class="top-actions" style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
+                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">🛒</span>
+                  <span>Carrito</span>
+                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
+                </button>
               </div>
             </div>
 
@@ -4453,68 +4454,37 @@ function renderRetailShell(payload = {}, slug = "") {
             </div>
 
             <div style="display:grid; gap: 10px; min-width: 0;">
-              <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
-                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(productCountLabel)}</div>
-                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(categoryCountLabel)}</div>
-                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(filteredCountLabel)}</div>
-              </div>
-              <div style="display:grid; gap: 10px; padding: 12px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden;">
+              <div style="display:grid; gap: 10px; padding: 8px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden; width: 100%;">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
-                  <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.82); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Carrusel</div>
-                  <span style="color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 700;">Productos al azar</span>
+                  <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.82); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Ofertas</div>
+                  <span style="color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 700;">Selección rápida</span>
                 </div>
-                ${headerSpotlightProducts[0] ? (() => {
-                  const product = headerSpotlightProducts[0];
-                  const image = getRetailProductActiveImage(product);
-                  const categoryLabel = product?.category_name || product?.categoryName || "Destacado";
-                  const name = product?.name || product?.title || "Producto";
-                  const price = getRetailProductPrice(product);
-                  const subtitle = getRetailProductDescription(product) || "Oferta destacada de la vitrina.";
-                  return `
-                    <div style="position:relative; border-radius: 20px; overflow:hidden; min-height: 220px; background: linear-gradient(180deg, rgba(8,25,47,0.92), rgba(11,44,72,0.86)); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 36px rgba(8,25,47,0.18);">
-                      <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter: saturate(1.02) contrast(1.03); opacity: 0.48;" />
-                      <div style="position:absolute; inset:0; background: linear-gradient(180deg, rgba(8,25,47,0.18), rgba(8,25,47,0.84));"></div>
-                      <div style="position:relative; z-index:2; display:grid; gap: 10px; padding: 16px;">
-                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 10px;">
-                          <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(255,214,102,0.18); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta viva</div>
-                          <div style="display:inline-flex; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #0f172a; font-size: 12px; font-weight: 900; box-shadow: 0 10px 20px rgba(8,25,47,0.12);">${escapeHtml(price)}</div>
-                        </div>
-                        <div style="margin-top: auto;">
-                          <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.68); font-weight: 800;">${escapeHtml(categoryLabel)}</div>
-                          <strong style="display:block; margin-top: 6px; color: #fff; font-size: 1.2rem; line-height: 1.02;">${escapeHtml(name)}</strong>
-                          <p style="margin: 8px 0 0; color: rgba(255,255,255,0.82); font-size: 13px; line-height: 1.45; max-width: 34ch;">${escapeHtml(subtitle)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                })() : ""}
-                <div style="display:grid; grid-template-columns: repeat(${Math.min(3, Math.max(1, headerSpotlightProducts.length))}, minmax(0, 1fr)); gap: 8px;">
-                  ${headerSpotlightProducts.slice(0, 3).map((product, index) => {
+                <div style="display:grid; gap: 8px;">
+                  ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
                     const image = getRetailProductActiveImage(product);
-                    const isPrimary = index === 0;
+                    const categoryLabel = product?.category_name || product?.categoryName || "Oferta";
+                    const name = product?.name || product?.title || "Producto";
+                    const price = getRetailProductPrice(product);
+                    const badge = getRetailProductOfferBadge(product);
                     return `
-                      <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:flex; align-items:center; gap: 10px; text-align:left; padding: 8px; border-radius: 16px; background: ${isPrimary ? "rgba(255,214,102,0.12)" : "rgba(8,25,47,0.42)"}; border: 1px solid ${isPrimary ? "rgba(255,214,102,0.26)" : "rgba(255,255,255,0.08)"}; cursor:pointer; animation: retailHeaderPulse ${4.8 + (index * 0.55)}s ease-in-out infinite;">
-                        <div style="width: 46px; height: 46px; border-radius: 14px; overflow:hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08);">
-                          <img src="${escapeHtml(image)}" alt="${escapeHtml(product?.name || product?.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                      <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:flex; align-items:center; gap: 10px; text-align:left; padding: 8px; border-radius: 16px; background: rgba(8,25,47,0.42); border: 1px solid rgba(255,255,255,0.08); cursor:pointer;">
+                        <div style="width: 54px; height: 54px; border-radius: 14px; overflow:hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08);">
+                          <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
                         </div>
                         <div style="min-width:0; flex:1 1 auto;">
-                          <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.68); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(product?.category_name || product?.categoryName || "Destacado")}</div>
-                          <strong style="display:block; margin-top: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(product?.name || product?.title || "Producto")}</strong>
-                          <div style="margin-top: 3px; color: rgba(255,255,255,0.82); font-size: 12px;">${escapeHtml(getRetailProductPrice(product))}</div>
+                          <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px;">
+                            <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.68); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(categoryLabel)}</div>
+                            ${badge ? `<span style="display:inline-flex; padding: 6px 10px; border-radius: 999px; background: rgba(255,214,102,0.18); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">${escapeHtml(badge)}</span>` : ""}
+                          </div>
+                          <strong style="display:block; margin-top: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(name)}</strong>
+                          <div style="margin-top: 3px; color: rgba(255,255,255,0.82); font-size: 12px;">${escapeHtml(price)}</div>
                         </div>
                       </button>
                     `;
-                  }).join("")}
-                </div>
+                  }).join("") : `<div style="padding: 12px; border-radius: 16px; background: rgba(8,25,47,0.42); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.78); font-size: 13px;">No hay ofertas cargadas aún.</div>`}
                 </div>
               </div>
-              <div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                  <span>Carrito</span>
-                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
-                </button>
-                ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
-              </div>
+              ${contactLink ? `<div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;"><a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a></div>` : ""}
             </div>
           </div>
         </div>
