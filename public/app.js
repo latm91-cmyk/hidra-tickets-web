@@ -114,6 +114,11 @@ const publicUiState = {
 const retailUiState = {
   slug: "",
   imageIndexByProductId: {},
+  searchQuery: "",
+  selectedCategorySlug: "",
+  headerTickerIndex: 0,
+  headerTickerTimer: null,
+  shellRenderTimer: null,
 };
 
 const retailCartState = {
@@ -3478,8 +3483,8 @@ function openRetailProductModal(product = {}) {
 
   frame.innerHTML = `
     <div class="retail-modal-shell" style="display:grid; gap: 14px; min-height: 0;">
-      <div class="retail-modal-zoomable" style="position:relative; border-radius: 28px; overflow:hidden; background: radial-gradient(circle at top left, rgba(214,161,62,0.18), transparent 32%), linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 28px 60px rgba(8,25,47,0.18); max-height: min(44vh, 420px);">
-        <img data-retail-main-image src="${escapeHtml(currentImage)}" alt="${escapeHtml(productName)}" loading="eager" decoding="async" style="width:100%;height:100%;max-height: min(44vh, 420px);object-fit:cover;display:block;transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; opacity:1;" />
+      <div class="retail-modal-zoomable" style="position:relative; border-radius: 28px; overflow:hidden; background: radial-gradient(circle at top left, rgba(214,161,62,0.18), transparent 32%), linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 28px 60px rgba(8,25,47,0.18); max-height: min(44vh, 420px); padding: 10px; box-sizing: border-box;">
+        <img data-retail-main-image src="${escapeHtml(currentImage)}" alt="${escapeHtml(productName)}" loading="eager" decoding="async" style="width:100%;height:100%;max-height: min(44vh, 420px);object-fit:contain;object-position:center center;display:block;transition: opacity 220ms ease, filter 220ms ease; opacity:1; background: transparent;" />
         <div style="position:absolute; inset: 16px 16px auto 16px; display:flex; justify-content:space-between; gap: 10px; align-items:center;">
           <div style="display:inline-flex; align-items:center; gap: 8px; padding: 9px 12px; border-radius: 999px; background: rgba(8,25,47,0.9); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">Vitrina premium</div>
           <div style="display:flex; align-items:center; gap: 8px;">
@@ -3515,11 +3520,9 @@ function openRetailProductModal(product = {}) {
   const mainImage = frame.querySelector("[data-retail-main-image]");
   if (mainImage) {
     mainImage.addEventListener("mouseenter", () => {
-      mainImage.style.transform = "scale(1.06)";
-      mainImage.style.filter = "saturate(1.03) contrast(1.03)";
+      mainImage.style.filter = "saturate(1.02) contrast(1.02)";
     });
     mainImage.addEventListener("mouseleave", () => {
-      mainImage.style.transform = "scale(1)";
       mainImage.style.filter = "";
     });
   }
@@ -4060,11 +4063,9 @@ function ensureRetailModalStyles() {
   style.id = "retail-modal-styles";
   style.textContent = `
     .retail-modal-zoomable img {
-      transition: transform 180ms ease, filter 180ms ease;
-      will-change: transform;
+      transition: filter 180ms ease, opacity 220ms ease;
     }
     .retail-modal-zoomable:hover img {
-      transform: scale(1.06);
       filter: saturate(1.03) contrast(1.03);
     }
     .retail-modal-zoomable img.is-fading {
@@ -4141,6 +4142,10 @@ function ensureRetailModalStyles() {
     }
     #retail-checkout-modal .payment-modal-head {
       margin-bottom: 2px;
+    }
+    @keyframes retailHeaderPulse {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
     }
   `;
   document.head.appendChild(style);
@@ -4241,9 +4246,108 @@ function buildRetailWhatsAppLink(storefront = {}, product = null) {
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
+function normalizeRetailSearchText(value = "") {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getRetailSearchableText(product = {}) {
+  const pieces = [
+    product?.name,
+    product?.title,
+    product?.sku,
+    product?.description,
+    product?.descriptionText,
+    product?.category_name,
+    product?.categoryName,
+  ].filter(Boolean);
+
+  return normalizeRetailSearchText(pieces.join(" "));
+}
+
+function getRetailFilteredProducts(products = [], categories = []) {
+  const query = normalizeRetailSearchText(retailUiState.searchQuery);
+  const categorySlug = normalizeRetailSearchText(retailUiState.selectedCategorySlug);
+  const categoryMap = new Map(
+    asArray(categories)
+      .map((category) => [normalizeRetailSearchText(category?.slug || category?.name || category?.title || ""), category])
+      .filter(([key]) => Boolean(key)),
+  );
+
+  return asArray(products).filter((product) => {
+    const productCategorySlug = normalizeRetailSearchText(product?.category_slug || product?.categorySlug || product?.category?.slug || product?.category_name || product?.categoryName || "");
+    const matchesCategory = !categorySlug || productCategorySlug === categorySlug || (categoryMap.get(categorySlug) && normalizeRetailSearchText(product?.category_name || product?.categoryName || product?.category?.name || "") === categorySlug);
+    const matchesQuery = !query || getRetailSearchableText(product).includes(query);
+    return matchesCategory && matchesQuery;
+  });
+}
+
+function getRetailHeaderSpotlightProducts(products = [], count = 3) {
+  const list = asArray(products);
+  if (!list.length) {
+    return [];
+  }
+
+  const size = Math.max(1, Math.min(Number(count) || 3, list.length));
+  const start = list.length > 1 ? (Number(retailUiState.headerTickerIndex) || 0) % list.length : 0;
+  const spotlight = [];
+
+  for (let index = 0; index < size; index += 1) {
+    spotlight.push(list[(start + index) % list.length]);
+  }
+
+  return spotlight;
+}
+
+function ensureRetailHeaderTicker(site, slug) {
+  if (retailUiState.headerTickerTimer) {
+    return;
+  }
+
+  retailUiState.headerTickerTimer = window.setInterval(() => {
+    const currentSite = window.__PUBLIC_SITE_STATE__?.site || null;
+    const currentSlug = window.__PUBLIC_SITE_STATE__?.slug || "";
+    if (!currentSite || currentSlug !== slug) {
+      return;
+    }
+
+    const totalProducts = asArray(currentSite?.products).length;
+    if (totalProducts < 2) {
+      return;
+    }
+
+    retailUiState.headerTickerIndex = (Number(retailUiState.headerTickerIndex) || 0) + 1;
+    renderRetailShell(currentSite, currentSlug);
+  }, 4800);
+}
+
+function scheduleRetailShellRender(site, slug, delay = 120) {
+  if (!site || !slug) {
+    return;
+  }
+
+  if (retailUiState.shellRenderTimer) {
+    window.clearTimeout(retailUiState.shellRenderTimer);
+  }
+
+  retailUiState.shellRenderTimer = window.setTimeout(() => {
+    retailUiState.shellRenderTimer = null;
+    renderRetailShell(site, slug);
+  }, Math.max(0, Number(delay) || 0));
+}
+
 function renderRetailShell(payload = {}, slug = "") {
+  if (retailUiState.shellRenderTimer) {
+    window.clearTimeout(retailUiState.shellRenderTimer);
+    retailUiState.shellRenderTimer = null;
+  }
   if (retailUiState.slug && retailUiState.slug !== slug) {
     retailUiState.imageIndexByProductId = {};
+    retailUiState.searchQuery = "";
+    retailUiState.selectedCategorySlug = "";
+    retailUiState.headerTickerIndex = 0;
   }
   retailUiState.slug = slug;
   if (retailCartState.slug && retailCartState.slug !== slug) {
@@ -4256,10 +4360,12 @@ function renderRetailShell(payload = {}, slug = "") {
   const storefront = payload?.storefront || {};
   const categories = asArray(payload?.categories);
   const products = asArray(payload?.products);
+  const filteredProducts = getRetailFilteredProducts(products, categories);
+  const headerSpotlightProducts = getRetailHeaderSpotlightProducts(products, 3);
   const companyName = storefront.title || storefront.name || "Tienda";
   const heroText = storefront.subtitle || storefront.description || "Vitrina virtual para comprar fácil, rápido y por WhatsApp.";
   const contactLink = buildRetailWhatsAppLink(storefront);
-  const featuredProducts = products.slice(0, 8);
+  const featuredProducts = filteredProducts.slice(0, 8);
   const sections = categories.length
     ? categories
     : [{ name: "Productos destacados", slug: "destacados" }];
@@ -4268,6 +4374,7 @@ function renderRetailShell(payload = {}, slug = "") {
   const currency = storefront.currency || "COP";
   const productCountLabel = products.length ? `${String(products.length)} productos` : "Catalogo en preparacion";
   const categoryCountLabel = categories.length ? `${String(categories.length)} categorias` : "Sin categorias aun";
+  const filteredCountLabel = filteredProducts.length ? `${String(filteredProducts.length)} resultados` : "Sin coincidencias";
   const trustPoints = [
     storefront.whatsappNumber || storefront.whatsapp_number ? "Atencion por WhatsApp" : "Contacto inmediato",
     storefront.deliveryMessage ? "Entrega coordinada" : "Compra asistida",
@@ -4283,34 +4390,132 @@ function renderRetailShell(payload = {}, slug = "") {
     categories,
     products,
   };
+  ensureRetailHeaderTicker(payload, slug);
 
   app.innerHTML = `
     <div class="page retail-page">
+      <style>
+        @keyframes retailHeaderPulse {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @media (max-width: 1180px) {
+          .retail-page .topbar .topbar-main {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 760px) {
+          .retail-page .topbar .topbar-main {
+            gap: 12px !important;
+          }
+          .retail-page .topbar .brand {
+            width: 100%;
+          }
+        }
+      </style>
       <header class="topbar">
         <div class="shell topbar-inner">
-          <div class="topbar-main">
-            <div class="brand">
+          <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(300px, 380px); gap: 14px; align-items: center;">
+            <div class="brand" style="min-width: 0;">
               <div class="brand-mark">
                 <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
-              <div>
-                <div class="brand-name">${escapeHtml(companyName)}</div>
+              <div style="min-width: 0;">
+                <div class="brand-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(companyName)}</div>
                 <span class="brand-subtitle">Vitrina virtual de ventas</span>
               </div>
             </div>
-            <div class="top-actions">
-              <div style="display:none"></div>
-              <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                <span>Carrito</span>
-                <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
-              </button>
-              ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
+
+            <div style="display:grid; gap: 12px; min-width: 0;">
+              <label style="display:block; min-width: 0;">
+                <span style="display:block; margin-bottom: 8px; color: rgba(255,255,255,0.76); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;">Buscar productos</span>
+                <div style="display:flex; align-items:center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 16px 28px rgba(8,25,47,0.14);">
+                  <input
+                    type="search"
+                    data-retail-search
+                    value="${escapeAttr(retailUiState.searchQuery || "")}"
+                    placeholder="Buscar productos, marcas y más..."
+                    aria-label="Buscar productos"
+                    style="flex:1 1 auto; min-width: 0; border:0; outline: none; background: transparent; color:#0f172a; font-size: 15px; font-weight: 600;"
+                  />
+                  <button type="button" class="button secondary" data-action="clear-retail-search" style="padding: 10px 12px; border-radius: 14px; white-space: nowrap;">Limpiar</button>
+                </div>
+              </label>
+
+              <div style="display:flex; flex-wrap: wrap; gap: 8px; align-items:center;">
+                <button type="button" class="chip" data-action="set-retail-category-filter" data-category-slug="" style="padding: 8px 12px; border-radius: 999px; border-color:${retailUiState.selectedCategorySlug ? "rgba(255,255,255,0.24)" : "rgba(255,214,102,0.75)"}; background:${retailUiState.selectedCategorySlug ? "rgba(255,255,255,0.08)" : "rgba(255,214,102,0.18)"}; color:#fff;">Todas</button>
+                ${categories.map((category) => {
+                  const categorySlug = String(category?.slug || category?.name || category?.title || "").trim();
+                  const isActive = normalizeRetailSearchText(retailUiState.selectedCategorySlug) === normalizeRetailSearchText(categorySlug);
+                  return `<button type="button" class="chip" data-action="set-retail-category-filter" data-category-slug="${escapeAttr(categorySlug)}" style="padding: 8px 12px; border-radius: 999px; border-color:${isActive ? "rgba(255,214,102,0.80)" : "rgba(255,255,255,0.16)"}; background:${isActive ? "rgba(255,214,102,0.16)" : "rgba(255,255,255,0.08)"}; color:#fff;">${escapeHtml(category.name || category.title || "Categoria")}</button>`;
+                }).join("")}
+              </div>
             </div>
-          </div>
-          <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 6px;">
-            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(productCountLabel)}</div>
-            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(categoryCountLabel)}</div>
-            <div style="padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(currency)}</div>
+
+            <div style="display:grid; gap: 10px; min-width: 0;">
+              <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(productCountLabel)}</div>
+                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(categoryCountLabel)}</div>
+                <div style="padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center;">${escapeHtml(filteredCountLabel)}</div>
+              </div>
+              <div style="display:grid; gap: 10px; padding: 12px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); overflow: hidden;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px;">
+                  <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.82); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Carrusel</div>
+                  <span style="color: rgba(255,255,255,0.72); font-size: 12px; font-weight: 700;">Productos al azar</span>
+                </div>
+                ${headerSpotlightProducts[0] ? (() => {
+                  const product = headerSpotlightProducts[0];
+                  const image = getRetailProductActiveImage(product);
+                  const categoryLabel = product?.category_name || product?.categoryName || "Destacado";
+                  const name = product?.name || product?.title || "Producto";
+                  const price = getRetailProductPrice(product);
+                  const subtitle = getRetailProductDescription(product) || "Oferta destacada de la vitrina.";
+                  return `
+                    <div style="position:relative; border-radius: 20px; overflow:hidden; min-height: 220px; background: linear-gradient(180deg, rgba(8,25,47,0.92), rgba(11,44,72,0.86)); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 36px rgba(8,25,47,0.18);">
+                      <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter: saturate(1.02) contrast(1.03); opacity: 0.48;" />
+                      <div style="position:absolute; inset:0; background: linear-gradient(180deg, rgba(8,25,47,0.18), rgba(8,25,47,0.84));"></div>
+                      <div style="position:relative; z-index:2; display:grid; gap: 10px; padding: 16px;">
+                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 10px;">
+                          <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(255,214,102,0.18); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta viva</div>
+                          <div style="display:inline-flex; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #0f172a; font-size: 12px; font-weight: 900; box-shadow: 0 10px 20px rgba(8,25,47,0.12);">${escapeHtml(price)}</div>
+                        </div>
+                        <div style="margin-top: auto;">
+                          <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.68); font-weight: 800;">${escapeHtml(categoryLabel)}</div>
+                          <strong style="display:block; margin-top: 6px; color: #fff; font-size: 1.2rem; line-height: 1.02;">${escapeHtml(name)}</strong>
+                          <p style="margin: 8px 0 0; color: rgba(255,255,255,0.82); font-size: 13px; line-height: 1.45; max-width: 34ch;">${escapeHtml(subtitle)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                })() : ""}
+                <div style="display:grid; grid-template-columns: repeat(${Math.min(3, Math.max(1, headerSpotlightProducts.length))}, minmax(0, 1fr)); gap: 8px;">
+                  ${headerSpotlightProducts.slice(0, 3).map((product, index) => {
+                    const image = getRetailProductActiveImage(product);
+                    const isPrimary = index === 0;
+                    return `
+                      <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:flex; align-items:center; gap: 10px; text-align:left; padding: 8px; border-radius: 16px; background: ${isPrimary ? "rgba(255,214,102,0.12)" : "rgba(8,25,47,0.42)"}; border: 1px solid ${isPrimary ? "rgba(255,214,102,0.26)" : "rgba(255,255,255,0.08)"}; cursor:pointer; animation: retailHeaderPulse ${4.8 + (index * 0.55)}s ease-in-out infinite;">
+                        <div style="width: 46px; height: 46px; border-radius: 14px; overflow:hidden; flex: 0 0 auto; background: rgba(255,255,255,0.08);">
+                          <img src="${escapeHtml(image)}" alt="${escapeHtml(product?.name || product?.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                        </div>
+                        <div style="min-width:0; flex:1 1 auto;">
+                          <div style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.68); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(product?.category_name || product?.categoryName || "Destacado")}</div>
+                          <strong style="display:block; margin-top: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(product?.name || product?.title || "Producto")}</strong>
+                          <div style="margin-top: 3px; color: rgba(255,255,255,0.82); font-size: 12px;">${escapeHtml(getRetailProductPrice(product))}</div>
+                        </div>
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
+                </div>
+              </div>
+              <div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
+                  <span>Carrito</span>
+                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
+                </button>
+                ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -5013,6 +5218,31 @@ app.addEventListener("click", (event) => {
     return;
   }
 
+  if (actionName === "set-retail-category-filter") {
+    event.preventDefault();
+    event.stopPropagation();
+    const nextCategorySlug = String(action.getAttribute("data-category-slug") || "").trim();
+    retailUiState.selectedCategorySlug = normalizeRetailSearchText(retailUiState.selectedCategorySlug) === normalizeRetailSearchText(nextCategorySlug) ? "" : nextCategorySlug;
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+    if (site && slug) {
+      scheduleRetailShellRender(site, slug, 0);
+    }
+    return;
+  }
+
+  if (actionName === "clear-retail-search") {
+    event.preventDefault();
+    event.stopPropagation();
+    retailUiState.searchQuery = "";
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+    if (site && slug) {
+      scheduleRetailShellRender(site, slug, 0);
+    }
+    return;
+  }
+
   if (actionName === "retail-product-image-prev" || actionName === "retail-product-image-next" || actionName === "retail-product-image-set") {
     event.preventDefault();
     event.stopPropagation();
@@ -5280,6 +5510,17 @@ if (!window.__PUBLIC_RETAIL_KEYBOARD_BOUND__) {
 }
 
 app.addEventListener("input", (event) => {
+  const retailSearch = event.target.closest("[data-retail-search]");
+  if (retailSearch && app.contains(retailSearch)) {
+    retailUiState.searchQuery = String(retailSearch.value || "");
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+    if (site && slug) {
+      scheduleRetailShellRender(site, slug, 140);
+    }
+    return;
+  }
+
   const field = event.target.closest("[data-payment-field]");
   if (!field || !app.contains(field)) {
     const retailField = event.target.closest("[data-retail-field]");
