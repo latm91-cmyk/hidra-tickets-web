@@ -4242,10 +4242,16 @@ function getRetailProductOfferBadge(product = {}) {
   if (comparePrice > price && price > 0) {
     return "Oferta";
   }
-  if (product?.isFeatured) {
-    return "Oferta";
-  }
   return "";
+}
+
+function getRetailProductDiscountPercent(product = {}) {
+  const price = getRetailProductValue(product);
+  const comparePrice = getRetailProductCompareValue(product);
+  if (!(comparePrice > price && price > 0)) {
+    return 0;
+  }
+  return Math.round(((comparePrice - price) / comparePrice) * 100);
 }
 
 function getRetailOfferProducts(products = [], count = 3) {
@@ -4258,15 +4264,15 @@ function getRetailOfferProducts(products = [], count = 3) {
     .map((product, index) => {
       const price = getRetailProductValue(product);
       const comparePrice = getRetailProductCompareValue(product);
-      const isOffer = Boolean(product?.isFeatured || comparePrice > price);
-      const score = (product?.isFeatured ? 100000 : 0) + (comparePrice > price ? (comparePrice - price) * 10 : 0) + (isOffer ? 1000 : 0) - index;
+      const hasRealDiscount = comparePrice > price && price > 0;
+      const score = (hasRealDiscount ? (comparePrice - price) * 100 : 0) - index;
       return { product, score };
     })
     .sort((a, b) => b.score - a.score)
     .map((entry) => entry.product);
 
-  const offers = ranked.filter((product) => product?.isFeatured || getRetailProductCompareValue(product) > getRetailProductValue(product));
-  const source = offers.length ? offers : ranked;
+  const offers = ranked.filter((product) => getRetailProductCompareValue(product) > getRetailProductValue(product));
+  const source = offers;
   return source.slice(0, Math.max(1, Math.min(Number(count) || 3, source.length)));
 }
 
@@ -4405,24 +4411,33 @@ function renderRetailShell(payload = {}, slug = "") {
             width: 100%;
           }
         }
+        .retail-offers-track {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .retail-offers-track::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
       </style>
       <header class="topbar">
         <div class="shell topbar-inner">
           <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px); gap: 14px; align-items: center;">
             <div class="brand" style="min-width: 0; display:grid; gap: 10px;">
+              <div class="top-actions" style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content:flex-start;">
+                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
+                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">🛒</span>
+                  <span>Carrito</span>
+                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
+                </button>
+              </div>
               <div class="brand-mark">
                 <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
               <div style="min-width: 0;">
                 <div class="brand-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(companyName)}</div>
                 <span class="brand-subtitle">Vitrina virtual de ventas</span>
-              </div>
-              <div class="top-actions" style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">🛒</span>
-                  <span>Carrito</span>
-                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
-                </button>
               </div>
             </div>
 
@@ -4460,41 +4475,53 @@ function renderRetailShell(payload = {}, slug = "") {
       </header>
 
       <section class="section shell section-anchor" id="ofertas" style="margin-top: 18px;">
-        <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; margin-bottom: 14px;">
+        <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; margin-bottom: 12px;">
           <div>
             <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Ofertas</div>
             <h2 style="margin-top: 14px;">Productos en promoción</h2>
             <p style="max-width: 58ch;">Selección destacada con formato horizontal para abrir el espacio que dejó el hero.</p>
           </div>
-          ${contactLink ? `<a class="button secondary" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="white-space: nowrap;">Pedir por WhatsApp</a>` : ""}
+        <div style="display:flex; align-items:center; gap: 10px;">
+            ${contactLink ? `<a class="button secondary" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="white-space: nowrap;">Pedir por WhatsApp</a>` : ""}
+          </div>
         </div>
-        <div style="display:grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 290px); gap: 14px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; overscroll-behavior-x: contain;">
+        <div style="position: relative;">
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-prev" aria-label="Mover ofertas a la izquierda" style="position:absolute; left:-12px; top:50%; transform: translateY(-50%); z-index:2; width: 44px; min-width: 44px; height: 44px; padding: 0; justify-content:center; border-radius: 999px; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">‹</button>
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-next" aria-label="Mover ofertas a la derecha" style="position:absolute; right:-12px; top:50%; transform: translateY(-50%); z-index:2; width: 44px; min-width: 44px; height: 44px; padding: 0; justify-content:center; border-radius: 999px; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">›</button>
+          <div id="retail-offers-track" class="retail-offers-track" style="display:grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 250px); gap: 12px; overflow-x: auto; padding: 2px 28px 10px; overscroll-behavior-x: contain;">
           ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
             const image = getRetailProductActiveImage(product);
             const categoryLabel = product?.category_name || product?.categoryName || "Oferta";
             const name = product?.name || product?.title || "Producto";
             const price = getRetailProductPrice(product);
+            const comparePrice = getRetailProductCompareValue(product);
+            const discountPercent = getRetailProductDiscountPercent(product);
             const badge = getRetailProductOfferBadge(product);
             return `
-              <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:grid; gap: 12px; text-align:left; padding: 12px; border-radius: 22px; background: linear-gradient(180deg, #ffffff, #f7f9fc); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 16px 34px rgba(8,25,47,0.08); cursor:pointer; min-width: 250px;">
-                <div style="position: relative; width: 100%; aspect-ratio: 1.45; border-radius: 18px; overflow:hidden; background: rgba(8,25,47,0.06);">
+              <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:grid; gap: 10px; text-align:left; padding: 10px; border-radius: 20px; background: linear-gradient(180deg, #ffffff, #f7f9fc); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 28px rgba(8,25,47,0.07); cursor:pointer; min-width: 220px;">
+                <div style="position: relative; width: 100%; aspect-ratio: 1.18; border-radius: 16px; overflow:hidden; background: rgba(8,25,47,0.06);">
                   <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                  ${badge ? `<span style="position:absolute; top: 12px; left: 12px; display:inline-flex; align-items:center; gap: 4px; padding: 7px 12px; border-radius: 999px; background: rgba(8,25,47,0.92); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta <span aria-hidden="true">›</span></span>` : ""}
+                  ${badge ? `<span style="position:absolute; top: 10px; left: 10px; display:inline-flex; align-items:center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(8,25,47,0.92); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta <span aria-hidden="true">›</span></span>` : ""}
+                  ${discountPercent ? `<span style="position:absolute; top: 10px; right: 10px; display:inline-flex; align-items:center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(29,95,70,0.96); color: #fff; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">-${discountPercent}%</span>` : ""}
                 </div>
-                <div style="display:grid; gap: 8px;">
+                <div style="display:grid; gap: 6px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px;">
                     <div style="font-size: 11px; font-weight: 800; color: rgba(15,23,42,0.58); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(categoryLabel)}</div>
-                    <span aria-hidden="true" style="display:inline-flex; width: 30px; height: 30px; align-items:center; justify-content:center; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 18px;">›</span>
+                    <span aria-hidden="true" style="display:inline-flex; width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 16px;">›</span>
                   </div>
-                  <strong style="display:block; color: #0f172a; font-size: 1.02rem; line-height: 1.12;">${escapeHtml(name)}</strong>
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px; color: #0f172a;">
-                    <span style="font-size: 1rem; font-weight: 900;">${escapeHtml(price)}</span>
+                  <strong style="display:block; color: #0f172a; font-size: 0.98rem; line-height: 1.1;">${escapeHtml(name)}</strong>
+                  <div style="display:flex; align-items:flex-end; justify-content:space-between; gap: 8px; color: #0f172a;">
+                    <div style="display:grid; gap: 3px;">
+                      ${comparePrice > getRetailProductValue(product) ? `<span style="font-size: 12px; color: rgba(15,23,42,0.52); text-decoration: line-through;">${escapeHtml(formatCOP(comparePrice))}</span>` : ""}
+                      <span style="font-size: 0.98rem; font-weight: 900;">${escapeHtml(price)}</span>
+                    </div>
                     <span style="font-size: 12px; font-weight: 700; color: rgba(15,23,42,0.62);">Ver detalle</span>
                   </div>
                 </div>
               </button>
             `;
           }).join("") : `<div style="padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(8,25,47,0.08); color: rgba(15,23,42,0.72); font-size: 13px;">No hay ofertas cargadas aún.</div>`}
+          </div>
         </div>
       </section>
 
@@ -5159,6 +5186,19 @@ app.addEventListener("click", (event) => {
     if (site && slug) {
       scheduleRetailShellRender(site, slug, 0);
     }
+    return;
+  }
+
+  if (actionName === "retail-offers-scroll-prev" || actionName === "retail-offers-scroll-next") {
+    event.preventDefault();
+    event.stopPropagation();
+    const track = document.getElementById("retail-offers-track");
+    if (!track) {
+      return;
+    }
+    const direction = actionName === "retail-offers-scroll-prev" ? -1 : 1;
+    const step = Math.max(240, Math.floor(track.clientWidth * 0.8));
+    track.scrollBy({ left: direction * step, behavior: "smooth" });
     return;
   }
 
