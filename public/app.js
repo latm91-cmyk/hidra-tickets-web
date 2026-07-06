@@ -111,6 +111,39 @@ const publicUiState = {
   mobileMenuOpen: false,
 };
 
+const retailUiState = {
+  slug: "",
+  imageIndexByProductId: {},
+};
+
+const retailCartState = {
+  slug: "",
+  itemsByKey: {},
+};
+
+const retailCheckoutState = {
+  open: false,
+  openReceipt: false,
+  loading: false,
+  order: null,
+  paymentMethod: "PSE",
+  deliveryMode: "pickup",
+  customerName: "",
+  customerPhone: "",
+  customerEmail: "",
+  customerAddress: "",
+  customerCity: "",
+  note: "",
+  receiptFile: null,
+  receiptFileName: "",
+  notice: "",
+  noticeTone: "info",
+};
+
+window.__PUBLIC_RETAIL_MODAL__ = window.__PUBLIC_RETAIL_MODAL__ || null;
+window.__PUBLIC_RETAIL_CART__ = window.__PUBLIC_RETAIL_CART__ || null;
+window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ = window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ || false;
+
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",
@@ -3075,6 +3108,11 @@ function renderHowItWorks() {
 }
 
 function getRetailProductImage(product = {}) {
+  const gallery = getRetailProductGallery(product);
+  if (gallery.length > 0) {
+    return gallery[0];
+  }
+
   return (
     product?.imageUrl
     || product?.image_url
@@ -3082,6 +3120,1048 @@ function getRetailProductImage(product = {}) {
     || product?.cover_image_url
     || ASSETS.raffle
   );
+}
+
+function getRetailProductGallery(product = {}) {
+  const rawGallery = asArray(product?.gallery || product?.gallery_json || product?.images);
+  const gallery = rawGallery
+    .map((item) => {
+      if (!item) {
+        return "";
+      }
+      if (typeof item === "string") {
+        return item.trim();
+      }
+      if (typeof item === "object") {
+        return String(
+          item.imageUrl
+          || item.image_url
+          || item.url
+          || item.src
+          || item.value
+          || "",
+        ).trim();
+      }
+      return String(item || "").trim();
+    })
+    .filter(Boolean);
+
+  const fallback = (
+    product?.imageUrl
+    || product?.image_url
+    || product?.coverImageUrl
+    || product?.cover_image_url
+    || ASSETS.raffle
+  );
+
+  return gallery.length ? Array.from(new Set(gallery)) : [fallback];
+}
+
+function getRetailProductKey(product = {}) {
+  return String(product?.id || product?.slug || product?.sku || product?.name || "").trim();
+}
+
+function getRetailProductActiveImage(product = {}) {
+  const gallery = getRetailProductGallery(product);
+  const productKey = getRetailProductKey(product);
+  if (!productKey || gallery.length <= 1) {
+    return gallery[0] || ASSETS.raffle;
+  }
+
+  const currentIndex = retailUiState.imageIndexByProductId[productKey] || 0;
+  const normalizedIndex = ((Number(currentIndex) || 0) % gallery.length + gallery.length) % gallery.length;
+  return gallery[normalizedIndex] || gallery[0] || ASSETS.raffle;
+}
+
+function getRetailProductSummary(product = {}) {
+  return String(
+    product?.description
+    || product?.descriptionText
+    || product?.details
+    || product?.summary
+    || "Producto disponible en la vitrina virtual.",
+  ).trim();
+}
+
+function getRetailProductHighlights(product = {}) {
+  const stockValue = Number(product?.stock || product?.inventory || 0);
+  const items = [
+    product?.category_name || product?.categoryName ? `Categoria: ${product.category_name || product.categoryName}` : "",
+    product?.sku ? `SKU: ${product.sku}` : "",
+    stockValue > 0 ? `Disponible: ${stockValue}` : "",
+    product?.price ? `Precio: ${getRetailProductPrice(product)}` : "",
+  ];
+  return items.filter(Boolean);
+}
+
+function getRetailCartStorageKey(slug = "") {
+  return `retail-cart:v1:${normalizeSlug(slug)}`;
+}
+
+function loadRetailCart(slug = "") {
+  try {
+    const raw = window.localStorage.getItem(getRetailCartStorageKey(slug));
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveRetailCart(slug = "", itemsByKey = {}) {
+  try {
+    window.localStorage.setItem(getRetailCartStorageKey(slug), JSON.stringify(itemsByKey || {}));
+  } catch {
+    // ignore
+  }
+}
+
+function getRetailCartItems() {
+  return Object.entries(retailCartState.itemsByKey || {})
+    .map(([key, entry]) => {
+      const quantity = Math.max(0, Number(entry?.quantity || 0));
+      return {
+        key,
+        productId: entry?.productId || null,
+        quantity,
+      };
+    })
+    .filter((item) => item.productId && item.quantity > 0);
+}
+
+function getRetailCartCount() {
+  return getRetailCartItems().reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+}
+
+function updateRetailCartBadge() {
+  const badge = app.querySelector("[data-retail-cart-count]");
+  if (badge) {
+    badge.textContent = String(getRetailCartCount());
+  }
+}
+
+function getRetailCartProduct(site = {}, cartItem = {}) {
+  const products = asArray(site?.products);
+  return products.find((product) => String(product?.id) === String(cartItem.productId)) || null;
+}
+
+function getRetailCartSubtotal(site = {}) {
+  return getRetailCartItems().reduce((sum, item) => {
+    const product = getRetailCartProduct(site, item);
+    const price = Number(product?.price || 0);
+    return sum + (price * Number(item.quantity || 0));
+  }, 0);
+}
+
+function addRetailProductToCart(product = {}, quantity = 1) {
+  const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+  const key = getRetailProductKey(product);
+  if (!key || !product?.id) {
+    return;
+  }
+
+  const current = Number(retailCartState.itemsByKey[key]?.quantity || 0);
+  retailCartState.itemsByKey[key] = {
+    productId: product.id,
+    quantity: Math.max(1, current + Number(quantity || 1)),
+  };
+  saveRetailCart(slug, retailCartState.itemsByKey);
+  window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
+  updateRetailCartBadge();
+  paintRetailCartModal();
+}
+
+function setRetailCartQuantity(productId, quantity) {
+  const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+  const products = asArray(window.__PUBLIC_SITE_STATE__?.products);
+  const product = products.find((item) => String(item?.id) === String(productId)) || null;
+  if (!product) {
+    return;
+  }
+
+  const key = getRetailProductKey(product);
+  const normalized = Math.max(0, Math.trunc(Number(quantity || 0)));
+  if (normalized <= 0) {
+    delete retailCartState.itemsByKey[key];
+  } else {
+    retailCartState.itemsByKey[key] = {
+      productId: product.id,
+      quantity: normalized,
+    };
+  }
+  saveRetailCart(slug, retailCartState.itemsByKey);
+  window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
+  updateRetailCartBadge();
+  paintRetailCartModal();
+}
+
+function removeRetailCartItem(productId) {
+  setRetailCartQuantity(productId, 0);
+}
+
+function openRetailCheckoutModal(method = "PSE") {
+  retailCheckoutState.open = true;
+  retailCheckoutState.paymentMethod = method === "COMPROBANTE" ? "COMPROBANTE" : "PSE";
+  retailCheckoutState.notice = "";
+  retailCheckoutState.noticeTone = "info";
+  paintRetailCheckoutModal();
+}
+
+function closeRetailCheckoutModal() {
+  retailCheckoutState.open = false;
+  retailCheckoutState.loading = false;
+  paintRetailCheckoutModal();
+}
+
+function setRetailCheckoutField(field, value) {
+  if (field in retailCheckoutState) {
+    retailCheckoutState[field] = String(value || "");
+  }
+}
+
+function getRetailDeliveryFeeAmount(mode = "pickup", storefront = null) {
+  const normalized = String(mode || "pickup").trim().toLowerCase();
+  const config = storefront || window.__PUBLIC_SITE_STATE__?.storefront || {};
+  if (normalized === "express") return Number(config.deliveryFeeExpress ?? config.delivery_fee_express ?? 12000) || 0;
+  if (normalized === "domicilio" || normalized === "delivery") return Number(config.deliveryFeeStandard ?? config.delivery_fee_standard ?? 8000) || 0;
+  return 0;
+}
+
+function getRetailDeliveryModeLabel(mode = "pickup") {
+  const normalized = String(mode || "pickup").trim().toLowerCase();
+  if (normalized === "express") return "Domicilio express";
+  if (normalized === "domicilio" || normalized === "delivery") return "Domicilio";
+  return "Recoger en tienda";
+}
+
+function setRetailProductImageIndex(productKey, nextIndex) {
+  const key = String(productKey || "").trim();
+  if (!key) {
+    return;
+  }
+
+  retailUiState.imageIndexByProductId[key] = Number(nextIndex) || 0;
+}
+
+function stepRetailProductImage(productKey, direction = 1, total = 0) {
+  const key = String(productKey || "").trim();
+  if (!key || total < 2) {
+    return;
+  }
+
+  const currentIndex = retailUiState.imageIndexByProductId[key] || 0;
+  const nextIndex = ((Number(currentIndex) || 0) + Number(direction || 1)) % total;
+  retailUiState.imageIndexByProductId[key] = nextIndex < 0 ? nextIndex + total : nextIndex;
+}
+
+function renderRetailProductGallery(product = {}) {
+  const gallery = getRetailProductGallery(product);
+  const productKey = getRetailProductKey(product);
+  const currentIndex = productKey && gallery.length > 1
+    ? ((Number(retailUiState.imageIndexByProductId[productKey]) || 0) % gallery.length + gallery.length) % gallery.length
+    : 0;
+
+  if (gallery.length <= 1) {
+    return `
+      <button type="button" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="aspect-ratio: 1.02; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); overflow:hidden; border:0; padding:0; width:100%; cursor: zoom-in;">
+        <img src="${escapeHtml(gallery[0] || ASSETS.raffle)}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+      </button>
+    `;
+  }
+
+  const currentImage = gallery[currentIndex] || gallery[0] || ASSETS.raffle;
+  return `
+    <button type="button" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="aspect-ratio: 1.02; position: relative; overflow: hidden; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border:0; padding:0; width:100%; cursor: zoom-in;">
+      <img src="${escapeHtml(currentImage)}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+      <div style="position:absolute; inset: 12px 12px auto 12px; display:flex; justify-content:space-between; gap: 10px; align-items:flex-start; z-index: 2; pointer-events:none;">
+        <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.84); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 10px 18px rgba(8,25,47,0.12);">
+          ${gallery.length} fotos
+        </div>
+        <button
+          type="button"
+          class="button secondary"
+          data-action="retail-product-image-next"
+          data-product-key="${escapeAttr(productKey)}"
+          data-gallery-total="${escapeAttr(String(gallery.length))}"
+          style="pointer-events:auto; padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.94); border-color: rgba(8,25,47,0.08); color: #0f172a; font-weight: 900; box-shadow: 0 10px 22px rgba(8,25,47,0.12);"
+        >
+          Correr imágenes
+        </button>
+      </div>
+      <div style="position:absolute; inset:auto 12px 12px 12px; z-index: 2; display:grid; gap: 10px;">
+        <div style="display:flex; gap: 8px; overflow:auto; padding-bottom: 2px;">
+          ${gallery.map((imageUrl, index) => `
+            <button
+              type="button"
+              data-action="retail-product-image-set"
+              data-product-key="${escapeAttr(productKey)}"
+              data-image-index="${escapeAttr(String(index))}"
+              aria-label="Ver imagen ${index + 1}"
+              aria-pressed="${index === currentIndex ? "true" : "false"}"
+              style="width: 48px; height: 48px; flex: 0 0 auto; border-radius: 14px; overflow: hidden; padding: 0; border: 1px solid ${index === currentIndex ? "rgba(255,214,102,0.9)" : "rgba(255,255,255,0.18)"}; box-shadow: 0 10px 18px rgba(8,25,47,0.16); background: rgba(255,255,255,0.08);"
+            >
+              <img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
+            </button>
+          `).join("")}
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px; padding: 10px 12px; border-radius: 18px; background: rgba(8,25,47,0.72); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); color: #fff;">
+          <button
+            type="button"
+            class="button secondary"
+            data-action="retail-product-image-prev"
+            data-product-key="${escapeAttr(productKey)}"
+            data-gallery-total="${escapeAttr(String(gallery.length))}"
+            style="min-width: 88px; justify-content:center; padding: 9px 12px; border-radius: 999px; background: rgba(255,255,255,0.9); border-color: transparent; color: #0f172a; font-weight: 900;"
+          >
+            Anterior
+          </button>
+          <span style="font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.84);">${currentIndex + 1}/${gallery.length}</span>
+          <button
+            type="button"
+            class="button secondary"
+            data-action="retail-product-image-next"
+            data-product-key="${escapeAttr(productKey)}"
+            data-gallery-total="${escapeAttr(String(gallery.length))}"
+            style="min-width: 88px; justify-content:center; padding: 9px 12px; border-radius: 999px; background: rgba(255,255,255,0.9); border-color: transparent; color: #0f172a; font-weight: 900;"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </button>
+  `;
+}
+
+function openRetailProductModal(product = {}) {
+  ensureRetailModalStyles();
+  const modal = document.getElementById("retail-product-modal");
+  const frame = document.getElementById("retail-product-modal-frame");
+  const title = document.getElementById("retail-product-modal-title");
+  const subtitle = document.getElementById("retail-product-modal-subtitle");
+  const summary = document.getElementById("retail-product-modal-summary");
+  const action = document.getElementById("retail-product-modal-action");
+  const badges = document.getElementById("retail-product-modal-badges");
+
+  if (!modal || !frame || !title || !subtitle || !summary || !action || !badges) {
+    return;
+  }
+
+  const gallery = getRetailProductGallery(product);
+  const currentImage = getRetailProductActiveImage(product);
+  const productKey = getRetailProductKey(product);
+  const currentIndex = productKey && gallery.length > 1
+    ? ((Number(retailUiState.imageIndexByProductId[productKey]) || 0) % gallery.length + gallery.length) % gallery.length
+    : 0;
+  const storefront = window.__PUBLIC_SITE_STATE__?.storefront || {};
+  const contactLink = buildRetailWhatsAppLink(storefront, product);
+  const productName = String(product.name || product.title || "Producto").trim();
+  const price = getRetailProductPrice(product);
+  const highlights = getRetailProductHighlights(product);
+
+  title.textContent = productName;
+  subtitle.textContent = gallery.length > 1 ? `${gallery.length} imágenes disponibles` : "Imagen del producto";
+  summary.textContent = getRetailProductSummary(product);
+  badges.innerHTML = highlights.length
+    ? highlights.map((item) => `<span class="chip" style="background:#f8fafc; border-color: rgba(8,25,47,0.08);">${escapeHtml(item)}</span>`).join("")
+    : "";
+  action.innerHTML = contactLink
+    ? `
+      <div style="display:grid; gap: 10px;">
+        <button type="button" class="button gold" data-action="retail-add-to-cart" data-product-key="${escapeAttr(productKey)}" style="width:100%; justify-content:center;">Agregar al carrito</button>
+        <a class="button secondary" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="width:100%; justify-content:center;">Pedir por WhatsApp</a>
+      </div>
+    `
+    : `<button type="button" class="button gold" data-action="retail-add-to-cart" data-product-key="${escapeAttr(productKey)}" style="width:100%; justify-content:center;">Agregar al carrito</button>`;
+
+  frame.innerHTML = `
+    <div class="retail-modal-shell" style="display:grid; gap: 14px;">
+      <div class="retail-modal-zoomable" style="position:relative; border-radius: 28px; overflow:hidden; background: radial-gradient(circle at top left, rgba(214,161,62,0.18), transparent 32%), linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 28px 60px rgba(8,25,47,0.18);">
+        <img data-retail-main-image src="${escapeHtml(currentImage)}" alt="${escapeHtml(productName)}" loading="eager" decoding="async" style="width:100%;height:min(58vh,560px);object-fit:cover;display:block;transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; opacity:1;" />
+        <div style="position:absolute; inset: 16px 16px auto 16px; display:flex; justify-content:space-between; gap: 10px; align-items:center;">
+          <div style="display:inline-flex; align-items:center; gap: 8px; padding: 9px 12px; border-radius: 999px; background: rgba(8,25,47,0.9); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">Vitrina premium</div>
+          <div style="display:flex; align-items:center; gap: 8px;">
+            <div data-retail-image-counter style="display:inline-flex; align-items:center; gap: 8px; padding: 9px 12px; border-radius: 999px; background: rgba(255,255,255,0.96); color: #0f172a; font-size: 12px; font-weight: 900; box-shadow: 0 12px 24px rgba(8,25,47,0.12);">${currentIndex + 1}/${gallery.length}</div>
+            <div style="display:inline-flex; align-items:center; gap: 8px; padding: 9px 12px; border-radius: 999px; background: rgba(255,255,255,0.96); color: #0f172a; font-size: 12px; font-weight: 900; box-shadow: 0 12px 24px rgba(8,25,47,0.12);">${escapeHtml(price)}</div>
+          </div>
+        </div>
+        ${gallery.length > 1 ? `
+          <button type="button" class="retail-modal-nav retail-modal-nav-left" data-action="retail-product-image-prev" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen anterior">‹</button>
+          <button type="button" class="retail-modal-nav retail-modal-nav-right" data-action="retail-product-image-next" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen siguiente">›</button>
+        ` : ""}
+      </div>
+      ${gallery.length > 1 ? `
+      <div style="display:flex; gap: 10px; overflow:auto; padding-bottom: 2px;">
+        ${gallery.map((imageUrl, index) => `
+          <button
+            type="button"
+            data-action="retail-product-image-set"
+            data-product-key="${escapeAttr(productKey)}"
+            data-image-index="${escapeAttr(String(index))}"
+            aria-label="Ver imagen ${index + 1}"
+            aria-pressed="${imageUrl === currentImage ? "true" : "false"}"
+            style="width: 72px; height: 72px; flex: 0 0 auto; border-radius: 20px; overflow: hidden; padding: 0; border: 2px solid ${imageUrl === currentImage ? "rgba(214,161,62,0.98)" : "rgba(8,25,47,0.10)"}; box-shadow: 0 12px 20px rgba(8,25,47,0.12); background: #fff; transform: ${imageUrl === currentImage ? "translateY(-2px)" : "translateY(0)"}; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;"
+          >
+            <img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
+          </button>
+        `).join("")}
+      </div>
+      ` : ""}
+    </div>
+  `;
+
+  const mainImage = frame.querySelector("[data-retail-main-image]");
+  if (mainImage) {
+    mainImage.addEventListener("mouseenter", () => {
+      mainImage.style.transform = "scale(1.06)";
+      mainImage.style.filter = "saturate(1.03) contrast(1.03)";
+    });
+    mainImage.addEventListener("mouseleave", () => {
+      mainImage.style.transform = "scale(1)";
+      mainImage.style.filter = "";
+    });
+  }
+
+  if (gallery.length > 1) {
+    const counter = frame.querySelector("[data-retail-image-counter]");
+    if (counter) {
+      counter.textContent = `${currentIndex + 1}/${gallery.length}`;
+    }
+  }
+
+  modal.classList.add("is-open");
+  document.body.classList.add("modal-open");
+  window.__PUBLIC_RETAIL_MODAL__ = product;
+}
+
+function closeRetailProductModal() {
+  const modal = document.getElementById("retail-product-modal");
+  const frame = document.getElementById("retail-product-modal-frame");
+  const action = document.getElementById("retail-product-modal-action");
+  const badges = document.getElementById("retail-product-modal-badges");
+
+  if (modal) {
+    modal.classList.remove("is-open");
+  }
+  if (frame) {
+    frame.innerHTML = "";
+  }
+  if (action) {
+    action.innerHTML = "";
+  }
+  if (badges) {
+    badges.innerHTML = "";
+  }
+  document.body.classList.remove("modal-open");
+  window.__PUBLIC_RETAIL_MODAL__ = null;
+}
+
+function renderRetailCartModalContent() {
+  const site = window.__PUBLIC_SITE_STATE__?.site || null;
+  const products = asArray(site?.products);
+  const items = getRetailCartItems();
+  const subtotal = getRetailCartSubtotal(site);
+  const count = getRetailCartCount();
+  const currency = window.__PUBLIC_SITE_STATE__?.storefront?.currency || "COP";
+
+  if (!count) {
+    return `
+      <div class="state-card" style="padding: 24px; border-radius: 24px; border: 1px solid rgba(8,25,47,0.08); background:#fff;">
+        <div style="display:grid; gap: 10px;">
+          <div class="section-tag">Carrito vacío</div>
+          <h3 style="margin:0;">Aun no has agregado productos</h3>
+          <p style="margin:0; color:#526074;">Agrega uno o varios productos para continuar con el pago.</p>
+          <button type="button" class="button gold" data-action="close-retail-cart">Seguir comprando</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="display:grid; gap: 16px;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 16px;">
+        <div>
+          <div class="section-tag">Mi carrito</div>
+          <h3 style="margin:10px 0 0;">${count} producto${count === 1 ? "" : "s"} en tu compra</h3>
+          <p style="margin:8px 0 0; color:#526074;">Revisa cantidades antes de pasar al checkout.</p>
+        </div>
+        <div style="display:inline-flex; align-items:center; gap: 10px; padding: 12px 16px; border-radius: 18px; background: linear-gradient(135deg, #08192f, #1d5f46); color:#fff; box-shadow: 0 14px 30px rgba(8,25,47,0.16);">
+          <span style="font-size:12px; letter-spacing:.08em; text-transform:uppercase; opacity:.82;">Subtotal</span>
+          <strong style="font-size:1.15rem;">${escapeHtml(formatCOP(subtotal))}</strong>
+        </div>
+      </div>
+      <div style="display:grid; gap: 12px; max-height: min(56vh, 480px); overflow:auto; padding-right: 4px;">
+        ${items.map((item) => {
+          const product = getRetailCartProduct({ products }, item);
+          if (!product) {
+            return "";
+          }
+          const image = getRetailProductActiveImage(product);
+          const lineTotal = Number(product.price || 0) * Number(item.quantity || 0);
+          return `
+            <article style="display:grid; grid-template-columns: 76px 1fr auto; gap: 12px; padding: 12px; border-radius: 18px; background:#fff; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 12px 22px rgba(8,25,47,0.06);">
+              <div style="width:76px; height:76px; border-radius: 18px; overflow:hidden; background:#f8fafc;">
+                <img src="${escapeHtml(image)}" alt="${escapeHtml(product.name || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <div style="min-width:0;">
+                <strong style="display:block; font-size:1rem; color:#0f172a;">${escapeHtml(product.name || "Producto")}</strong>
+                <div style="margin-top:4px; color:#526074; font-size: 13px;">${escapeHtml(formatCOP(product.price || 0))} c/u</div>
+                <div style="margin-top:8px; display:flex; gap: 8px; flex-wrap: wrap; align-items:center;">
+                  <button type="button" class="button secondary" data-action="retail-cart-decrease" data-product-id="${escapeAttr(String(product.id))}">-</button>
+                  <strong style="min-width: 32px; text-align:center;">${item.quantity}</strong>
+                  <button type="button" class="button secondary" data-action="retail-cart-increase" data-product-id="${escapeAttr(String(product.id))}">+</button>
+                  <button type="button" class="button secondary" data-action="retail-cart-remove" data-product-id="${escapeAttr(String(product.id))}" style="margin-left: 6px;">Quitar</button>
+                </div>
+              </div>
+              <div style="text-align:right; font-weight:900; color:#0f172a;">${escapeHtml(formatCOP(lineTotal))}</div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+      <div style="display:flex; justify-content:space-between; gap: 12px; align-items:center; padding-top: 6px; border-top: 1px solid rgba(8,25,47,0.08);">
+        <div style="color:#526074;">Total estimado</div>
+        <strong style="font-size:1.4rem; color:#0f172a;">${escapeHtml(formatCOP(subtotal))}</strong>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+        <button type="button" class="button gold" data-action="open-retail-checkout" data-payment-method="PSE">Pagar con PSE</button>
+        <button type="button" class="button secondary" data-action="open-retail-checkout" data-payment-method="COMPROBANTE">Subir comprobante</button>
+      </div>
+      <button type="button" class="button secondary" data-action="close-retail-cart">Seguir comprando</button>
+    </div>
+  `;
+}
+
+function paintRetailCartModal() {
+  const modal = document.getElementById("retail-cart-modal");
+  const content = document.getElementById("retail-cart-modal-content");
+  if (!modal || !content) {
+    return;
+  }
+  content.innerHTML = renderRetailCartModalContent();
+  modal.classList.toggle("is-open", Boolean(window.__PUBLIC_RETAIL_CART_MODAL_OPEN__));
+  modal.setAttribute("aria-hidden", window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ ? "false" : "true");
+  document.body.classList.toggle("modal-open", Boolean(window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ || retailCheckoutState.open || retailCheckoutState.openReceipt));
+}
+
+function openRetailCartModal() {
+  window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ = true;
+  paintRetailCartModal();
+}
+
+function closeRetailCartModal() {
+  window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ = false;
+  paintRetailCartModal();
+}
+
+function renderRetailCheckoutModalContent() {
+  const site = window.__PUBLIC_SITE_STATE__?.site || null;
+  const storefront = window.__PUBLIC_SITE_STATE__?.storefront || {};
+  const items = getRetailCartItems();
+  const subtotal = getRetailCartSubtotal(site);
+  const count = getRetailCartCount();
+  const deliveryFee = getRetailDeliveryFeeAmount(retailCheckoutState.deliveryMode, storefront);
+  const total = subtotal + deliveryFee;
+  const currency = storefront.currency || "COP";
+  const isPickup = retailCheckoutState.deliveryMode === "pickup";
+  const isStandard = retailCheckoutState.deliveryMode === "domicilio" || retailCheckoutState.deliveryMode === "delivery";
+  const isExpress = retailCheckoutState.deliveryMode === "express";
+  const notice = retailCheckoutState.notice
+    ? `<div class="payment-modal-notice payment-modal-notice-${escapeHtml(retailCheckoutState.noticeTone || "info")}" style="margin-bottom:14px;">${escapeHtml(retailCheckoutState.notice)}</div>`
+    : "";
+
+  return `
+    <div class="payment-modal-head">
+      <div class="payment-modal-head-copy">
+        <div class="section-tag">Checkout premium</div>
+        <h3 style="margin-top:10px;">Finaliza tu compra</h3>
+        <p>Completa tus datos para pagar por PSE o subir el comprobante.</p>
+      </div>
+      <button type="button" class="selector-close" data-action="close-retail-checkout">Cerrar</button>
+    </div>
+
+    ${notice}
+
+    <div style="display:grid; gap: 16px;">
+      <div style="display:grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr); gap: 16px; align-items:start;">
+        <div style="padding: 18px; border-radius: 28px; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(29,95,70,0.94)); color:#fff; box-shadow: 0 24px 56px rgba(8,25,47,0.18); border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; flex-wrap: wrap;">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,214,102,0.14); color:#ffd766; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Resumen ejecutivo</div>
+              <h4 style="margin:12px 0 0; font-size: 1.8rem; line-height:1.02;">${count} producto${count === 1 ? "" : "s"} en tu carrito</h4>
+              <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Revisa el total con domicilio y confirma tu compra en un flujo claro y rápido.</p>
+            </div>
+            <div style="min-width: 220px; padding: 14px 16px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
+              <div style="font-size: 11px; letter-spacing:.08em; text-transform:uppercase; color: rgba(255,255,255,0.68); font-weight:800;">Total final</div>
+              <div style="margin-top: 8px; font-size: 2rem; font-weight: 900; line-height:1;">${escapeHtml(formatCOP(total))}</div>
+              <div style="margin-top:6px; color: rgba(255,255,255,0.76); font-size: 12px;">
+                ${deliveryFee > 0
+                  ? `Subtotal ${escapeHtml(formatCOP(subtotal))} + ${escapeHtml(getRetailDeliveryModeLabel(retailCheckoutState.deliveryMode).toLowerCase())} ${escapeHtml(formatCOP(deliveryFee))}`
+                  : `Subtotal ${escapeHtml(formatCOP(subtotal))} · sin costo de envío`}
+              </div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px;">
+            <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Pago seguro</div>
+              <strong style="display:block; margin-top:6px;">PSE o comprobante</strong>
+            </div>
+            <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Despacho</div>
+              <strong style="display:block; margin-top:6px;">Con domicilio</strong>
+            </div>
+            <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+              <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Atención</div>
+              <strong style="display:block; margin-top:6px;">Confirmación inmediata</strong>
+            </div>
+          </div>
+          <div style="margin-top: 16px; display:flex; flex-wrap:wrap; gap: 8px;">
+            ${items.map((item) => {
+              const product = getRetailCartProduct(site, item);
+              return product ? `<span class="chip" style="background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.10); color:#fff;">${escapeHtml(product.name)} x${item.quantity}</span>` : "";
+            }).join("")}
+          </div>
+        </div>
+
+        <div style="display:grid; gap: 14px;">
+          <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
+            <div class="payment-action-icon payment-action-icon-contact">✎</div>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Datos del comprador</span>
+              <strong>Completa tus datos</strong>
+              <p>Necesitamos tus datos para registrar la orden y enviarte la confirmación.</p>
+            </div>
+            <div class="payment-form-grid">
+              <label class="payment-field">
+                <span>Nombre</span>
+                <input type="text" data-retail-field="customerName" value="${escapeAttr(retailCheckoutState.customerName || "")}" placeholder="Ej. Laura Pérez" />
+              </label>
+              <label class="payment-field">
+                <span>Teléfono</span>
+                <input type="tel" data-retail-field="customerPhone" value="${escapeAttr(retailCheckoutState.customerPhone || "")}" placeholder="Ej. 3001234567" />
+              </label>
+              <label class="payment-field">
+                <span>Correo</span>
+                <input type="email" data-retail-field="customerEmail" value="${escapeAttr(retailCheckoutState.customerEmail || "")}" placeholder="Ej. correo@cliente.com" />
+              </label>
+              <label class="payment-field">
+                <span>Dirección</span>
+                <input type="text" data-retail-field="customerAddress" value="${escapeAttr(retailCheckoutState.customerAddress || "")}" placeholder="Ej. Calle 10 # 5-20" />
+              </label>
+              <label class="payment-field">
+                <span>Ciudad</span>
+                <input type="text" data-retail-field="customerCity" value="${escapeAttr(retailCheckoutState.customerCity || "")}" placeholder="Ej. Neiva" />
+              </label>
+              <label class="payment-field">
+                <span>Nota</span>
+                <input type="text" data-retail-field="note" value="${escapeAttr(retailCheckoutState.note || "")}" placeholder="Observaciones del pedido" />
+              </label>
+            </div>
+          </div>
+
+          <div class="payment-action-card" style="border-radius: 26px;">
+            <div class="payment-action-icon payment-action-icon-upload">↥</div>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Costo de envío</span>
+              <strong>Agrega domicilio al total</strong>
+              <p>Si el pedido requiere entrega, digita el valor del envío. Si lo recoge en tienda, déjalo en cero.</p>
+            </div>
+            <div style="display:grid; gap:10px;">
+              <button type="button" class="button secondary" data-action="set-retail-delivery-mode" data-delivery-mode="pickup" style="justify-content:space-between; display:flex; align-items:center; border-color:${isPickup ? "rgba(214,161,62,0.9)" : "rgba(8,25,47,0.12)"}; box-shadow:${isPickup ? "0 10px 22px rgba(214,161,62,0.12)" : "none"};">
+                <span>Recoger en tienda</span>
+                <strong>${escapeHtml(formatCOP(getRetailDeliveryFeeAmount("pickup", storefront)))}</strong>
+              </button>
+              <button type="button" class="button secondary" data-action="set-retail-delivery-mode" data-delivery-mode="domicilio" style="justify-content:space-between; display:flex; align-items:center; border-color:${isStandard ? "rgba(214,161,62,0.9)" : "rgba(8,25,47,0.12)"}; box-shadow:${isStandard ? "0 10px 22px rgba(214,161,62,0.12)" : "none"};">
+                <span>Domicilio</span>
+                <strong>${escapeHtml(formatCOP(getRetailDeliveryFeeAmount("domicilio", storefront)))}</strong>
+              </button>
+              <button type="button" class="button secondary" data-action="set-retail-delivery-mode" data-delivery-mode="express" style="justify-content:space-between; display:flex; align-items:center; border-color:${isExpress ? "rgba(214,161,62,0.9)" : "rgba(8,25,47,0.12)"}; box-shadow:${isExpress ? "0 10px 22px rgba(214,161,62,0.12)" : "none"};">
+                <span>Domicilio express</span>
+                <strong>${escapeHtml(formatCOP(getRetailDeliveryFeeAmount("express", storefront)))}</strong>
+              </button>
+            </div>
+            <div style="margin-top:8px; font-size:12px; color:${isPickup ? "#0f172a" : "#526074"}; font-weight:${isPickup ? "900" : "600"};">Opción activa: ${escapeHtml(getRetailDeliveryModeLabel(retailCheckoutState.deliveryMode))}</div>
+          </div>
+
+          <div class="payment-action-card" style="border-radius: 26px;">
+            <div class="payment-action-icon payment-action-icon-upload">↥</div>
+            <div class="payment-card-copy">
+              <span class="payment-card-kicker">Método de pago</span>
+              <strong>Elige cómo quieres pagar</strong>
+              <p>PSE abre la pasarela y comprobante deja la orden pendiente de revisión.</p>
+            </div>
+            <div style="display:grid; gap:10px;">
+              <button type="button" class="button gold" data-action="submit-retail-checkout" data-payment-method="PSE" ${retailCheckoutState.loading ? "disabled" : ""}>Pagar con PSE</button>
+              <button type="button" class="button secondary" data-action="submit-retail-checkout" data-payment-method="COMPROBANTE" ${retailCheckoutState.loading ? "disabled" : ""}>Subir comprobante</button>
+            </div>
+            <button type="button" class="button secondary payment-back" data-action="close-retail-checkout">Volver al carrito</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function paintRetailCheckoutModal() {
+  const modal = document.getElementById("retail-checkout-modal");
+  const content = document.getElementById("retail-checkout-modal-content");
+  if (!modal || !content) {
+    return;
+  }
+  content.innerHTML = renderRetailCheckoutModalContent();
+  modal.classList.toggle("is-open", retailCheckoutState.open);
+  modal.setAttribute("aria-hidden", retailCheckoutState.open ? "false" : "true");
+  document.body.classList.toggle("modal-open", Boolean(window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ || retailCheckoutState.open || retailCheckoutState.openReceipt));
+}
+
+function openRetailCheckoutFromCart(paymentMethod = "PSE") {
+  if (!getRetailCartCount()) {
+    return;
+  }
+  retailCheckoutState.paymentMethod = paymentMethod === "COMPROBANTE" ? "COMPROBANTE" : "PSE";
+  retailCheckoutState.deliveryMode = "pickup";
+  retailCheckoutState.notice = "";
+  retailCheckoutState.noticeTone = "info";
+  retailCheckoutState.open = true;
+  window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ = false;
+  paintRetailCartModal();
+  paintRetailCheckoutModal();
+}
+
+function closeRetailCheckout() {
+  retailCheckoutState.open = false;
+  retailCheckoutState.openReceipt = false;
+  retailCheckoutState.loading = false;
+  paintRetailCheckoutModal();
+}
+
+function renderRetailReceiptModalContent() {
+  const order = retailCheckoutState.order || null;
+  const notice = retailCheckoutState.notice
+    ? `<div class="payment-modal-notice payment-modal-notice-${escapeHtml(retailCheckoutState.noticeTone || "info")}">${escapeHtml(retailCheckoutState.notice)}</div>`
+    : "";
+  return `
+    <div class="receipt-upload-modal-head">
+      <div class="receipt-upload-spinner" aria-hidden="true"></div>
+      <div class="receipt-upload-copy">
+        <span class="payment-card-kicker">Comprobante</span>
+        <h3>Sube tu soporte de pago</h3>
+        <p>Tu orden ${escapeHtml(order?.orderReference || "")} quedó lista. Sube el comprobante para revisión.</p>
+        <small>Si cierras esta ventana podrás reenviarlo luego desde el detalle del pedido.</small>
+      </div>
+    </div>
+    ${notice}
+    <div style="display:grid; gap: 12px; margin-top: 8px;">
+      <input type="file" accept="image/*" data-retail-receipt-input />
+      <button type="button" class="button gold" data-action="submit-retail-receipt" ${retailCheckoutState.loading ? "disabled" : ""}>Enviar comprobante</button>
+      <button type="button" class="button secondary" data-action="close-retail-checkout">Cerrar</button>
+    </div>
+  `;
+}
+
+function paintRetailReceiptModal() {
+  const modal = document.getElementById("retail-receipt-modal");
+  const content = document.getElementById("retail-receipt-modal-content");
+  if (!modal || !content) {
+    return;
+  }
+  content.innerHTML = renderRetailReceiptModalContent();
+  modal.classList.toggle("is-open", retailCheckoutState.openReceipt);
+  modal.setAttribute("aria-hidden", retailCheckoutState.openReceipt ? "false" : "true");
+  document.body.classList.toggle("modal-open", Boolean(window.__PUBLIC_RETAIL_CART_MODAL_OPEN__ || retailCheckoutState.open || retailCheckoutState.openReceipt));
+}
+
+function openRetailReceiptModal(order = null) {
+  retailCheckoutState.order = order;
+  retailCheckoutState.openReceipt = true;
+  paintRetailReceiptModal();
+}
+
+function closeRetailReceiptModal() {
+  retailCheckoutState.openReceipt = false;
+  retailCheckoutState.receiptFile = null;
+  retailCheckoutState.receiptFileName = "";
+  paintRetailReceiptModal();
+}
+
+function setRetailCheckoutNotice(message, tone = "info") {
+  retailCheckoutState.notice = message;
+  retailCheckoutState.noticeTone = tone;
+  paintRetailCheckoutModal();
+}
+
+async function submitRetailCheckout(paymentMethod = "PSE") {
+  const site = window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+  const items = getRetailCartItems();
+  if (!site || !slug || !items.length || retailCheckoutState.loading) {
+    return;
+  }
+
+  if (!String(retailCheckoutState.customerName || "").trim() || !String(retailCheckoutState.customerPhone || "").trim()) {
+    setRetailCheckoutNotice("Completa nombre y teléfono para continuar.", "warning");
+    return;
+  }
+
+  retailCheckoutState.loading = true;
+  retailCheckoutState.paymentMethod = paymentMethod === "COMPROBANTE" ? "COMPROBANTE" : "PSE";
+  paintRetailCheckoutModal();
+
+  const payload = {
+    items: items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    })),
+    customer_name: retailCheckoutState.customerName,
+    customer_phone: retailCheckoutState.customerPhone,
+    customer_email: retailCheckoutState.customerEmail,
+    customer_address: retailCheckoutState.customerAddress,
+    customer_city: retailCheckoutState.customerCity,
+    note: retailCheckoutState.note,
+    payment_method: retailCheckoutState.paymentMethod,
+    delivery_fee: getRetailDeliveryFeeAmount(retailCheckoutState.deliveryMode),
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/public-retail/${encodeURIComponent(slug)}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const data = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(data?.message || data?.error || "No fue posible crear la orden.");
+    }
+
+    retailCheckoutState.loading = false;
+    retailCheckoutState.order = data?.order || null;
+    retailCheckoutState.paymentMethod = data?.payment?.method || retailCheckoutState.paymentMethod;
+
+    if (retailCheckoutState.paymentMethod === "PSE" && data?.payment?.paymentLink) {
+      window.open(data.payment.paymentLink, "_blank", "noopener,noreferrer");
+      setRetailCheckoutNotice("Abrimos el enlace de PSE en una nueva pestaña.", "success");
+      retailCartState.itemsByKey = {};
+      saveRetailCart(slug, retailCartState.itemsByKey);
+      window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
+      paintRetailCartModal();
+      return;
+    }
+
+    retailCheckoutState.open = false;
+    paintRetailCheckoutModal();
+    openRetailReceiptModal(data?.order || null);
+    retailCheckoutState.notice = "La orden quedó lista. Ahora sube el comprobante.";
+    retailCheckoutState.noticeTone = "success";
+    paintRetailReceiptModal();
+  } catch (error) {
+    retailCheckoutState.loading = false;
+    paintRetailCheckoutModal();
+    setRetailCheckoutNotice(error?.message || "No fue posible crear la orden.", "error");
+  }
+}
+
+async function submitRetailReceiptUpload() {
+  const site = window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+  const order = retailCheckoutState.order || null;
+  const file = retailCheckoutState.receiptFile || null;
+  if (!site || !slug || !order?.orderReference || !file || retailCheckoutState.loading) {
+    return;
+  }
+
+  retailCheckoutState.loading = true;
+  paintRetailReceiptModal();
+
+  try {
+    const formData = new FormData();
+    formData.append("receipt", file, file.name || "comprobante");
+    formData.append("payment_method", "COMPROBANTE");
+
+    const response = await fetch(`${API_BASE_URL}/public-retail/${encodeURIComponent(slug)}/orders/${encodeURIComponent(order.orderReference)}/receipt`, {
+      method: "POST",
+      body: formData,
+      cache: "no-store",
+    });
+
+    const data = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(data?.message || data?.error || "No fue posible subir el comprobante.");
+    }
+
+    retailCheckoutState.loading = false;
+    retailCheckoutState.receiptFile = null;
+    retailCheckoutState.receiptFileName = "";
+    retailCartState.itemsByKey = {};
+    saveRetailCart(slug, retailCartState.itemsByKey);
+    window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
+    paintRetailCartModal();
+    retailCheckoutState.order = data || order;
+    retailCheckoutState.notice = "Tu comprobante fue enviado a revisión.";
+    retailCheckoutState.noticeTone = "success";
+    paintRetailReceiptModal();
+  } catch (error) {
+    retailCheckoutState.loading = false;
+    paintRetailReceiptModal();
+    setRetailCheckoutNotice(error?.message || "No fue posible subir el comprobante.", "error");
+  }
+}
+
+function ensureRetailModalStyles() {
+  if (document.getElementById("retail-modal-styles")) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = "retail-modal-styles";
+  style.textContent = `
+    .retail-modal-zoomable img {
+      transition: transform 180ms ease, filter 180ms ease;
+      will-change: transform;
+    }
+    .retail-modal-zoomable:hover img {
+      transform: scale(1.06);
+      filter: saturate(1.03) contrast(1.03);
+    }
+    .retail-modal-zoomable img.is-fading {
+      opacity: 0;
+    }
+    .retail-modal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 25, 47, 0.88);
+      color: #fff;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: 0 12px 24px rgba(8, 25, 47, 0.2);
+      cursor: pointer;
+      z-index: 3;
+    }
+    .retail-modal-nav:hover {
+      background: rgba(214, 161, 62, 0.96);
+      color: #0f172a;
+    }
+    .retail-modal-nav-left {
+      left: 14px;
+    }
+    .retail-modal-nav-right {
+      right: 14px;
+    }
+    .retail-product-modal .video-modal-card,
+    #retail-product-modal .video-modal-card {
+      border-radius: 34px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfbf8 100%);
+      border: 1px solid rgba(8,25,47,0.08);
+      box-shadow: 0 32px 80px rgba(8,25,47,0.22);
+    }
+    #retail-cart-modal .video-modal-card,
+    #retail-checkout-modal .video-modal-card,
+    #retail-receipt-modal .video-modal-card {
+      border-radius: 32px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfbf8 100%);
+      border: 1px solid rgba(8,25,47,0.08);
+      box-shadow: 0 32px 80px rgba(8,25,47,0.20);
+    }
+    #retail-checkout-modal .payment-action-card,
+    #retail-checkout-modal .payment-modal-summary,
+    #retail-cart-modal .state-card {
+      border-radius: 24px;
+    }
+    #retail-product-modal .video-modal-head {
+      padding-bottom: 0;
+      margin-bottom: 4px;
+    }
+    #retail-checkout-modal .payment-modal-head {
+      margin-bottom: 2px;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function setRetailModalImage(product = {}, imageIndex = 0) {
+  const modal = document.getElementById("retail-product-modal");
+  const frame = document.getElementById("retail-product-modal-frame");
+  if (!modal || !frame) {
+    return;
+  }
+
+  const productKey = getRetailProductKey(product);
+  const gallery = getRetailProductGallery(product);
+  if (!productKey || gallery.length === 0) {
+    return;
+  }
+
+  const normalizedIndex = ((Number(imageIndex) || 0) % gallery.length + gallery.length) % gallery.length;
+  retailUiState.imageIndexByProductId[productKey] = normalizedIndex;
+
+  const mainImage = frame.querySelector("[data-retail-main-image]");
+  const counter = frame.querySelector("[data-retail-image-counter]");
+  const thumbButtons = Array.from(frame.querySelectorAll("[data-image-index]"));
+  const nextSrc = gallery[normalizedIndex] || gallery[0] || ASSETS.raffle;
+
+  if (mainImage) {
+    mainImage.classList.add("is-fading");
+    window.setTimeout(() => {
+      mainImage.src = nextSrc;
+      mainImage.alt = String(product.name || product.title || "Producto");
+      mainImage.classList.remove("is-fading");
+    }, 140);
+  }
+
+  if (counter) {
+    counter.textContent = `${normalizedIndex + 1}/${gallery.length}`;
+  }
+
+  thumbButtons.forEach((button) => {
+    const thumbIndex = Number(button.getAttribute("data-image-index"));
+    const isActive = thumbIndex === normalizedIndex;
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    button.style.borderColor = isActive ? "rgba(214,161,62,0.98)" : "rgba(8,25,47,0.10)";
+    button.style.transform = isActive ? "translateY(-2px)" : "translateY(0)";
+  });
+
+  window.__PUBLIC_RETAIL_MODAL__ = product;
+}
+
+function rerenderRetailProductModal(product = {}) {
+  const site = window.__PUBLIC_SITE_STATE__?.site || null;
+  const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+  if (!site || !product) {
+    return;
+  }
+
+  renderRetailShell(site, slug);
+  openRetailProductModal(product);
+}
+
+function stepOpenRetailProductModal(direction = 1) {
+  const product = window.__PUBLIC_RETAIL_MODAL__ || null;
+  if (!product) {
+    return;
+  }
+
+  const productKey = getRetailProductKey(product);
+  const gallery = getRetailProductGallery(product);
+  if (!productKey || gallery.length < 2) {
+    return;
+  }
+
+  const currentIndex = retailUiState.imageIndexByProductId[productKey] || 0;
+  const nextIndex = ((Number(currentIndex) || 0) + Number(direction || 1)) % gallery.length;
+  setRetailModalImage(product, nextIndex < 0 ? nextIndex + gallery.length : nextIndex);
 }
 
 function getRetailProductDescription(product = {}) {
@@ -3107,6 +4187,17 @@ function buildRetailWhatsAppLink(storefront = {}, product = null) {
 }
 
 function renderRetailShell(payload = {}, slug = "") {
+  if (retailUiState.slug && retailUiState.slug !== slug) {
+    retailUiState.imageIndexByProductId = {};
+  }
+  retailUiState.slug = slug;
+  if (retailCartState.slug && retailCartState.slug !== slug) {
+    retailCartState.itemsByKey = {};
+  }
+  retailCartState.slug = slug;
+  retailCartState.itemsByKey = loadRetailCart(slug);
+  window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
+
   const storefront = payload?.storefront || {};
   const categories = asArray(payload?.categories);
   const products = asArray(payload?.products);
@@ -3154,6 +4245,10 @@ function renderRetailShell(payload = {}, slug = "") {
             </div>
             <div class="top-actions">
               <div style="display:none"></div>
+              <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
+                <span>Carrito</span>
+                <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
+              </button>
               ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
             </div>
           </div>
@@ -3237,9 +4332,7 @@ function renderRetailShell(payload = {}, slug = "") {
           <div class="raffles-grid retail-grid">
             ${featuredProducts.length ? featuredProducts.map((product) => `
               <article class="raffle-card retail-product-card" style="overflow:hidden; border-radius: 24px; border-color: rgba(8,25,47,0.08); box-shadow: 0 16px 40px rgba(8,25,47,0.09); background: linear-gradient(180deg, #fff, #fbfcfe);">
-                <div class="raffle-card-media" style="aspect-ratio: 1.02; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02));">
-                  <img src="${escapeHtml(getRetailProductImage(product))}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="object-fit: cover;" />
-                </div>
+                ${renderRetailProductGallery(product)}
                 <div class="raffle-card-body" style="padding: 18px 18px 20px; display: grid; gap: 12px;">
                   <div class="chip-row" style="gap: 8px; flex-wrap: wrap;">
                     ${product.category_name ? `<span class="chip" style="background:#f8fafc; border-color: rgba(8,25,47,0.08);">${escapeHtml(product.category_name)}</span>` : ""}
@@ -3255,7 +4348,10 @@ function renderRetailShell(payload = {}, slug = "") {
                     <div style="font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.86); text-align: right;">Pago y entrega<br/>asistidos por WhatsApp</div>
                   </div>
                   <div class="raffle-card-actions" style="margin-top: 2px;">
-                    ${buildRetailWhatsAppLink(storefront, product) ? `<a class="button gold" href="${escapeHtml(buildRetailWhatsAppLink(storefront, product))}" target="_blank" rel="noreferrer" style="width:100%; justify-content:center;">Pedir por WhatsApp</a>` : ""}
+                    <div style="display:grid; gap: 10px;">
+                      <button type="button" class="button gold" data-action="retail-add-to-cart" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="width:100%; justify-content:center;">Agregar al carrito</button>
+                      <button type="button" class="button secondary" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="width:100%; justify-content:center;">Ver detalle</button>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -3286,10 +4382,48 @@ function renderRetailShell(payload = {}, slug = "") {
           </div>
         </section>
       </main>
+      <div id="retail-cart-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-cart-modal') { closeRetailCartModal(); }">
+        <div class="video-modal-card" role="document" style="max-width: min(980px, calc(100vw - 28px));">
+          <button type="button" class="video-modal-close" aria-label="Cerrar carrito" onclick="closeRetailCartModal()">×</button>
+          <div id="retail-cart-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+        </div>
+      </div>
+      <div id="retail-checkout-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-checkout-modal') { closeRetailCheckout(); }">
+        <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 28px));">
+          <button type="button" class="video-modal-close" aria-label="Cerrar checkout" onclick="closeRetailCheckout()">×</button>
+          <div id="retail-checkout-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+        </div>
+      </div>
+      <div id="retail-receipt-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-receipt-modal') { closeRetailReceiptModal(); }">
+        <div class="video-modal-card" role="document" style="max-width: min(760px, calc(100vw - 28px));">
+          <button type="button" class="video-modal-close" aria-label="Cerrar comprobante" onclick="closeRetailReceiptModal()">×</button>
+          <div id="retail-receipt-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+        </div>
+      </div>
+      <div id="retail-product-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-product-modal') { closeRetailProductModal(); }">
+        <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 28px));">
+          <button type="button" class="video-modal-close" aria-label="Cerrar producto" onclick="closeRetailProductModal()">×</button>
+          <div class="video-modal-head">
+            <div class="section-tag">Detalle del producto</div>
+            <h3 id="retail-product-modal-title">Producto</h3>
+            <p id="retail-product-modal-subtitle"></p>
+          </div>
+          <div style="display:grid; gap: 14px;">
+            <div id="retail-product-modal-frame" class="video-modal-frame" style="margin-top: 2px;"></div>
+            <div id="retail-product-modal-badges" class="chip-row" style="flex-wrap: wrap; gap: 8px;"></div>
+            <p id="retail-product-modal-summary" style="margin: 0; color: #526074; line-height: 1.65;"></p>
+            <div id="retail-product-modal-action"></div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
   writeCachedPublicSite(slug, payload);
+  paintRetailCartModal();
+  paintRetailCheckoutModal();
+  paintRetailReceiptModal();
+  updateRetailCartBadge();
 }
 
 function renderShell(site, slug) {
@@ -3824,6 +4958,158 @@ app.addEventListener("click", (event) => {
     return;
   }
 
+  if (actionName === "retail-product-image-prev" || actionName === "retail-product-image-next" || actionName === "retail-product-image-set") {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const productKey = String(action.getAttribute("data-product-key") || "").trim();
+    if (!productKey) {
+      return;
+    }
+
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const slug = window.__PUBLIC_SITE_STATE__?.slug || "";
+    const product = asArray(site?.products).find((item) => getRetailProductKey(item) === productKey);
+    if (!product) {
+      return;
+    }
+
+    const gallery = getRetailProductGallery(product);
+    if (gallery.length <= 1) {
+      return;
+    }
+
+    if (actionName === "retail-product-image-set") {
+      const imageIndex = Number(action.getAttribute("data-image-index"));
+      if (Number.isFinite(imageIndex)) {
+        if (window.__PUBLIC_RETAIL_MODAL__ && getRetailProductKey(window.__PUBLIC_RETAIL_MODAL__) === productKey) {
+          setRetailModalImage(product, imageIndex);
+        } else {
+          setRetailProductImageIndex(productKey, imageIndex);
+        }
+      }
+    } else if (actionName === "retail-product-image-prev") {
+      if (window.__PUBLIC_RETAIL_MODAL__ && getRetailProductKey(window.__PUBLIC_RETAIL_MODAL__) === productKey) {
+        stepOpenRetailProductModal(-1);
+      } else {
+        stepRetailProductImage(productKey, -1, gallery.length);
+      }
+    } else {
+      if (window.__PUBLIC_RETAIL_MODAL__ && getRetailProductKey(window.__PUBLIC_RETAIL_MODAL__) === productKey) {
+        stepOpenRetailProductModal(1);
+      } else {
+        stepRetailProductImage(productKey, 1, gallery.length);
+      }
+    }
+
+    const modalOpenProductKey = getRetailProductKey(window.__PUBLIC_RETAIL_MODAL__ || {});
+    if (!modalOpenProductKey || modalOpenProductKey !== productKey) {
+      renderRetailShell(site, slug);
+    }
+    return;
+  }
+
+  if (actionName === "open-retail-product-modal") {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const productKey = String(action.getAttribute("data-product-key") || "").trim();
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const product = asArray(site?.products).find((item) => getRetailProductKey(item) === productKey);
+    if (product) {
+      openRetailProductModal(product);
+    }
+    return;
+  }
+
+  if (actionName === "open-retail-cart") {
+    event.preventDefault();
+    event.stopPropagation();
+    openRetailCartModal();
+    return;
+  }
+
+  if (actionName === "close-retail-cart") {
+    event.preventDefault();
+    event.stopPropagation();
+    closeRetailCartModal();
+    return;
+  }
+
+  if (actionName === "retail-add-to-cart") {
+    event.preventDefault();
+    event.stopPropagation();
+    const productKey = String(action.getAttribute("data-product-key") || "").trim();
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const product = asArray(site?.products).find((item) => getRetailProductKey(item) === productKey);
+    if (product) {
+      addRetailProductToCart(product, 1);
+    }
+    return;
+  }
+
+  if (actionName === "retail-cart-increase" || actionName === "retail-cart-decrease" || actionName === "retail-cart-remove") {
+    event.preventDefault();
+    event.stopPropagation();
+    const productId = String(action.getAttribute("data-product-id") || "").trim();
+    const site = window.__PUBLIC_SITE_STATE__?.site || null;
+    const product = asArray(site?.products).find((item) => String(item?.id) === productId);
+    if (!product) {
+      return;
+    }
+    const current = Number(retailCartState.itemsByKey[getRetailProductKey(product)]?.quantity || 0);
+    if (actionName === "retail-cart-increase") {
+      setRetailCartQuantity(product.id, current + 1);
+    } else if (actionName === "retail-cart-decrease") {
+      setRetailCartQuantity(product.id, current - 1);
+    } else {
+      removeRetailCartItem(product.id);
+    }
+    paintRetailCartModal();
+    const countBadge = app.querySelector("[data-retail-cart-count]");
+    if (countBadge) {
+      countBadge.textContent = String(getRetailCartCount());
+    }
+    return;
+  }
+
+  if (actionName === "open-retail-checkout") {
+    event.preventDefault();
+    event.stopPropagation();
+    openRetailCheckoutFromCart(String(action.getAttribute("data-payment-method") || "PSE"));
+    return;
+  }
+
+  if (actionName === "set-retail-delivery-mode") {
+    event.preventDefault();
+    event.stopPropagation();
+    const deliveryMode = String(action.getAttribute("data-delivery-mode") || "pickup").trim().toLowerCase();
+    retailCheckoutState.deliveryMode = deliveryMode;
+    paintRetailCheckoutModal();
+    return;
+  }
+
+  if (actionName === "close-retail-checkout") {
+    event.preventDefault();
+    event.stopPropagation();
+    closeRetailCheckout();
+    return;
+  }
+
+  if (actionName === "submit-retail-checkout") {
+    event.preventDefault();
+    event.stopPropagation();
+    submitRetailCheckout(String(action.getAttribute("data-payment-method") || "PSE"));
+    return;
+  }
+
+  if (actionName === "submit-retail-receipt") {
+    event.preventDefault();
+    event.stopPropagation();
+    submitRetailReceiptUpload();
+    return;
+  }
+
   if (actionName === "start-public-pse") {
     event.preventDefault();
     event.stopPropagation();
@@ -3865,6 +5151,17 @@ app.addEventListener("input", (event) => {
 app.addEventListener("change", (event) => {
   const receiptInput = event.target.closest("[data-public-receipt-input]");
   if (!receiptInput || !app.contains(receiptInput)) {
+    const retailReceiptInput = event.target.closest("[data-retail-receipt-input]");
+    if (!retailReceiptInput || !app.contains(retailReceiptInput)) {
+      return;
+    }
+
+    const retailFile = retailReceiptInput.files?.[0] || null;
+    if (retailFile) {
+      retailCheckoutState.receiptFile = retailFile;
+      retailCheckoutState.receiptFileName = retailFile.name || "comprobante";
+      paintRetailReceiptModal();
+    }
     return;
   }
 
@@ -3877,9 +5174,66 @@ app.addEventListener("change", (event) => {
   submitPublicReceiptUpload(file);
 });
 
+if (!window.__PUBLIC_RETAIL_KEYBOARD_BOUND__) {
+  window.__PUBLIC_RETAIL_KEYBOARD_BOUND__ = true;
+  window.addEventListener("keydown", (event) => {
+    if (retailCheckoutState.openReceipt) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRetailReceiptModal();
+      }
+      return;
+    }
+
+    if (retailCheckoutState.open) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRetailCheckout();
+      }
+      return;
+    }
+
+    if (window.__PUBLIC_RETAIL_CART_MODAL_OPEN__) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRetailCartModal();
+      }
+      return;
+    }
+
+    if (!window.__PUBLIC_RETAIL_MODAL__) {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeRetailProductModal();
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      stepOpenRetailProductModal(-1);
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      stepOpenRetailProductModal(1);
+    }
+  });
+}
+
 app.addEventListener("input", (event) => {
   const field = event.target.closest("[data-payment-field]");
   if (!field || !app.contains(field)) {
+    const retailField = event.target.closest("[data-retail-field]");
+    if (!retailField || !app.contains(retailField)) {
+      return;
+    }
+
+    setRetailCheckoutField(retailField.getAttribute("data-retail-field"), retailField.value);
+    paintRetailCheckoutModal();
     return;
   }
 
