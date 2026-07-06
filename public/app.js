@@ -4425,13 +4425,6 @@ function renderRetailShell(payload = {}, slug = "") {
         <div class="shell topbar-inner">
           <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px); gap: 14px; align-items: center;">
             <div class="brand" style="min-width: 0; display:grid; gap: 10px;">
-              <div class="top-actions" style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content:flex-start;">
-                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">🛒</span>
-                  <span>Carrito</span>
-                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
-                </button>
-              </div>
               <div class="brand-mark">
                 <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
               </div>
@@ -4468,7 +4461,14 @@ function renderRetailShell(payload = {}, slug = "") {
             </div>
 
             <div style="display:grid; gap: 10px; min-width: 0;">
-              ${contactLink ? `<div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;"><a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a></div>` : ""}
+              <div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
+                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">🛒</span>
+                  <span>Carrito</span>
+                  <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
+                </button>
+                ${contactLink ? `<a class="button topbar-cta" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer">Comprar por WhatsApp</a>` : ""}
+              </div>
             </div>
           </div>
         </div>
