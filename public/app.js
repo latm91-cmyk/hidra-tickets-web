@@ -3366,15 +3366,15 @@ function renderRetailProductGallery(product = {}) {
 
   if (gallery.length <= 1) {
     return `
-      <button type="button" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="aspect-ratio: 1.02; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); overflow:hidden; border:0; padding:0; width:100%; cursor: zoom-in;">
+      <div role="button" tabindex="0" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="position:relative; aspect-ratio: 1.02; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); overflow:hidden; border:0; padding:0; width:100%; cursor: zoom-in; display:block;">
         <img src="${escapeHtml(gallery[0] || ASSETS.raffle)}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
-      </button>
+      </div>
     `;
   }
 
   const currentImage = gallery[currentIndex] || gallery[0] || ASSETS.raffle;
   return `
-    <button type="button" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="aspect-ratio: 1.02; position: relative; overflow: hidden; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border:0; padding:0; width:100%; cursor: zoom-in;">
+    <div role="button" tabindex="0" class="raffle-card-media retail-gallery-media" data-action="open-retail-product-modal" data-product-key="${escapeAttr(productKey)}" style="aspect-ratio: 1.02; position: relative; overflow: hidden; background: linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border:0; padding:0; width:100%; cursor: zoom-in; display:block;">
       <img src="${escapeHtml(currentImage)}" alt="${escapeHtml(product.name || product.title || "Producto")}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
       <div style="position:absolute; inset: 12px 12px auto 12px; display:flex; justify-content:space-between; gap: 10px; align-items:flex-start; z-index: 2; pointer-events:none;">
         <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.84); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 10px 18px rgba(8,25,47,0.12);">
@@ -3431,7 +3431,7 @@ function renderRetailProductGallery(product = {}) {
           </button>
         </div>
       </div>
-    </button>
+    </div>
   `;
 }
 
@@ -3477,9 +3477,9 @@ function openRetailProductModal(product = {}) {
     : `<button type="button" class="button gold" data-action="retail-add-to-cart" data-product-key="${escapeAttr(productKey)}" style="width:100%; justify-content:center;">Agregar al carrito</button>`;
 
   frame.innerHTML = `
-    <div class="retail-modal-shell" style="display:grid; gap: 14px;">
-      <div class="retail-modal-zoomable" style="position:relative; border-radius: 28px; overflow:hidden; background: radial-gradient(circle at top left, rgba(214,161,62,0.18), transparent 32%), linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 28px 60px rgba(8,25,47,0.18);">
-        <img data-retail-main-image src="${escapeHtml(currentImage)}" alt="${escapeHtml(productName)}" loading="eager" decoding="async" style="width:100%;height:min(58vh,560px);object-fit:cover;display:block;transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; opacity:1;" />
+    <div class="retail-modal-shell" style="display:grid; gap: 14px; min-height: 0;">
+      <div class="retail-modal-zoomable" style="position:relative; border-radius: 28px; overflow:hidden; background: radial-gradient(circle at top left, rgba(214,161,62,0.18), transparent 32%), linear-gradient(180deg, rgba(8,25,47,0.04), rgba(8,25,47,0.02)); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 28px 60px rgba(8,25,47,0.18); max-height: min(44vh, 420px);">
+        <img data-retail-main-image src="${escapeHtml(currentImage)}" alt="${escapeHtml(productName)}" loading="eager" decoding="async" style="width:100%;height:100%;max-height: min(44vh, 420px);object-fit:cover;display:block;transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; opacity:1;" />
         <div style="position:absolute; inset: 16px 16px auto 16px; display:flex; justify-content:space-between; gap: 10px; align-items:center;">
           <div style="display:inline-flex; align-items:center; gap: 8px; padding: 9px 12px; border-radius: 999px; background: rgba(8,25,47,0.9); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 12px 24px rgba(8,25,47,0.16);">Vitrina premium</div>
           <div style="display:flex; align-items:center; gap: 8px;">
@@ -3842,20 +3842,60 @@ function renderRetailReceiptModalContent() {
     ? `<div class="payment-modal-notice payment-modal-notice-${escapeHtml(retailCheckoutState.noticeTone || "info")}">${escapeHtml(retailCheckoutState.notice)}</div>`
     : "";
   return `
-    <div class="receipt-upload-modal-head">
-      <div class="receipt-upload-spinner" aria-hidden="true"></div>
-      <div class="receipt-upload-copy">
-        <span class="payment-card-kicker">Comprobante</span>
-        <h3>Sube tu soporte de pago</h3>
-        <p>Tu orden ${escapeHtml(order?.orderReference || "")} quedó lista. Sube el comprobante para revisión.</p>
-        <small>Si cierras esta ventana podrás reenviarlo luego desde el detalle del pedido.</small>
+    <div class="payment-modal-head">
+      <div class="payment-modal-head-copy">
+        <div class="section-tag">Comprobante premium</div>
+        <h3 style="margin-top:10px;">Sube tu soporte de pago</h3>
+        <p>Tu orden ${escapeHtml(order?.orderReference || "")} quedó lista. Adjunta el comprobante para revisión y confirmación.</p>
       </div>
+      <button type="button" class="selector-close" data-action="close-retail-checkout">Cerrar</button>
     </div>
+
     ${notice}
-    <div style="display:grid; gap: 12px; margin-top: 8px;">
-      <input type="file" accept="image/*" data-retail-receipt-input />
-      <button type="button" class="button gold" data-action="submit-retail-receipt" ${retailCheckoutState.loading ? "disabled" : ""}>Enviar comprobante</button>
-      <button type="button" class="button secondary" data-action="close-retail-checkout">Cerrar</button>
+
+    <div style="display:grid; gap: 16px; grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.95fr); align-items:start;">
+      <div style="padding: 18px; border-radius: 28px; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(29,95,70,0.94)); color:#fff; box-shadow: 0 24px 56px rgba(8,25,47,0.18); border: 1px solid rgba(255,255,255,0.08); display:grid; gap: 14px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; flex-wrap: wrap;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,214,102,0.14); color:#ffd766; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Orden lista</div>
+            <h4 style="margin:12px 0 0; font-size: 1.8rem; line-height:1.02;">Referencia ${escapeHtml(order?.orderReference || "pendiente")}</h4>
+            <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Sube el comprobante para que el equipo pueda validar tu pago y continuar con la atención.</p>
+          </div>
+          <div style="min-width: 200px; padding: 14px 16px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 11px; letter-spacing:.08em; text-transform:uppercase; color: rgba(255,255,255,0.68); font-weight:800;">Estado</div>
+            <div style="margin-top: 8px; font-size: 1.2rem; font-weight: 900; line-height:1;">Pendiente de revisión</div>
+            <div style="margin-top:6px; color: rgba(255,255,255,0.76); font-size: 12px;">Tu comprobante quedará asociado a esta orden.</div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+          <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Archivo</div>
+            <strong style="display:block; margin-top:6px;">Imagen nítida</strong>
+          </div>
+          <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Revisión</div>
+            <strong style="display:block; margin-top:6px;">Manual por la tienda</strong>
+          </div>
+          <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Acción</div>
+            <strong style="display:block; margin-top:6px;">Enviar ahora</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
+        <div class="payment-action-icon payment-action-icon-upload">↥</div>
+        <div class="payment-card-copy">
+          <span class="payment-card-kicker">Adjuntar comprobante</span>
+          <strong>Selecciona la imagen del pago</strong>
+          <p>Sube una foto o captura clara del soporte para que podamos validar tu pago sin demoras.</p>
+        </div>
+        <div style="display:grid; gap: 12px;">
+          <input type="file" accept="image/*" data-retail-receipt-input />
+          <button type="button" class="button gold" data-action="submit-retail-receipt" ${retailCheckoutState.loading ? "disabled" : ""}>Enviar comprobante</button>
+          <button type="button" class="button secondary" data-action="close-retail-checkout">Cerrar</button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -4066,6 +4106,10 @@ function ensureRetailModalStyles() {
       background: linear-gradient(180deg, #ffffff 0%, #fbfbf8 100%);
       border: 1px solid rgba(8,25,47,0.08);
       box-shadow: 0 32px 80px rgba(8,25,47,0.22);
+      max-height: min(90vh, 920px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     #retail-cart-modal .video-modal-card,
     #retail-checkout-modal .video-modal-card,
@@ -4074,6 +4118,10 @@ function ensureRetailModalStyles() {
       background: linear-gradient(180deg, #ffffff 0%, #fbfbf8 100%);
       border: 1px solid rgba(8,25,47,0.08);
       box-shadow: 0 32px 80px rgba(8,25,47,0.20);
+      max-height: min(90vh, 880px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     #retail-checkout-modal .payment-action-card,
     #retail-checkout-modal .payment-modal-summary,
@@ -4083,6 +4131,13 @@ function ensureRetailModalStyles() {
     #retail-product-modal .video-modal-head {
       padding-bottom: 0;
       margin-bottom: 4px;
+    }
+    #retail-product-modal .video-modal-frame {
+      min-height: 0;
+    }
+    #retail-checkout-modal .video-modal-frame,
+    #retail-receipt-modal .video-modal-frame {
+      min-height: 0;
     }
     #retail-checkout-modal .payment-modal-head {
       margin-bottom: 2px;
@@ -4383,32 +4438,32 @@ function renderRetailShell(payload = {}, slug = "") {
         </section>
       </main>
       <div id="retail-cart-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-cart-modal') { closeRetailCartModal(); }">
-        <div class="video-modal-card" role="document" style="max-width: min(980px, calc(100vw - 28px));">
+        <div class="video-modal-card" role="document" style="max-width: min(920px, calc(100vw - 24px)); max-height: min(90vh, 880px); display: flex; flex-direction: column; overflow: hidden;">
           <button type="button" class="video-modal-close" aria-label="Cerrar carrito" onclick="closeRetailCartModal()">×</button>
-          <div id="retail-cart-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+          <div id="retail-cart-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-checkout-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-checkout-modal') { closeRetailCheckout(); }">
-        <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 28px));">
+        <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 24px)); max-height: min(90vh, 880px); display: flex; flex-direction: column; overflow: hidden;">
           <button type="button" class="video-modal-close" aria-label="Cerrar checkout" onclick="closeRetailCheckout()">×</button>
-          <div id="retail-checkout-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+          <div id="retail-checkout-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-receipt-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-receipt-modal') { closeRetailReceiptModal(); }">
-        <div class="video-modal-card" role="document" style="max-width: min(760px, calc(100vw - 28px));">
+        <div class="video-modal-card" role="document" style="max-width: min(760px, calc(100vw - 24px)); max-height: min(86vh, 760px); display: flex; flex-direction: column; overflow: hidden;">
           <button type="button" class="video-modal-close" aria-label="Cerrar comprobante" onclick="closeRetailReceiptModal()">×</button>
-          <div id="retail-receipt-modal-content" class="video-modal-frame" style="display:grid; gap: 14px;"></div>
+          <div id="retail-receipt-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-product-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-product-modal') { closeRetailProductModal(); }">
-        <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 28px));">
+        <div class="video-modal-card" role="document" style="max-width: min(940px, calc(100vw - 24px)); max-height: min(90vh, 920px); display: flex; flex-direction: column; overflow: hidden;">
           <button type="button" class="video-modal-close" aria-label="Cerrar producto" onclick="closeRetailProductModal()">×</button>
           <div class="video-modal-head">
             <div class="section-tag">Detalle del producto</div>
             <h3 id="retail-product-modal-title">Producto</h3>
             <p id="retail-product-modal-subtitle"></p>
           </div>
-          <div style="display:grid; gap: 14px;">
+          <div style="display:grid; gap: 14px; min-height: 0; flex: 1 1 auto; overflow-y: auto; padding-right: 4px;">
             <div id="retail-product-modal-frame" class="video-modal-frame" style="margin-top: 2px;"></div>
             <div id="retail-product-modal-badges" class="chip-row" style="flex-wrap: wrap; gap: 8px;"></div>
             <p id="retail-product-modal-summary" style="margin: 0; color: #526074; line-height: 1.65;"></p>
