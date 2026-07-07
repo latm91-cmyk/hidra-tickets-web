@@ -1,4 +1,4 @@
-Ôªøconst CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
+const CONFIG = window.__PUBLIC_SITE_CONFIG__ || {};
 function resolvePublicApiBaseUrl() {
   const configured = String(CONFIG.apiBaseUrl || "").trim().replace(/\/+$/, "");
   if (configured && configured !== "__API_BASE_URL__") {
@@ -596,7 +596,7 @@ function formatTicketSelectionLabel(ticket = {}) {
   }
 
   if (numbers.length > 1) {
-    return numbers.join(" ¬∑ ");
+    return numbers.join(" ∑ ");
   }
 
   if (ticket.number) {
@@ -609,7 +609,7 @@ function formatTicketSelectionLabel(ticket = {}) {
 function buildSelectionMessage(raffle = {}, selected = []) {
   const title = getRaffleDisplayTitle(raffle);
   const numbers = selected.map((item) => String(item || "").trim()).filter(Boolean);
-  return `Estas seleccionando tus n√∫meros para el sorteo "${title}" llevas estos seleccionados: ${numbers.join(", ")}.`;
+  return `Estas seleccionando tus n˙meros para el sorteo "${title}" llevas estos seleccionados: ${numbers.join(", ")}.`;
 }
 
 function isYoutubeUrl(url = "") {
@@ -719,7 +719,7 @@ function renderVideoCards(videos = [], kind = "winner", layout = "grid") {
                     data-video-subtitle="${escapeAttr(subtitle)}"
                     aria-label="Reproducir video"
                   >
-                    <span class="play-overlay-badge">‚ñ∂</span>
+                    <span class="play-overlay-badge">?</span>
                     <span class="play-overlay-text">
                       <strong>Ver video</strong>
                       <small>${escapeHtml(cardBadge)}</small>
@@ -734,7 +734,7 @@ function renderVideoCards(videos = [], kind = "winner", layout = "grid") {
                   ${video.drawDate ? `<span class="chip">${escapeHtml(formatDate(video.drawDate))}</span>` : ""}
                 </div>
                 <h3 class="card-title">${escapeHtml(video.title)}</h3>
-                <p class="card-copy">${escapeHtml(subtitle)}${video.prize ? ` ¬∑ ${escapeHtml(video.prize)}` : ""}</p>
+                <p class="card-copy">${escapeHtml(subtitle)}${video.prize ? ` ∑ ${escapeHtml(video.prize)}` : ""}</p>
               </div>
             </article>
           `;
@@ -1108,7 +1108,7 @@ function renderRaffles(site) {
                 ${drawDate ? `<span class="chip">${escapeHtml(drawDate)}</span>` : ""}
             </div>
             ${pricingSummary ? `
-              <div class="raffle-price-label">Precio de boleter√≠a:</div>
+              <div class="raffle-price-label">Precio de boleterÌa:</div>
               <p class="raffle-price-summary">${escapeHtml(pricingSummary)}</p>
             ` : ""}
             <h3 class="raffle-feature-title">${escapeHtml(heroTitle)}</h3>
@@ -1120,7 +1120,7 @@ function renderRaffles(site) {
                 class="button gold js-open-raffle-selector"
                 data-raffle-id="${escapeAttr(String(campaign?.id || ""))}"
               >
-                Escoger mis n√∫meros
+                Escoger mis n˙meros
               </button>
             </div>
             <div class="raffle-feature-meta">
@@ -1157,7 +1157,7 @@ function renderRaffles(site) {
               class="button gold js-open-raffle-selector"
               data-raffle-id="${escapeAttr(String(campaign?.id || ""))}"
             >
-              Escoger mis n√∫meros
+              Escoger mis n˙meros
             </button>
           </div>
         </div>
@@ -1200,7 +1200,7 @@ function renderRaffles(site) {
               class="button gold js-open-raffle-selector"
               data-raffle-id="${escapeAttr(String(campaign?.id || ""))}"
             >
-              Escoger mis n√∫meros
+              Escoger mis n˙meros
             </button>
           </div>
         </div>
@@ -1421,7 +1421,7 @@ function renderWinnerVideos(site) {
           <div>
             <span class="section-kicker">Apoyos sociales</span>
             <h3>Historias de apoyo</h3>
-            <p>Ayudas, aportes y acciones sociales que el cliente quiera mostrar p√∫blicamente.</p>
+            <p>Ayudas, aportes y acciones sociales que el cliente quiera mostrar p˙blicamente.</p>
           </div>
           <div class="section-scroll-hint">Desliza hacia los lados</div>
         </div>
@@ -1581,7 +1581,7 @@ function renderRaffleSelectorContent() {
           data-selector-remove="${escapeAttr(item)}"
         >
           <span>${escapeHtml(item)}</span>
-          <strong>√ó</strong>
+          <strong>◊</strong>
         </button>
       `)
       .join("")
@@ -1627,7 +1627,7 @@ function renderRaffleSelectorContent() {
   const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} numeros visibles`;
   const pageInfo = numbers.length > 0
-    ? `P√°gina ${pagination.page} de ${pagination.totalPages}`
+    ? `P·gina ${pagination.page} de ${pagination.totalPages}`
     : "Sin paginacion";
   const pageRange = numbers.length > 0
     ? `${pagination.start + 1}-${pagination.end}`
@@ -1638,9 +1638,9 @@ function renderRaffleSelectorContent() {
   const liveSummary = `
     <div class="selector-live-summary ${selected.length ? "is-active" : "is-empty"}">
       ${progressMarkup}
-      <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Selecciona tus n√∫meros para empezar"}</strong>
-      <span>${selected.length ? `${escapeHtml(formatCOP(selectedAmount))} ¬∑ ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"}${selectionSummary.isComplete ? "" : ` ¬∑ te faltan ${selectionSummary.missingForNext} n√∫mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar la siguiente boleta`}` : "Tu total aparecer√° aqu√≠ al instante."}</span>
-      <p>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} n√∫meros.${fidelitySingleTicketOnly ? " En fidelizacion solo se permite una boleta por cliente." : ""} ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} n√∫meros y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} n√∫meros: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca cualquier n√∫mero para empezar."}</p>
+      <strong>${selected.length ? `${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completas` : "Selecciona tus n˙meros para empezar"}</strong>
+      <span>${selected.length ? `${escapeHtml(formatCOP(selectedAmount))} ∑ ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"}${selectionSummary.isComplete ? "" : ` ∑ te faltan ${selectionSummary.missingForNext} n˙mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar la siguiente boleta`}` : "Tu total aparecer· aquÌ al instante."}</span>
+      <p>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} n˙meros.${fidelitySingleTicketOnly ? " En fidelizacion solo se permite una boleta por cliente." : ""} ${selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} n˙meros y ya puedes continuar al pago.` : `Llevas ${selectionSummary.totalNumbers} n˙meros: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`}` : "Toca cualquier n˙mero para empezar."}</p>
     </div>
   `;
   const priceChips = pricingPackages.length
@@ -1652,7 +1652,7 @@ function renderRaffleSelectorContent() {
       `).join("")
     : (pricingSummary ? `
         <span class="selector-price-chip selector-price-chip-wide">
-          <strong>Precio de boleter√≠a</strong>
+          <strong>Precio de boleterÌa</strong>
           <small>${escapeHtml(pricingSummary)}</small>
         </span>
       ` : "");
@@ -1713,7 +1713,7 @@ function renderRaffleSelectorContent() {
         <div class="selector-summary-mobile-chips">
           ${selected.length
             ? selected
-              .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>√ó</strong></button>`)
+              .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>◊</strong></button>`)
               .join("")
             : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
         </div>
@@ -1751,7 +1751,7 @@ function renderRaffleSelectorContent() {
       <div class="selector-hero selector-hero-minimal">
         <div class="selector-hero-body selector-hero-body-minimal">
           <div class="selector-hero-topline">
-            <span class="selector-kicker">Precio de boleter√≠a</span>
+            <span class="selector-kicker">Precio de boleterÌa</span>
             <div class="selector-price-strip">
               ${priceChips}
             </div>
@@ -1820,8 +1820,8 @@ function renderRaffleSelectorContent() {
         </div>
         <div class="selector-summary-footer">
           <div class="selector-summary-note">
-            <strong>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} n√∫meros.` : "Selecciona los numeros que quieras apartar."}</strong>
-            <span>${selected.length ? (selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} n√∫meros y ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"} para pagar.` : `Llevas ${selectionSummary.totalNumbers} n√∫meros: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`) : "Cuando selecciones numeros, aqui veras el acceso al pago."}</span>
+            <strong>${selected.length ? `Cada boleta se arma con ${selectionSummary.groupSize} n˙meros.` : "Selecciona los numeros que quieras apartar."}</strong>
+            <span>${selected.length ? (selectionSummary.isComplete ? `Tienes ${selectionSummary.totalNumbers} n˙meros y ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} lista${selectionSummary.completeTickets === 1 ? "" : "s"} para pagar.` : `Llevas ${selectionSummary.totalNumbers} n˙meros: ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"} y te faltan ${selectionSummary.missingForNext} para la siguiente.`) : "Cuando selecciones numeros, aqui veras el acceso al pago."}</span>
           </div>
           <div class="selector-summary-actions">
             <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
@@ -1854,7 +1854,7 @@ function renderRaffleSelectorContent() {
       <div class="selector-summary-mobile-chips">
         ${selected.length
           ? selected
-            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>√ó</strong></button>`)
+            .map((item) => `<button type="button" class="selected-chip mobile" data-selector-remove="${escapeAttr(item)}">${escapeHtml(item)}<strong>◊</strong></button>`)
             .join("")
           : `<div class="selector-empty selector-empty-inline">Aun no has elegido numeros.</div>`}
       </div>
@@ -2136,8 +2136,8 @@ function renderPaymentModalContent() {
   const paymentInstructions = getPaymentInstructionsText(raffle, site);
   const title = raffle ? getRaffleDisplayTitle(raffle) : "Pago";
   const description = raffle
-    ? (getRaffleDisplayDescription(raffle) || "Contin√∫a con tu pago con el m√©todo que prefieras.")
-    : "Contin√∫a con tu pago con el m√©todo que prefieras.";
+    ? (getRaffleDisplayDescription(raffle) || "Contin˙a con tu pago con el mÈtodo que prefieras.")
+    : "Contin˙a con tu pago con el mÈtodo que prefieras.";
   const total = Number(paymentModalState.amount || getPaymentModalSelectionTotal(raffle, selected) || 0);
   const pricingSummary = raffle ? formatRafflePricingSummary(raffle) : "";
   const selectedChips = selected.length
@@ -2190,7 +2190,7 @@ function renderPaymentModalContent() {
           ${paymentProgressMarkup}
           <span class="payment-modal-kicker">Sorteo seleccionado</span>
           <h4>${escapeHtml(title)}</h4>
-          <p class="payment-modal-copy">${escapeHtml(selected.length ? (selectionSummary.isComplete ? `Llevas ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"}.` : `Llevas ${selected.length} n√∫meros y te faltan ${selectionSummary.missingForNext} para completar la siguiente boleta.`) : "Selecciona numeros antes de pagar.")}</p>
+          <p class="payment-modal-copy">${escapeHtml(selected.length ? (selectionSummary.isComplete ? `Llevas ${selectionSummary.completeTickets} boleta${selectionSummary.completeTickets === 1 ? "" : "s"} completa${selectionSummary.completeTickets === 1 ? "" : "s"}.` : `Llevas ${selected.length} n˙meros y te faltan ${selectionSummary.missingForNext} para completar la siguiente boleta.`) : "Selecciona numeros antes de pagar.")}</p>
           <div class="payment-modal-chips">
             ${selectedChips}
           </div>
@@ -2200,13 +2200,13 @@ function renderPaymentModalContent() {
           </div>
           ${selected.length && !selectionSummary.isComplete ? `
             <div class="payment-modal-pricing">
-              <span>Estado de la selecci√≥n:</span>
-              <p>Te faltan ${selectionSummary.missingForNext} n√∫mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} n√∫meros.</p>
+              <span>Estado de la selecciÛn:</span>
+              <p>Te faltan ${selectionSummary.missingForNext} n˙mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} n˙meros.</p>
             </div>
           ` : ""}
           ${pricingSummary ? `
             <div class="payment-modal-pricing">
-              <span>Precio de boleter√≠a:</span>
+              <span>Precio de boleterÌa:</span>
               <p>${escapeHtml(pricingSummary)}</p>
             </div>
           ` : ""}
@@ -2218,10 +2218,10 @@ function renderPaymentModalContent() {
               <span class="payment-card-kicker">Instrucciones de pago</span>
               <span class="payment-card-badge">Lee antes de pagar</span>
             </div>
-            <div class="payment-action-icon payment-action-icon-note">‚åÅ</div>
+            <div class="payment-action-icon payment-action-icon-note">?</div>
             <div class="payment-card-copy">
-              <strong>As√≠ debes realizar tu pago</strong>
-              <p>Esta informaci√≥n viene directamente de la configuraci√≥n del sorteo.</p>
+              <strong>AsÌ debes realizar tu pago</strong>
+              <p>Esta informaciÛn viene directamente de la configuraciÛn del sorteo.</p>
             </div>
             ${renderPaymentInstructionsPanel(paymentInstructions)}
           </div>
@@ -2229,7 +2229,7 @@ function renderPaymentModalContent() {
 
       <div class="payment-modal-right">
           <div class="payment-action-card payment-contact-card">
-            <div class="payment-action-icon payment-action-icon-contact">‚úé</div>
+            <div class="payment-action-icon payment-action-icon-contact">?</div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Datos del comprador</span>
               <strong>Completa tus datos</strong>
@@ -2245,18 +2245,18 @@ function renderPaymentModalContent() {
                 <input type="text" data-payment-field="customerCity" value="${escapeAttr(paymentModalState.customerCity || "")}" placeholder="Ej. Neiva" />
               </label>
               <label class="payment-field">
-                <span>Tel√©fono</span>
+                <span>TelÈfono</span>
                 <input type="tel" data-payment-field="customerPhone" value="${escapeAttr(paymentModalState.customerPhone || "")}" placeholder="Ej. 3001234567" />
               </label>
             </div>
           </div>
 
           <div class="payment-action-card">
-            <div class="payment-action-icon payment-action-icon-upload">‚Ü•</div>
+            <div class="payment-action-icon payment-action-icon-upload">?</div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">${supportUploadMode ? "Captura de fidelizacion" : "Comprobante"}</span>
               <strong>${supportUploadMode ? "Sube tu captura" : "Sube tu soporte"}</strong>
-              <p>${supportUploadMode ? "Sube una captura que demuestre que sigues la fan page. Este sorteo usa capturas en lugar de comprobantes de pago." : "Sube una imagen de tu comprobante para enviarlo a revisi√≥n."}</p>
+              <p>${supportUploadMode ? "Sube una captura que demuestre que sigues la fan page. Este sorteo usa capturas en lugar de comprobantes de pago." : "Sube una imagen de tu comprobante para enviarlo a revisiÛn."}</p>
             </div>
             <input type="file" accept="image/*" data-public-receipt-input hidden />
             <button type="button" class="button secondary" data-action="trigger-public-receipt-upload" ${isDisabled ? "disabled" : ""}>${supportUploadMode ? "Cargar captura" : "Cargar comprobante"}</button>
@@ -2301,7 +2301,7 @@ function renderDeliveryModalContent() {
   const title = raffle ? `Recibe tus boletas de ${getRaffleDisplayTitle(raffle)}` : "Recibe tus boletas";
   const description = raffle
     ? "El pago fue exitoso. Elige si quieres recibirlas por WhatsApp o descargarlas en tu celular."
-    : "El pago fue exitoso. Elige c√≥mo deseas recibir tus boletas.";
+    : "El pago fue exitoso. Elige cÛmo deseas recibir tus boletas.";
   const referenceChip = deliveryModalState.paymentReference
     ? `<span class="delivery-reference-chip">Referencia ${escapeHtml(deliveryModalState.paymentReference)}</span>`
     : "";
@@ -2325,10 +2325,10 @@ function renderDeliveryModalContent() {
 
     <div class="delivery-choice-grid">
       <div class="delivery-choice-card delivery-choice-whatsapp">
-        <div class="payment-action-icon payment-action-icon-whatsapp">‚óå</div>
+        <div class="payment-action-icon payment-action-icon-whatsapp">?</div>
         <div class="payment-card-copy">
           <strong>Enviar por WhatsApp</strong>
-          <p>Se abrir√° WhatsApp con un mensaje que lleva tu c√≥digo de compra.</p>
+          <p>Se abrir· WhatsApp con un mensaje que lleva tu cÛdigo de compra.</p>
         </div>
         <a class="button payment-whatsapp ${whatsappDisabled ? "is-disabled" : ""}" href="${escapeHtml(whatsappUrl || "#")}" target="_blank" rel="noreferrer" ${whatsappDisabled ? 'aria-disabled="true"' : ""}>Enviar por WhatsApp</a>
       </div>
@@ -2803,7 +2803,7 @@ async function submitPublicPseCheckout() {
   const selected = asArray(paymentModalState.selected);
   const selectionSummary = getRaffleSelectorSelectionSummary(raffle, selected);
   if (!site || !slug || !raffle?.campaign?.id || !selected.length || paymentModalState.loading || !ensurePaymentModalContactReady() || !selectionSummary.isComplete) {
-    submitPublicPaymentStateNotice("Completa nombre, ciudad y tel√©fono para continuar.", "warning");
+    submitPublicPaymentStateNotice("Completa nombre, ciudad y telÈfono para continuar.", "warning");
     return;
   }
 
@@ -2850,7 +2850,7 @@ async function submitPublicPseCheckout() {
       if (checkoutWindow) {
         checkoutWindow.location.href = paymentModalState.checkoutUrl;
         checkoutWindow.focus?.();
-        submitPublicPaymentStateNotice("Abrimos la pasarela de PSE en una nueva pesta√±a.", "success");
+        submitPublicPaymentStateNotice("Abrimos la pasarela de PSE en una nueva pestaÒa.", "success");
       } else {
         submitPublicPaymentStateNotice("Ya esta listo tu checkout de PSE. Usa el boton para abrirlo.", "warning");
       }
@@ -3035,7 +3035,7 @@ function renderTrustStrip(site) {
   const items = [
     {
       title: "Compra segura",
-      text: "Tu informaci√≥n y tu pago se gestionan desde el backend.",
+      text: "Tu informaciÛn y tu pago se gestionan desde el backend.",
     },
     {
       title: "Sorteos visibles",
@@ -3046,7 +3046,7 @@ function renderTrustStrip(site) {
       text: `${asArray(site.winnerVideos).length} videos visibles publicados.`,
     },
     {
-      title: "Atenci√≥n directa",
+      title: "AtenciÛn directa",
       text: settings.whatsappNumber || company.whatsapp_number ? `WhatsApp: ${settings.whatsappNumber || company.whatsapp_number}` : "Soporte por WhatsApp",
     },
   ];
@@ -3057,7 +3057,7 @@ function renderTrustStrip(site) {
         .map(
           (item) => `
             <div class="trust-item">
-              <div class="trust-icon">‚ú¶</div>
+              <div class="trust-icon">?</div>
               <div>
                 <strong>${escapeHtml(item.title)}</strong>
                 <span>${escapeHtml(item.text)}</span>
@@ -3072,9 +3072,9 @@ function renderTrustStrip(site) {
 
 function renderHowItWorks() {
   const steps = [
-    ["Escoge tus n√∫meros", "Selecciona los n√∫meros que m√°s te gusten."],
+    ["Escoge tus n˙meros", "Selecciona los n˙meros que m·s te gusten."],
     ["Realiza el pago", "Paga por el medio que prefieras."],
-    ["Env√≠a comprobante", "Sube el soporte desde WhatsApp."],
+    ["EnvÌa comprobante", "Sube el soporte desde WhatsApp."],
     ["Recibe tu boleta", "La boleta queda lista para seguimiento."],
   ];
 
@@ -3085,7 +3085,7 @@ function renderHowItWorks() {
           <div>
             <span class="section-kicker">Proceso simple</span>
             <h2>Compra en menos de 2 minutos</h2>
-            <p>Una ruta clara y r√°pida para pasar de ver el sorteo a tener tu boleta registrada.</p>
+            <p>Una ruta clara y r·pida para pasar de ver el sorteo a tener tu boleta registrada.</p>
           </div>
           <div class="how-it-works-note">Selecciona, paga y recibe seguimiento</div>
         </div>
@@ -3391,7 +3391,7 @@ function renderRetailProductGallery(product = {}) {
           data-gallery-total="${escapeAttr(String(gallery.length))}"
           style="pointer-events:auto; padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.94); border-color: rgba(8,25,47,0.08); color: #0f172a; font-weight: 900; box-shadow: 0 10px 22px rgba(8,25,47,0.12);"
         >
-          Correr im√°genes
+          Correr im·genes
         </button>
       </div>
       <div style="position:absolute; inset:auto 12px 12px 12px; z-index: 2; display:grid; gap: 10px;">
@@ -3465,7 +3465,7 @@ function openRetailProductModal(product = {}) {
   const highlights = getRetailProductHighlights(product);
 
   title.textContent = productName;
-  subtitle.textContent = gallery.length > 1 ? `${gallery.length} im√°genes disponibles` : "Imagen del producto";
+  subtitle.textContent = gallery.length > 1 ? `${gallery.length} im·genes disponibles` : "Imagen del producto";
   summary.textContent = getRetailProductSummary(product);
   badges.innerHTML = highlights.length
     ? highlights.map((item) => `<span class="chip" style="background:#f8fafc; border-color: rgba(8,25,47,0.08);">${escapeHtml(item)}</span>`).join("")
@@ -3491,8 +3491,8 @@ function openRetailProductModal(product = {}) {
           </div>
         </div>
         ${gallery.length > 1 ? `
-          <button type="button" class="retail-modal-nav retail-modal-nav-left" data-action="retail-product-image-prev" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen anterior">‚Äπ</button>
-          <button type="button" class="retail-modal-nav retail-modal-nav-right" data-action="retail-product-image-next" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen siguiente">‚Ä∫</button>
+          <button type="button" class="retail-modal-nav retail-modal-nav-left" data-action="retail-product-image-prev" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen anterior">ã</button>
+          <button type="button" class="retail-modal-nav retail-modal-nav-right" data-action="retail-product-image-next" data-product-key="${escapeAttr(productKey)}" aria-label="Imagen siguiente">õ</button>
         ` : ""}
       </div>
       ${gallery.length > 1 ? `
@@ -3571,7 +3571,7 @@ function renderRetailCartModalContent() {
     return `
       <div class="state-card" style="padding: 24px; border-radius: 24px; border: 1px solid rgba(8,25,47,0.08); background:#fff;">
         <div style="display:grid; gap: 10px;">
-          <div class="section-tag">Carrito vac√≠o</div>
+          <div class="section-tag">Carrito vacÌo</div>
           <h3 style="margin:0;">Aun no has agregado productos</h3>
           <p style="margin:0; color:#526074;">Agrega uno o varios productos para continuar con el pago.</p>
           <button type="button" class="button gold" data-action="close-retail-cart">Seguir comprando</button>
@@ -3691,7 +3691,7 @@ function renderRetailCheckoutModalContent() {
             <div>
               <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,214,102,0.14); color:#ffd766; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Resumen ejecutivo</div>
               <h4 style="margin:12px 0 0; font-size: 1.8rem; line-height:1.02;">${count} producto${count === 1 ? "" : "s"} en tu carrito</h4>
-              <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Revisa el total con domicilio y confirma tu compra en un flujo claro y r√°pido.</p>
+              <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Revisa el total con domicilio y confirma tu compra en un flujo claro y r·pido.</p>
             </div>
             <div style="min-width: 220px; padding: 14px 16px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
               <div style="font-size: 11px; letter-spacing:.08em; text-transform:uppercase; color: rgba(255,255,255,0.68); font-weight:800;">Total final</div>
@@ -3699,7 +3699,7 @@ function renderRetailCheckoutModalContent() {
               <div style="margin-top:6px; color: rgba(255,255,255,0.76); font-size: 12px;">
                 ${deliveryFee > 0
                   ? `Subtotal ${escapeHtml(formatCOP(subtotal))} + ${escapeHtml(getRetailDeliveryModeLabel(retailCheckoutState.deliveryMode).toLowerCase())} ${escapeHtml(formatCOP(deliveryFee))}`
-                  : `Subtotal ${escapeHtml(formatCOP(subtotal))} ¬∑ sin costo de env√≠o`}
+                  : `Subtotal ${escapeHtml(formatCOP(subtotal))} ∑ sin costo de envÌo`}
               </div>
             </div>
           </div>
@@ -3713,8 +3713,8 @@ function renderRetailCheckoutModalContent() {
               <strong style="display:block; margin-top:6px;">Con domicilio</strong>
             </div>
             <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
-              <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Atenci√≥n</div>
-              <strong style="display:block; margin-top:6px;">Confirmaci√≥n inmediata</strong>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">AtenciÛn</div>
+              <strong style="display:block; margin-top:6px;">ConfirmaciÛn inmediata</strong>
             </div>
           </div>
           <div style="margin-top: 16px; display:flex; flex-wrap:wrap; gap: 8px;">
@@ -3727,19 +3727,19 @@ function renderRetailCheckoutModalContent() {
 
         <div style="display:grid; gap: 14px;">
           <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-contact">‚úé</div>
+            <div class="payment-action-icon payment-action-icon-contact">?</div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Datos del comprador</span>
               <strong>Completa tus datos</strong>
-              <p>Necesitamos tus datos para registrar la orden y enviarte la confirmaci√≥n.</p>
+              <p>Necesitamos tus datos para registrar la orden y enviarte la confirmaciÛn.</p>
             </div>
             <div class="payment-form-grid">
               <label class="payment-field">
                 <span>Nombre</span>
-                <input type="text" data-retail-field="customerName" value="${escapeAttr(retailCheckoutState.customerName || "")}" placeholder="Ej. Laura P√©rez" />
+                <input type="text" data-retail-field="customerName" value="${escapeAttr(retailCheckoutState.customerName || "")}" placeholder="Ej. Laura PÈrez" />
               </label>
               <label class="payment-field">
-                <span>Tel√©fono</span>
+                <span>TelÈfono</span>
                 <input type="tel" data-retail-field="customerPhone" value="${escapeAttr(retailCheckoutState.customerPhone || "")}" placeholder="Ej. 3001234567" />
               </label>
               <label class="payment-field">
@@ -3747,7 +3747,7 @@ function renderRetailCheckoutModalContent() {
                 <input type="email" data-retail-field="customerEmail" value="${escapeAttr(retailCheckoutState.customerEmail || "")}" placeholder="Ej. correo@cliente.com" />
               </label>
               <label class="payment-field">
-                <span>Direcci√≥n</span>
+                <span>DirecciÛn</span>
                 <input type="text" data-retail-field="customerAddress" value="${escapeAttr(retailCheckoutState.customerAddress || "")}" placeholder="Ej. Calle 10 # 5-20" />
               </label>
               <label class="payment-field">
@@ -3762,11 +3762,11 @@ function renderRetailCheckoutModalContent() {
           </div>
 
           <div class="payment-action-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-upload">‚Ü•</div>
+            <div class="payment-action-icon payment-action-icon-upload">?</div>
             <div class="payment-card-copy">
-              <span class="payment-card-kicker">Costo de env√≠o</span>
+              <span class="payment-card-kicker">Costo de envÌo</span>
               <strong>Agrega domicilio al total</strong>
-              <p>Si el pedido requiere entrega, digita el valor del env√≠o. Si lo recoge en tienda, d√©jalo en cero.</p>
+              <p>Si el pedido requiere entrega, digita el valor del envÌo. Si lo recoge en tienda, dÈjalo en cero.</p>
             </div>
             <div style="display:grid; gap:10px;">
               <button type="button" class="button secondary" data-action="set-retail-delivery-mode" data-delivery-mode="pickup" style="justify-content:space-between; display:flex; align-items:center; border-color:${isPickup ? "rgba(214,161,62,0.9)" : "rgba(8,25,47,0.12)"}; box-shadow:${isPickup ? "0 10px 22px rgba(214,161,62,0.12)" : "none"};">
@@ -3782,15 +3782,15 @@ function renderRetailCheckoutModalContent() {
                 <strong>${escapeHtml(formatCOP(getRetailDeliveryFeeAmount("express", storefront)))}</strong>
               </button>
             </div>
-            <div style="margin-top:8px; font-size:12px; color:${isPickup ? "#0f172a" : "#526074"}; font-weight:${isPickup ? "900" : "600"};">Opci√≥n activa: ${escapeHtml(getRetailDeliveryModeLabel(retailCheckoutState.deliveryMode))}</div>
+            <div style="margin-top:8px; font-size:12px; color:${isPickup ? "#0f172a" : "#526074"}; font-weight:${isPickup ? "900" : "600"};">OpciÛn activa: ${escapeHtml(getRetailDeliveryModeLabel(retailCheckoutState.deliveryMode))}</div>
           </div>
 
           <div class="payment-action-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-upload">‚Ü•</div>
+            <div class="payment-action-icon payment-action-icon-upload">?</div>
             <div class="payment-card-copy">
-              <span class="payment-card-kicker">M√©todo de pago</span>
-              <strong>Elige c√≥mo quieres pagar</strong>
-              <p>PSE abre la pasarela y comprobante deja la orden pendiente de revisi√≥n.</p>
+              <span class="payment-card-kicker">MÈtodo de pago</span>
+              <strong>Elige cÛmo quieres pagar</strong>
+              <p>PSE abre la pasarela y comprobante deja la orden pendiente de revisiÛn.</p>
             </div>
             <div style="display:grid; gap:10px;">
               <button type="button" class="button gold" data-action="submit-retail-checkout" data-payment-method="PSE" ${retailCheckoutState.loading ? "disabled" : ""}>Pagar con PSE</button>
@@ -3847,7 +3847,7 @@ function renderRetailReceiptModalContent() {
       <div class="payment-modal-head-copy">
         <div class="section-tag">Comprobante premium</div>
         <h3 style="margin-top:10px;">Sube tu soporte de pago</h3>
-        <p>Tu orden ${escapeHtml(order?.orderReference || "")} qued√≥ lista. Adjunta el comprobante para revisi√≥n y confirmaci√≥n.</p>
+        <p>Tu orden ${escapeHtml(order?.orderReference || "")} quedÛ lista. Adjunta el comprobante para revisiÛn y confirmaciÛn.</p>
       </div>
       <button type="button" class="selector-close" data-action="close-retail-checkout">Cerrar</button>
     </div>
@@ -3860,32 +3860,32 @@ function renderRetailReceiptModalContent() {
           <div>
             <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,214,102,0.14); color:#ffd766; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;">Orden lista</div>
             <h4 style="margin:12px 0 0; font-size: 1.8rem; line-height:1.02;">Referencia ${escapeHtml(order?.orderReference || "pendiente")}</h4>
-            <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Sube el comprobante para que el equipo pueda validar tu pago y continuar con la atenci√≥n.</p>
+            <p style="margin:10px 0 0; max-width: 48ch; color: rgba(255,255,255,0.82); line-height:1.6;">Sube el comprobante para que el equipo pueda validar tu pago y continuar con la atenciÛn.</p>
           </div>
           <div style="min-width: 200px; padding: 14px 16px; border-radius: 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);">
             <div style="font-size: 11px; letter-spacing:.08em; text-transform:uppercase; color: rgba(255,255,255,0.68); font-weight:800;">Estado</div>
-            <div style="margin-top: 8px; font-size: 1.2rem; font-weight: 900; line-height:1;">Pendiente de revisi√≥n</div>
-            <div style="margin-top:6px; color: rgba(255,255,255,0.76); font-size: 12px;">Tu comprobante quedar√° asociado a esta orden.</div>
+            <div style="margin-top: 8px; font-size: 1.2rem; font-weight: 900; line-height:1;">Pendiente de revisiÛn</div>
+            <div style="margin-top:6px; color: rgba(255,255,255,0.76); font-size: 12px;">Tu comprobante quedar· asociado a esta orden.</div>
           </div>
         </div>
         <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
           <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
             <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Archivo</div>
-            <strong style="display:block; margin-top:6px;">Imagen n√≠tida</strong>
+            <strong style="display:block; margin-top:6px;">Imagen nÌtida</strong>
           </div>
           <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
-            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Revisi√≥n</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">RevisiÛn</div>
             <strong style="display:block; margin-top:6px;">Manual por la tienda</strong>
           </div>
           <div style="padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.06);">
-            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">Acci√≥n</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing:.08em; font-weight:800;">AcciÛn</div>
             <strong style="display:block; margin-top:6px;">Enviar ahora</strong>
           </div>
         </div>
       </div>
 
       <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
-        <div class="payment-action-icon payment-action-icon-upload">‚Ü•</div>
+        <div class="payment-action-icon payment-action-icon-upload">?</div>
         <div class="payment-card-copy">
           <span class="payment-card-kicker">Adjuntar comprobante</span>
           <strong>Selecciona la imagen del pago</strong>
@@ -3941,7 +3941,7 @@ async function submitRetailCheckout(paymentMethod = "PSE") {
   }
 
   if (!String(retailCheckoutState.customerName || "").trim() || !String(retailCheckoutState.customerPhone || "").trim()) {
-    setRetailCheckoutNotice("Completa nombre y tel√©fono para continuar.", "warning");
+    setRetailCheckoutNotice("Completa nombre y telÈfono para continuar.", "warning");
     return;
   }
 
@@ -3985,7 +3985,7 @@ async function submitRetailCheckout(paymentMethod = "PSE") {
 
     if (retailCheckoutState.paymentMethod === "PSE" && data?.payment?.paymentLink) {
       window.open(data.payment.paymentLink, "_blank", "noopener,noreferrer");
-      setRetailCheckoutNotice("Abrimos el enlace de PSE en una nueva pesta√±a.", "success");
+      setRetailCheckoutNotice("Abrimos el enlace de PSE en una nueva pestaÒa.", "success");
       retailCartState.itemsByKey = {};
       saveRetailCart(slug, retailCartState.itemsByKey);
       window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
@@ -3996,7 +3996,7 @@ async function submitRetailCheckout(paymentMethod = "PSE") {
     retailCheckoutState.open = false;
     paintRetailCheckoutModal();
     openRetailReceiptModal(data?.order || null);
-    retailCheckoutState.notice = "La orden qued√≥ lista. Ahora sube el comprobante.";
+    retailCheckoutState.notice = "La orden quedÛ lista. Ahora sube el comprobante.";
     retailCheckoutState.noticeTone = "success";
     paintRetailReceiptModal();
   } catch (error) {
@@ -4042,7 +4042,7 @@ async function submitRetailReceiptUpload() {
     window.__PUBLIC_RETAIL_CART__ = getRetailCartItems();
     paintRetailCartModal();
     retailCheckoutState.order = data || order;
-    retailCheckoutState.notice = "Tu comprobante fue enviado a revisi√≥n.";
+    retailCheckoutState.notice = "Tu comprobante fue enviado a revisiÛn.";
     retailCheckoutState.noticeTone = "success";
     paintRetailReceiptModal();
   } catch (error) {
@@ -4370,7 +4370,7 @@ function renderRetailShell(payload = {}, slug = "") {
   const filteredProducts = getRetailFilteredProducts(products, categories);
   const headerSpotlightProducts = getRetailHeaderSpotlightProducts(products, 3);
   const companyName = storefront.title || storefront.name || "Tienda";
-  const heroText = storefront.subtitle || storefront.description || "Vitrina virtual para comprar f√°cil, r√°pido y por WhatsApp.";
+  const heroText = storefront.subtitle || storefront.description || "Vitrina virtual para comprar f·cil, r·pido y por WhatsApp.";
   const contactLink = buildRetailWhatsAppLink(storefront);
   const featuredProducts = filteredProducts.slice(0, 8);
   const sections = categories.length
@@ -4426,7 +4426,7 @@ function renderRetailShell(payload = {}, slug = "") {
           <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px); gap: 14px; align-items: center;">
             <div class="brand" style="min-width: 0; display:grid; gap: 10px;">
               <div class="brand-mark">
-                <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+                <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:10px;border-radius:16px;background:transparent;" />
               </div>
               <div style="min-width: 0;">
                 <div class="brand-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(companyName)}</div>
@@ -4442,7 +4442,7 @@ function renderRetailShell(payload = {}, slug = "") {
                     type="search"
                     data-retail-search
                     value="${escapeAttr(retailUiState.searchQuery || "")}"
-                    placeholder="Buscar productos, marcas y m√°s..."
+                    placeholder="Buscar productos, marcas y m·s..."
                     aria-label="Buscar productos"
                     style="flex:1 1 auto; min-width: 0; border:0; outline: none; background: transparent; color:#0f172a; font-size: 15px; font-weight: 600;"
                   />
@@ -4463,7 +4463,7 @@ function renderRetailShell(payload = {}, slug = "") {
             <div style="display:grid; gap: 10px; min-width: 0;">
               <div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;">
                 <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">üõí</span>
+                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">??</span>
                   <span>Carrito</span>
                   <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
                 </button>
@@ -4478,16 +4478,16 @@ function renderRetailShell(payload = {}, slug = "") {
         <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; margin-bottom: 12px;">
           <div>
             <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Ofertas</div>
-            <h2 style="margin-top: 14px;">Productos en promoci√≥n</h2>
-            <p style="max-width: 58ch;">Selecci√≥n destacada con formato horizontal para abrir el espacio que dej√≥ el hero.</p>
+            <h2 style="margin-top: 14px;">Productos en promociÛn</h2>
+            <p style="max-width: 58ch;">SelecciÛn destacada con formato horizontal para abrir el espacio que dejÛ el hero.</p>
           </div>
         <div style="display:flex; align-items:center; gap: 10px;">
             ${contactLink ? `<a class="button secondary" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="white-space: nowrap;">Pedir por WhatsApp</a>` : ""}
           </div>
         </div>
         <div style="position: relative;">
-          <button type="button" class="button secondary" data-action="retail-offers-scroll-prev" aria-label="Mover ofertas a la izquierda" style="position:absolute; left:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">‚Äπ</button>
-          <button type="button" class="button secondary" data-action="retail-offers-scroll-next" aria-label="Mover ofertas a la derecha" style="position:absolute; right:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">‚Ä∫</button>
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-prev" aria-label="Mover ofertas a la izquierda" style="position:absolute; left:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">ã</button>
+          <button type="button" class="button secondary" data-action="retail-offers-scroll-next" aria-label="Mover ofertas a la derecha" style="position:absolute; right:-8px; top:50%; transform: translateY(-50%); z-index:2; width: 34px; min-width: 34px; height: 34px; padding: 0; justify-content:center; border-radius: 999px; background: rgba(255,255,255,0.96); border: 1px solid rgba(8,25,47,0.10); box-shadow: 0 8px 18px rgba(8,25,47,0.10); color: #0f172a; font-size: 18px; line-height: 1;">õ</button>
           <div id="retail-offers-track" class="retail-offers-track" style="display:grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 250px); gap: 12px; overflow-x: auto; padding: 2px 28px 10px; overscroll-behavior-x: contain;">
           ${headerSpotlightProducts.length ? headerSpotlightProducts.map((product) => {
             const image = getRetailProductActiveImage(product);
@@ -4501,13 +4501,13 @@ function renderRetailShell(payload = {}, slug = "") {
               <button type="button" data-action="open-retail-product-modal" data-product-key="${escapeAttr(getRetailProductKey(product))}" style="display:grid; gap: 10px; text-align:left; padding: 10px; border-radius: 20px; background: linear-gradient(180deg, #ffffff, #f7f9fc); border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 28px rgba(8,25,47,0.07); cursor:pointer; min-width: 220px;">
                 <div style="position: relative; width: 100%; aspect-ratio: 1.18; border-radius: 16px; overflow:hidden; background: rgba(8,25,47,0.06);">
                   <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                  ${badge ? `<span style="position:absolute; top: 10px; left: 10px; display:inline-flex; align-items:center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(8,25,47,0.92); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta <span aria-hidden="true">‚Ä∫</span></span>` : ""}
+                  ${badge ? `<span style="position:absolute; top: 10px; left: 10px; display:inline-flex; align-items:center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(8,25,47,0.92); color: #ffd766; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Oferta <span aria-hidden="true">õ</span></span>` : ""}
                   ${discountPercent ? `<span style="position:absolute; top: 10px; right: 10px; display:inline-flex; align-items:center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: rgba(29,95,70,0.96); color: #fff; font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">-${discountPercent}%</span>` : ""}
                 </div>
                 <div style="display:grid; gap: 6px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap: 8px;">
                     <div style="font-size: 11px; font-weight: 800; color: rgba(15,23,42,0.58); text-transform: uppercase; letter-spacing: .06em;">${escapeHtml(categoryLabel)}</div>
-                    <span aria-hidden="true" style="display:inline-flex; width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 16px;">‚Ä∫</span>
+                    <span aria-hidden="true" style="display:inline-flex; width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 16px;">õ</span>
                   </div>
                   <strong style="display:block; color: #0f172a; font-size: 0.98rem; line-height: 1.1;">${escapeHtml(name)}</strong>
                   <div style="display:flex; align-items:flex-end; justify-content:space-between; gap: 8px; color: #0f172a;">
@@ -4520,7 +4520,7 @@ function renderRetailShell(payload = {}, slug = "") {
                 </div>
               </button>
             `;
-          }).join("") : `<div style="padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(8,25,47,0.08); color: rgba(15,23,42,0.72); font-size: 13px;">No hay ofertas cargadas a√∫n.</div>`}
+          }).join("") : `<div style="padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(8,25,47,0.08); color: rgba(15,23,42,0.72); font-size: 13px;">No hay ofertas cargadas a˙n.</div>`}
           </div>
         </div>
       </section>
@@ -4529,9 +4529,9 @@ function renderRetailShell(payload = {}, slug = "") {
         <section class="section shell section-anchor" id="catalogo" style="margin-top: 32px;">
           <div class="section-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap: 16px;">
             <div>
-              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Cat√°logo</div>
+              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">Cat·logo</div>
               <h2 style="margin-top: 14px;">Explora la vitrina</h2>
-              <p style="max-width: 58ch;">Productos publicados por la tienda, organizados para compra r√°pida y atenci√≥n directa.</p>
+              <p style="max-width: 58ch;">Productos publicados por la tienda, organizados para compra r·pida y atenciÛn directa.</p>
             </div>
           </div>
           ${sections.length ? `<div class="chip-row" style="margin-bottom:18px; flex-wrap: wrap; gap: 8px;">${sections.map((category) => `<span class="chip" style="padding: 10px 14px; background: #fff; border-color: rgba(8,25,47,0.08); box-shadow: 0 10px 18px rgba(8,25,47,0.05);">${escapeHtml(category.name || category.title || "Categoria")}</span>`).join("")}</div>` : ""}
@@ -4564,9 +4564,9 @@ function renderRetailShell(payload = {}, slug = "") {
             `).join("") : `
               <div class="state-card" style="padding: 28px; background: linear-gradient(135deg, rgba(8,25,47,0.98), rgba(17,32,56,0.96)); color: #fff; border: 1px solid rgba(8,25,47,0.06); box-shadow: 0 18px 40px rgba(8,25,47,0.12);">
                 <div style="display:grid; gap: 10px; max-width: 56ch;">
-                  <div style="display:inline-flex; width: fit-content; padding: 8px 12px; border-radius: 999px; background: rgba(255,214,102,0.12); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Cat√°logo en construcci√≥n</div>
-                  <h3 style="margin: 0; font-size: 1.6rem; line-height: 1.08;">Todav√≠a no hay productos visibles</h3>
-                  <p style="margin: 0; color: rgba(255,255,255,0.82); line-height: 1.6;">La vitrina ya est√° lista para recibir productos. Cuando publiques inventario, aparecer√° aqu√≠ con tarjetas destacadas, precio y compra por WhatsApp.</p>
+                  <div style="display:inline-flex; width: fit-content; padding: 8px 12px; border-radius: 999px; background: rgba(255,214,102,0.12); color: #ffd766; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;">Cat·logo en construcciÛn</div>
+                  <h3 style="margin: 0; font-size: 1.6rem; line-height: 1.08;">TodavÌa no hay productos visibles</h3>
+                  <p style="margin: 0; color: rgba(255,255,255,0.82); line-height: 1.6;">La vitrina ya est· lista para recibir productos. Cuando publiques inventario, aparecer· aquÌ con tarjetas destacadas, precio y compra por WhatsApp.</p>
                   ${contactLink ? `<a class="button gold" href="${escapeHtml(contactLink)}" target="_blank" rel="noreferrer" style="width: fit-content; margin-top: 8px;">Escribir a la tienda</a>` : ""}
                 </div>
               </div>`}
@@ -4576,39 +4576,39 @@ function renderRetailShell(payload = {}, slug = "") {
         <section class="section shell section-anchor" style="margin-top: 30px; padding-bottom: 24px;">
           <div class="section-head">
             <div>
-              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">C√≥mo comprar</div>
+              <div style="display:inline-flex; align-items:center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(8,25,47,0.06); color: #0f172a; font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase;">CÛmo comprar</div>
               <h2 style="margin-top: 14px;">Ruta de compra simple</h2>
-              <p>Flujo corto para cerrar la venta r√°pido, sin fricci√≥n.</p>
+              <p>Flujo corto para cerrar la venta r·pido, sin fricciÛn.</p>
             </div>
           </div>
           <div class="raffles-grid" style="gap: 14px;">
             <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">1. Revisa</strong><p style="margin:10px 0 0; color:#526074;">Explora la vitrina y abre la ficha del producto que te interesa.</p></div>
-            <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">2. Escr√≠benos</strong><p style="margin:10px 0 0; color:#526074;">Usa WhatsApp para pedir asesor√≠a, disponibilidad o compra directa.</p></div>
+            <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">2. EscrÌbenos</strong><p style="margin:10px 0 0; color:#526074;">Usa WhatsApp para pedir asesorÌa, disponibilidad o compra directa.</p></div>
             <div class="state-card" style="padding: 20px; border-radius: 20px; border: 1px solid rgba(8,25,47,0.08); box-shadow: 0 14px 30px rgba(8,25,47,0.06); background:#fff;"><strong style="display:block; font-size: 1rem; color:#0f172a;">3. Recibe</strong><p style="margin:10px 0 0; color:#526074;">La tienda confirma tu pedido y coordina la entrega contigo.</p></div>
           </div>
         </section>
       </main>
       <div id="retail-cart-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-cart-modal') { closeRetailCartModal(); }">
         <div class="video-modal-card" role="document" style="max-width: min(920px, calc(100vw - 24px)); max-height: min(90vh, 880px); display: flex; flex-direction: column; overflow: hidden;">
-          <button type="button" class="video-modal-close" aria-label="Cerrar carrito" onclick="closeRetailCartModal()">√ó</button>
+          <button type="button" class="video-modal-close" aria-label="Cerrar carrito" onclick="closeRetailCartModal()">◊</button>
           <div id="retail-cart-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-checkout-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-checkout-modal') { closeRetailCheckout(); }">
         <div class="video-modal-card" role="document" style="max-width: min(1040px, calc(100vw - 24px)); max-height: min(90vh, 880px); display: flex; flex-direction: column; overflow: hidden;">
-          <button type="button" class="video-modal-close" aria-label="Cerrar checkout" onclick="closeRetailCheckout()">√ó</button>
+          <button type="button" class="video-modal-close" aria-label="Cerrar checkout" onclick="closeRetailCheckout()">◊</button>
           <div id="retail-checkout-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-receipt-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-receipt-modal') { closeRetailReceiptModal(); }">
         <div class="video-modal-card" role="document" style="max-width: min(760px, calc(100vw - 24px)); max-height: min(86vh, 760px); display: flex; flex-direction: column; overflow: hidden;">
-          <button type="button" class="video-modal-close" aria-label="Cerrar comprobante" onclick="closeRetailReceiptModal()">√ó</button>
+          <button type="button" class="video-modal-close" aria-label="Cerrar comprobante" onclick="closeRetailReceiptModal()">◊</button>
           <div id="retail-receipt-modal-content" class="video-modal-frame" style="display:grid; gap: 14px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px;"></div>
         </div>
       </div>
       <div id="retail-product-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'retail-product-modal') { closeRetailProductModal(); }">
         <div class="video-modal-card" role="document" style="max-width: min(940px, calc(100vw - 24px)); max-height: min(90vh, 920px); display: flex; flex-direction: column; overflow: hidden;">
-          <button type="button" class="video-modal-close" aria-label="Cerrar producto" onclick="closeRetailProductModal()">√ó</button>
+          <button type="button" class="video-modal-close" aria-label="Cerrar producto" onclick="closeRetailProductModal()">◊</button>
           <div class="video-modal-head">
             <div class="section-tag">Detalle del producto</div>
             <h3 id="retail-product-modal-title">Producto</h3>
@@ -4650,7 +4650,7 @@ function renderShell(site, slug) {
   const heroTitle = settings.heroTitle || settings.title || company.nombre || "Rifas";
   const heroSubtitle = settings.heroSubtitle || settings.subtitle || "Una experiencia de rifas administrada desde el backend.";
   const heroButton = settings.heroButtonUrl || "#sorteos";
-  const heroLabel = settings.heroButtonLabel || (settings.heroButtonUrl ? "Escr√≠benos" : "Ver sorteos");
+  const heroLabel = settings.heroButtonLabel || (settings.heroButtonUrl ? "EscrÌbenos" : "Ver sorteos");
   const slogan = settings.slogan || "";
   const activeRaffles = asArray(site.activeRaffles);
   const featuredRaffle = activeRaffles[0] || null;
@@ -4676,7 +4676,7 @@ function renderShell(site, slug) {
   const footerQuickLinks = [
     ["Inicio", "#inicio"],
     ["Sorteos", "#sorteos"],
-    ["C√≥mo participar", "#como-participar"],
+    ["CÛmo participar", "#como-participar"],
     ["Ganadores", "#videos"],
     ["Ayuda", "#faq"],
   ];
@@ -4701,7 +4701,7 @@ function renderShell(site, slug) {
           <div class="topbar-main">
             <div class="brand">
               <div class="brand-mark">
-              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;border-radius:16px;" />
+              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:10px;border-radius:16px;background:transparent;" />
               </div>
               <div>
                 <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
@@ -4715,15 +4715,15 @@ function renderShell(site, slug) {
                 data-action="toggle-mobile-menu"
                 aria-expanded="${publicUiState.mobileMenuOpen ? "true" : "false"}"
                 aria-controls="topbar-mobile-menu"
-                aria-label="${publicUiState.mobileMenuOpen ? "Cerrar men√∫" : "Abrir men√∫"}"
+                aria-label="${publicUiState.mobileMenuOpen ? "Cerrar men˙" : "Abrir men˙"}"
               >
-                <span class="topbar-menu-icon" data-mobile-menu-icon aria-hidden="true">${publicUiState.mobileMenuOpen ? "√ó" : "‚ò∞"}</span>
-                <span class="topbar-menu-label" data-mobile-menu-label>Men√∫</span>
+                <span class="topbar-menu-icon" data-mobile-menu-icon aria-hidden="true">${publicUiState.mobileMenuOpen ? "◊" : "?"}</span>
+                <span class="topbar-menu-label" data-mobile-menu-label>Men˙</span>
               </button>
-              ${settings.whatsappNumber ? `<a class="button topbar-cta" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer"><span class="whatsapp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg></span><span>Cont√°ctanos</span></a>` : ""}
+              ${settings.whatsappNumber ? `<a class="button topbar-cta" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer"><span class="whatsapp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg></span><span>Cont·ctanos</span></a>` : ""}
             </div>
           </div>
-          <nav class="top-nav top-nav-desktop" aria-label="Navegaci√≥n principal">
+          <nav class="top-nav top-nav-desktop" aria-label="NavegaciÛn principal">
             ${topNavLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
           </nav>
           <div class="topbar-mobile-panel" id="topbar-mobile-menu" data-mobile-nav-panel ${publicUiState.mobileMenuOpen ? "" : "hidden"}>
@@ -4869,7 +4869,7 @@ function renderShell(site, slug) {
               </div>
             </div>
             <div class="footer-links">
-              <span class="footer-label">Navegaci√≥n</span>
+              <span class="footer-label">NavegaciÛn</span>
               <div class="footer-link-list">
                 ${footerQuickLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
               </div>
@@ -4891,7 +4891,7 @@ function renderShell(site, slug) {
             </div>
           </div>
           <div class="footer-bar">
-            <span>Compra segura ¬∑ Seguimiento en tiempo real ¬∑ Ganadores visibles</span>
+            <span>Compra segura ∑ Seguimiento en tiempo real ∑ Ganadores visibles</span>
             <span>${escapeHtml(slug || "sin-slug")}</span>
           </div>
         </section>
@@ -4902,7 +4902,7 @@ function renderShell(site, slug) {
         ${renderDeliveryModal()}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
-          <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">√ó</button>
+          <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">◊</button>
           <div class="video-modal-head">
             <div class="section-tag">Video de ganador</div>
             <h3 id="video-modal-title">Video</h3>
@@ -4986,13 +4986,13 @@ app.addEventListener("click", (event) => {
       panel.hidden = !publicUiState.mobileMenuOpen;
     }
     if (label) {
-      label.textContent = publicUiState.mobileMenuOpen ? "Cerrar" : "Men√∫";
+      label.textContent = publicUiState.mobileMenuOpen ? "Cerrar" : "Men˙";
     }
     if (icon) {
-      icon.textContent = publicUiState.mobileMenuOpen ? "√ó" : "‚ò∞";
+      icon.textContent = publicUiState.mobileMenuOpen ? "◊" : "?";
     }
     mobileMenuToggle.setAttribute("aria-expanded", publicUiState.mobileMenuOpen ? "true" : "false");
-    mobileMenuToggle.setAttribute("aria-label", publicUiState.mobileMenuOpen ? "Cerrar men√∫" : "Abrir men√∫");
+    mobileMenuToggle.setAttribute("aria-label", publicUiState.mobileMenuOpen ? "Cerrar men˙" : "Abrir men˙");
     return;
   }
 
@@ -5012,13 +5012,13 @@ app.addEventListener("click", (event) => {
     }
     if (toggle) {
       toggle.setAttribute("aria-expanded", "false");
-      toggle.setAttribute("aria-label", "Abrir men√∫");
+      toggle.setAttribute("aria-label", "Abrir men˙");
     }
     if (label) {
-      label.textContent = "Men√∫";
+      label.textContent = "Men˙";
     }
     if (icon) {
-      icon.textContent = "‚ò∞";
+      icon.textContent = "?";
     }
   }
 
@@ -5114,7 +5114,7 @@ app.addEventListener("click", (event) => {
       return;
     }
     if (!selectionSummary.isComplete) {
-      raffleSelectorState.notice = `Te faltan ${selectionSummary.missingForNext} n√∫mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} n√∫meros.`;
+      raffleSelectorState.notice = `Te faltan ${selectionSummary.missingForNext} n˙mero${selectionSummary.missingForNext === 1 ? "" : "s"} para completar una boleta de ${selectionSummary.groupSize} n˙meros.`;
       raffleSelectorState.noticeTone = "warning";
       paintRaffleSelector();
       return;
@@ -5547,7 +5547,7 @@ async function loadRetailSite() {
       renderRetailShell({
         storefront: {
           title: slug ? slug.replace(/[-_]+/g, " ") : "Vitrina retail",
-          subtitle: "Vitrina virtual para comprar f√°cil, r√°pido y por WhatsApp.",
+          subtitle: "Vitrina virtual para comprar f·cil, r·pido y por WhatsApp.",
           description: "Estamos preparando el catalogo para esta tienda.",
           currency: "COP",
           deliveryMessage: "Aun no hay productos publicados, pero la vitrina ya esta activa.",
@@ -5634,5 +5634,6 @@ async function loadSite() {
 }
 
 loadSite();
+
 
 
