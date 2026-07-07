@@ -2218,7 +2218,7 @@ function renderPaymentModalContent() {
               <span class="payment-card-kicker">Instrucciones de pago</span>
               <span class="payment-card-badge">Lee antes de pagar</span>
             </div>
-            <div class="payment-action-icon payment-action-icon-note">?</div>
+            <div class="payment-action-icon payment-action-icon-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M7 4h7l3 3v13H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 4v4h4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 11h6M9 14h6M9 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <div class="payment-card-copy">
               <strong>Así debes realizar tu pago</strong>
               <p>Esta información viene directamente de la configuración del sorteo.</p>
@@ -2229,7 +2229,7 @@ function renderPaymentModalContent() {
 
       <div class="payment-modal-right">
           <div class="payment-action-card payment-contact-card">
-            <div class="payment-action-icon payment-action-icon-contact">?</div>
+            <div class="payment-action-icon payment-action-icon-contact"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M20 18.5c-1.4-1.2-3.1-1.9-5-2.3l-1.1 2.2H10l-1.1-2.2c-1.9.4-3.6 1.1-5 2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M7.2 20a8.9 8.9 0 0 1 9.6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Datos del comprador</span>
               <strong>Completa tus datos</strong>
@@ -2252,7 +2252,7 @@ function renderPaymentModalContent() {
           </div>
 
           <div class="payment-action-card">
-            <div class="payment-action-icon payment-action-icon-upload">?</div>
+            <div class="payment-action-icon payment-action-icon-upload"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M12 16V6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M8.5 9.5 12 6l3.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">${supportUploadMode ? "Captura de fidelizacion" : "Comprobante"}</span>
               <strong>${supportUploadMode ? "Sube tu captura" : "Sube tu soporte"}</strong>
@@ -2325,7 +2325,7 @@ function renderDeliveryModalContent() {
 
     <div class="delivery-choice-grid">
       <div class="delivery-choice-card delivery-choice-whatsapp">
-        <div class="payment-action-icon payment-action-icon-whatsapp">?</div>
+        <div class="payment-action-icon payment-action-icon-whatsapp"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg></div>
         <div class="payment-card-copy">
           <strong>Enviar por WhatsApp</strong>
           <p>Se abrirá WhatsApp con un mensaje que lleva tu código de compra.</p>
@@ -3057,7 +3057,7 @@ function renderTrustStrip(site) {
         .map(
           (item) => `
             <div class="trust-item">
-              <div class="trust-icon">?</div>
+              <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M12 3 5 6v5c0 4.9 3.2 8.7 7 10 3.8-1.3 7-5.1 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m8.5 12 2.2 2.2 4.8-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
               <div>
                 <strong>${escapeHtml(item.title)}</strong>
                 <span>${escapeHtml(item.text)}</span>
@@ -3727,7 +3727,7 @@ function renderRetailCheckoutModalContent() {
 
         <div style="display:grid; gap: 14px;">
           <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-contact">?</div>
+            <div class="payment-action-icon payment-action-icon-contact"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M20 18.5c-1.4-1.2-3.1-1.9-5-2.3l-1.1 2.2H10l-1.1-2.2c-1.9.4-3.6 1.1-5 2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M7.2 20a8.9 8.9 0 0 1 9.6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Datos del comprador</span>
               <strong>Completa tus datos</strong>
@@ -3762,7 +3762,7 @@ function renderRetailCheckoutModalContent() {
           </div>
 
           <div class="payment-action-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-upload">?</div>
+            <div class="payment-action-icon payment-action-icon-upload"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M12 16V6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M8.5 9.5 12 6l3.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Costo de envío</span>
               <strong>Agrega domicilio al total</strong>
@@ -3786,7 +3786,7 @@ function renderRetailCheckoutModalContent() {
           </div>
 
           <div class="payment-action-card" style="border-radius: 26px;">
-            <div class="payment-action-icon payment-action-icon-upload">?</div>
+            <div class="payment-action-icon payment-action-icon-upload"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M12 16V6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M8.5 9.5 12 6l3.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="payment-card-copy">
               <span class="payment-card-kicker">Método de pago</span>
               <strong>Elige cómo quieres pagar</strong>
@@ -3885,7 +3885,7 @@ function renderRetailReceiptModalContent() {
       </div>
 
       <div class="payment-action-card payment-contact-card" style="border-radius: 26px;">
-        <div class="payment-action-icon payment-action-icon-upload">?</div>
+        <div class="payment-action-icon payment-action-icon-upload"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:1em;height:1em;display:block;"><path d="M12 16V6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M8.5 9.5 12 6l3.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="payment-card-copy">
           <span class="payment-card-kicker">Adjuntar comprobante</span>
           <strong>Selecciona la imagen del pago</strong>
@@ -5634,6 +5634,7 @@ async function loadSite() {
 }
 
 loadSite();
+
 
 
 
