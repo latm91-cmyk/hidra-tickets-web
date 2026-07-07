@@ -4425,8 +4425,8 @@ function renderRetailShell(payload = {}, slug = "") {
         <div class="shell topbar-inner">
           <div class="topbar-main" style="display:grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px); gap: 14px; align-items: center;">
             <div class="brand" style="min-width: 0; display:grid; gap: 10px;">
-              <div class="brand-mark">
-                <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:10px;border-radius:16px;background:transparent;" />
+              <div class="brand-mark" style="width: clamp(104px, 10vw, 136px); height: clamp(104px, 10vw, 136px); border-radius: 24px; padding: 6px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 10px 22px rgba(8,25,47,0.18); overflow: hidden; box-sizing: border-box; flex: 0 0 auto;">
+                <img src="${escapeHtml(heroLogo)}" alt="${escapeHtml(companyName)}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;object-position:center center;display:block;transform: scale(1.16);transform-origin:center center;" />
               </div>
               <div style="min-width: 0;">
                 <div class="brand-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(companyName)}</div>
@@ -4463,7 +4463,7 @@ function renderRetailShell(payload = {}, slug = "") {
             <div style="display:grid; gap: 10px; min-width: 0;">
               <div class="top-actions" style="display:flex; justify-content:flex-end; gap: 10px; flex-wrap: wrap;">
                 <button type="button" class="button secondary topbar-cta" data-action="open-retail-cart" style="display:inline-flex; align-items:center; gap: 8px;">
-                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;">??</span>
+                  <span class="topbar-cart-icon" aria-hidden="true" style="display:inline-flex; width: 18px; height: 18px;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:100%;height:100%;display:block;"><path d="M3 4h2l2.1 9.3a2 2 0 0 0 2 1.7h7.6a2 2 0 0 0 2-1.5L21 8H7.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="20" r="1.6" fill="currentColor"/><circle cx="18" cy="20" r="1.6" fill="currentColor"/></svg></span>
                   <span>Carrito</span>
                   <strong data-retail-cart-count style="display:inline-flex; min-width: 26px; height: 26px; align-items:center; justify-content:center; border-radius: 999px; background:#d6a13e; color:#08192f; font-size: 12px; font-weight: 900;">${getRetailCartCount()}</strong>
                 </button>
@@ -4700,8 +4700,8 @@ function renderShell(site, slug) {
         <div class="shell topbar-inner">
           <div class="topbar-main">
             <div class="brand">
-              <div class="brand-mark">
-              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:10px;border-radius:16px;background:transparent;" />
+              <div class="brand-mark" style="width: clamp(104px, 10vw, 136px); height: clamp(104px, 10vw, 136px); border-radius: 24px; padding: 6px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 10px 22px rgba(8,25,47,0.18); overflow: hidden; box-sizing: border-box; flex: 0 0 auto;">
+              <img src="${escapeHtml(settings.logoUrl || company.logo || ASSETS.brand)}" alt="${escapeHtml(company.nombre || settings.title || "Logo")}" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:contain;object-position:center center;display:block;transform: scale(1.16);transform-origin:center center;" />
               </div>
               <div>
                 <div class="brand-name">${escapeHtml(company.nombre || settings.title || "Rifas publicas")}</div>
@@ -4717,7 +4717,7 @@ function renderShell(site, slug) {
                 aria-controls="topbar-mobile-menu"
                 aria-label="${publicUiState.mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}"
               >
-                <span class="topbar-menu-icon" data-mobile-menu-icon aria-hidden="true">${publicUiState.mobileMenuOpen ? "×" : "?"}</span>
+                <span class="topbar-menu-icon" data-mobile-menu-icon aria-hidden="true">${publicUiState.mobileMenuOpen ? "×" : "<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" style=\"width:100%;height:100%;display:block;\"><path d=\"M4 7h16M4 12h16M4 17h16\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>"}</span>
                 <span class="topbar-menu-label" data-mobile-menu-label>Menú</span>
               </button>
               ${settings.whatsappNumber ? `<a class="button topbar-cta" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer"><span class="whatsapp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.2 3.8A10.6 10.6 0 0 0 2.3 15.7L1 22l6.4-1.7a10.6 10.6 0 0 0 5.1 1.3h0A10.6 10.6 0 0 0 20.2 3.8Zm-8 16.5h0a8.8 8.8 0 0 1-4.5-1.2l-.3-.2-3.8 1 1-3.7-.2-.4a8.8 8.8 0 1 1 7.8 4.5Zm5-6.5c-.3-.2-1.7-.9-1.9-1s-.3-.2-.4.2-.7 1-1 1.2-.4.2-.7 0a7.2 7.2 0 0 1-2.1-1.3 8 8 0 0 1-1.5-1.9c-.2-.4 0-.6.2-.8l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.6 0-.2-.5-1.4-.7-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.6.1-.9.4s-1.1 1.1-1.1 2.6 1.2 3 1.4 3.2c.2.2 2.1 3.2 5.1 4.4.7.3 1.2.5 1.7.7.7.2 1.3.2 1.7.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.4Z" fill="currentColor"/></svg></span><span>Contáctanos</span></a>` : ""}
@@ -4989,7 +4989,7 @@ app.addEventListener("click", (event) => {
       label.textContent = publicUiState.mobileMenuOpen ? "Cerrar" : "Menú";
     }
     if (icon) {
-      icon.textContent = publicUiState.mobileMenuOpen ? "×" : "?";
+      icon.innerHTML = publicUiState.mobileMenuOpen ? "×" : "<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" style=\"width:100%;height:100%;display:block;\"><path d=\"M4 7h16M4 12h16M4 17h16\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>";
     }
     mobileMenuToggle.setAttribute("aria-expanded", publicUiState.mobileMenuOpen ? "true" : "false");
     mobileMenuToggle.setAttribute("aria-label", publicUiState.mobileMenuOpen ? "Cerrar menú" : "Abrir menú");
@@ -5018,7 +5018,7 @@ app.addEventListener("click", (event) => {
       label.textContent = "Menú";
     }
     if (icon) {
-      icon.textContent = "?";
+      icon.innerHTML = "<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" style=\"width:100%;height:100%;display:block;\"><path d=\"M4 7h16M4 12h16M4 17h16\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg>";
     }
   }
 
@@ -5634,6 +5634,8 @@ async function loadSite() {
 }
 
 loadSite();
+
+
 
 
 
