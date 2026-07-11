@@ -153,6 +153,8 @@ const currencyFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
 });
 
+const numberFormatter = new Intl.NumberFormat("es-CO");
+
 function formatCOP(value) {
   const numeric = Number(value || 0);
   return Number.isFinite(numeric) ? currencyFormatter.format(numeric) : currencyFormatter.format(0);
@@ -4662,6 +4664,7 @@ function renderShell(site, slug) {
   const heroSpotlightLabel = featuredRaffle ? "Sorteo destacado" : "Compra segura";
   const heroSpotlightLabelClass = featuredRaffle ? "overlay-label overlay-label-featured" : "overlay-label";
   const heroGreeting = "";
+  const visitCount = Number(site?.settings?.visitCount || site?.stats?.visitCount || 0);
   const heroSpotlightChips = [
     featuredRaffle ? getRaffleDisplayDate(featuredRaffle) : "",
     featuredRaffle ? getRaffleDisplayPrice(featuredRaffle) : "",
@@ -4887,6 +4890,7 @@ function renderShell(site, slug) {
                 </div>
               ` : ""}
               ${settings.whatsappNumber ? `<a class="footer-contact-pill" href="${escapeHtml(whatsappLink(settings.whatsappNumber))}" target="_blank" rel="noreferrer">WhatsApp ${escapeHtml(settings.whatsappNumber)}</a>` : ""}
+              ${visitCount > 0 ? `<div class="footer-visit-counter"><span class="footer-label">Visitas de la pagina</span><div class="footer-visit-pill">${numberFormatter.format(visitCount)} visitas</div></div>` : ""}
               </div>
             </div>
           </div>
