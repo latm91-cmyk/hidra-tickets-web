@@ -1593,7 +1593,7 @@ function renderRaffleSelectorContent() {
   const numbersHtml = raffleSelectorState.loading
     ? `
       <div class="selector-loading-panel">
-        <div class="selector-loading-clock" aria-hidden="true"></div>
+        <div class="selector-loading-ball" aria-hidden="true"></div>
         <strong>Cargando numeros disponibles...</strong>
         <span>Estamos preparando la seleccion real del sorteo.</span>
       </div>
