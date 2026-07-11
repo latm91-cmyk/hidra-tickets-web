@@ -3617,6 +3617,19 @@ button {
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
 }
 
+.footer-bar-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--primary);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .footer small {
   display: block;
   margin-top: 6px;
@@ -4245,6 +4258,11 @@ button {
     align-items: flex-start;
     padding: 12px 14px;
     gap: 8px;
+    font-size: 12px;
+  }
+
+  .footer-bar-meta {
+    width: fit-content;
     font-size: 12px;
   }
 
