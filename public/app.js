@@ -111,6 +111,15 @@ const publicUiState = {
   mobileMenuOpen: false,
 };
 
+const publicChatState = {
+  slug: "",
+  site: null,
+  token: "",
+  open: false,
+  loading: false,
+  pollTimer: null,
+};
+
 const retailUiState = {
   slug: "",
   imageIndexByProductId: {},
@@ -828,6 +837,150 @@ function closeVideoModal() {
 function whatsappLink(number) {
   const digits = String(number || "").replace(/\D/g, "");
   return digits ? `https://wa.me/${digits}` : "#";
+}
+
+function publicChatStorageKey(slug) {
+  return `public-webchat:v1:${String(slug || "public")}`;
+}
+
+function renderPublicChatWidget(site, slug) {
+  const companyName = site?.company?.nombre || site?.settings?.title || "Atencion en linea";
+  return `
+    <div class="public-chat" data-public-chat-root>
+      <section class="public-chat-panel" data-public-chat-panel hidden aria-label="Chat de ${escapeAttr(companyName)}">
+        <header class="public-chat-header">
+          <div class="public-chat-avatar" aria-hidden="true">
+            <img src="${escapeAttr(site?.settings?.logoUrl || site?.company?.logo || ASSETS.brand)}" alt="" />
+          </div>
+          <div>
+            <strong>${escapeHtml(companyName)}</strong>
+            <span><i></i> Asistente virtual disponible</span>
+          </div>
+          <button type="button" class="public-chat-close" data-action="close-public-chat" aria-label="Cerrar chat">×</button>
+        </header>
+        <div class="public-chat-body">
+          <div class="public-chat-intro">
+            <span>Atencion inteligente</span>
+            <p>Pregunte por sorteos, precios, reglas o deje que le guiemos para comprar.</p>
+          </div>
+          <div class="public-chat-messages" data-public-chat-messages aria-live="polite"></div>
+          <div class="public-chat-action" data-public-chat-action hidden></div>
+          <div class="public-chat-notice" data-public-chat-notice hidden></div>
+          <form class="public-chat-onboarding" data-public-chat-onboarding>
+            <label>Nombre
+              <input type="text" name="name" autocomplete="name" maxlength="90" placeholder="Su nombre" required />
+            </label>
+            <label>Telefono
+              <input type="tel" name="phone" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="Ej. 3001234567" required />
+            </label>
+            <button type="submit">Iniciar conversacion</button>
+            <small>Sus datos se usan para atender esta conversacion y darle seguimiento.</small>
+          </form>
+          <form class="public-chat-composer" data-public-chat-composer hidden>
+            <textarea name="message" rows="1" maxlength="1200" placeholder="Escriba su mensaje..." required></textarea>
+            <button type="submit" aria-label="Enviar mensaje">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </form>
+        </div>
+      </section>
+      <button type="button" class="public-chat-launcher" data-action="toggle-public-chat" aria-expanded="false" aria-label="Abrir chat de atencion">
+        <span class="public-chat-launcher-pulse"></span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.8A2.8 2.8 0 0 1 6.8 3h10.4A2.8 2.8 0 0 1 20 5.8v7.4a2.8 2.8 0 0 1-2.8 2.8H10l-5.2 4v-4.4A2.8 2.8 0 0 1 4 13.2V5.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 8h8M8 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>¿Necesita ayuda?</span>
+      </button>
+    </div>
+  `;
+}
+
+function setPublicChatNotice(message = "", tone = "info") {
+  const notice = app.querySelector("[data-public-chat-notice]");
+  if (!notice) return;
+  notice.textContent = String(message || "");
+  notice.dataset.tone = tone;
+  notice.hidden = !message;
+}
+
+function renderPublicChatMessages(messages = []) {
+  const root = app.querySelector("[data-public-chat-messages]");
+  if (!root) return;
+  root.replaceChildren();
+  messages.forEach((item) => {
+    const bubble = document.createElement("div");
+    bubble.className = `public-chat-message public-chat-message-${item.direction === "in" ? "customer" : "agent"}`;
+    const text = document.createElement("p");
+    text.textContent = String(item.message || "");
+    bubble.appendChild(text);
+    root.appendChild(bubble);
+  });
+  root.scrollTop = root.scrollHeight;
+}
+
+function renderPublicChatAction(action = null) {
+  const root = app.querySelector("[data-public-chat-action]");
+  if (!root) return;
+  root.replaceChildren();
+  root.hidden = true;
+  if (!action?.url) return;
+  const link = document.createElement("a");
+  link.href = action.url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.textContent = action.label || "Continuar por WhatsApp";
+  root.appendChild(link);
+  root.hidden = false;
+}
+
+function syncPublicChatForms() {
+  const onboarding = app.querySelector("[data-public-chat-onboarding]");
+  const composer = app.querySelector("[data-public-chat-composer]");
+  if (onboarding) onboarding.hidden = Boolean(publicChatState.token);
+  if (composer) composer.hidden = !publicChatState.token;
+}
+
+async function parsePublicChatResponse(response) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload?.message || payload?.error || "No fue posible conectar con el chat.");
+  return payload;
+}
+
+async function loadPublicChatMessages() {
+  if (!publicChatState.token || !publicChatState.slug || publicChatState.loading) return;
+  publicChatState.loading = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/chat/messages`, {
+      headers: { Authorization: `Bearer ${publicChatState.token}` },
+    });
+    const payload = await parsePublicChatResponse(response);
+    renderPublicChatMessages(payload.messages || []);
+    setPublicChatNotice("");
+  } catch (error) {
+    if (/sesion|expir/i.test(String(error?.message || ""))) {
+      localStorage.removeItem(publicChatStorageKey(publicChatState.slug));
+      publicChatState.token = "";
+      syncPublicChatForms();
+    }
+    setPublicChatNotice(error?.message || "No fue posible actualizar el chat.", "error");
+  } finally {
+    publicChatState.loading = false;
+  }
+}
+
+function startPublicChatPolling() {
+  window.clearInterval(publicChatState.pollTimer);
+  publicChatState.pollTimer = null;
+  if (!publicChatState.token || !publicChatState.open) return;
+  publicChatState.pollTimer = window.setInterval(() => void loadPublicChatMessages(), 5000);
+}
+
+function initializePublicChat(site, slug) {
+  window.clearInterval(publicChatState.pollTimer);
+  publicChatState.slug = slug;
+  publicChatState.site = site;
+  publicChatState.open = false;
+  publicChatState.loading = false;
+  publicChatState.token = localStorage.getItem(publicChatStorageKey(slug)) || "";
+  syncPublicChatForms();
 }
 
 function isMobileDevice() {
@@ -4896,7 +5049,6 @@ function renderShell(site, slug) {
           </div>
           <div class="footer-bar">
             <span>Compra segura · Seguimiento en tiempo real · Ganadores visibles</span>
-            <span class="footer-bar-meta">${numberFormatter.format(visitCount)} visitas</span>
             <span>${escapeHtml(slug || "sin-slug")}</span>
           </div>
         </section>
@@ -4905,6 +5057,7 @@ function renderShell(site, slug) {
         ${renderPaymentModal()}
         ${renderReceiptUploadModal()}
         ${renderDeliveryModal()}
+        ${renderPublicChatWidget(site, slug)}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
           <button type="button" class="video-modal-close" aria-label="Cerrar video" onclick="closeVideoModal()">·</button>
@@ -4921,6 +5074,7 @@ function renderShell(site, slug) {
 
   writeCachedPublicSite(slug, site);
   initRaffleCarousel();
+  initializePublicChat(site, slug);
 
   document.querySelectorAll("[data-video-url]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -4975,6 +5129,28 @@ async function refreshFeaturedRaffleAdvance(site, slug) {
 }
 
 app.addEventListener("click", (event) => {
+  const publicChatToggle = event.target.closest('[data-action="toggle-public-chat"]');
+  if (publicChatToggle && app.contains(publicChatToggle)) {
+    const panel = app.querySelector("[data-public-chat-panel]");
+    publicChatState.open = !publicChatState.open;
+    if (panel) panel.hidden = !publicChatState.open;
+    publicChatToggle.setAttribute("aria-expanded", String(publicChatState.open));
+    if (publicChatState.open && publicChatState.token) void loadPublicChatMessages();
+    startPublicChatPolling();
+    return;
+  }
+
+  const publicChatClose = event.target.closest('[data-action="close-public-chat"]');
+  if (publicChatClose && app.contains(publicChatClose)) {
+    const panel = app.querySelector("[data-public-chat-panel]");
+    const launcher = app.querySelector('[data-action="toggle-public-chat"]');
+    publicChatState.open = false;
+    if (panel) panel.hidden = true;
+    if (launcher) launcher.setAttribute("aria-expanded", "false");
+    startPublicChatPolling();
+    return;
+  }
+
   const mobileMenuToggle = event.target.closest('[data-action="toggle-mobile-menu"]');
   if (mobileMenuToggle && app.contains(mobileMenuToggle)) {
     event.preventDefault();
@@ -5377,6 +5553,74 @@ app.addEventListener("click", (event) => {
       receiptInput.click();
     }
     return;
+  }
+});
+
+app.addEventListener("submit", async (event) => {
+  const onboarding = event.target.closest("[data-public-chat-onboarding]");
+  if (onboarding && app.contains(onboarding)) {
+    event.preventDefault();
+    if (publicChatState.loading) return;
+    publicChatState.loading = true;
+    setPublicChatNotice("Iniciando conversacion...", "info");
+    const submit = onboarding.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    try {
+      const form = new FormData(onboarding);
+      const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/chat/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.get("name"), phone: form.get("phone") }),
+      });
+      const payload = await parsePublicChatResponse(response);
+      publicChatState.token = payload.token || "";
+      localStorage.setItem(publicChatStorageKey(publicChatState.slug), publicChatState.token);
+      syncPublicChatForms();
+      renderPublicChatMessages(payload.messages || []);
+      setPublicChatNotice("");
+      startPublicChatPolling();
+      app.querySelector("[data-public-chat-composer] textarea")?.focus();
+    } catch (error) {
+      setPublicChatNotice(error?.message || "No fue posible iniciar el chat.", "error");
+    } finally {
+      publicChatState.loading = false;
+      if (submit) submit.disabled = false;
+    }
+    return;
+  }
+
+  const composer = event.target.closest("[data-public-chat-composer]");
+  if (composer && app.contains(composer)) {
+    event.preventDefault();
+    if (publicChatState.loading || !publicChatState.token) return;
+    const textarea = composer.querySelector('textarea[name="message"]');
+    const message = String(textarea?.value || "").trim();
+    if (!message) return;
+    publicChatState.loading = true;
+    setPublicChatNotice("El asistente esta respondiendo...", "info");
+    const submit = composer.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    try {
+      const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/chat/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${publicChatState.token}`,
+        },
+        body: JSON.stringify({ message }),
+      });
+      const payload = await parsePublicChatResponse(response);
+      if (textarea) textarea.value = "";
+      renderPublicChatMessages(payload.messages || []);
+      renderPublicChatAction(payload.action || null);
+      setPublicChatNotice("");
+    } catch (error) {
+      setPublicChatNotice(error?.message || "No fue posible enviar el mensaje.", "error");
+    } finally {
+      publicChatState.loading = false;
+      if (submit) submit.disabled = false;
+      textarea?.focus();
+    }
   }
 });
 
