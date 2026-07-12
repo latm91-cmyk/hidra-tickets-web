@@ -107,18 +107,43 @@ button {
   pointer-events: none;
 }
 
-.topbar-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+.page:not(.retail-page) .topbar-inner {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 250px);
+  align-items: center;
   gap: 10px;
   padding: 12px 0 14px;
 }
 
-.topbar-main {
-  display: flex;
+.page:not(.retail-page) .topbar-main {
+  display: contents;
+}
+
+.page:not(.retail-page) .topbar-main .brand {
+  grid-column: 1;
+}
+
+.page:not(.retail-page) .topbar-main .top-actions {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.page:not(.retail-page) .topbar-inner > .top-nav-desktop {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.page:not(.retail-page) .topbar-inner > .topbar-mobile-panel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.topbar a[href="#faq"] {
+  display: none;
+}
+
+.page:not(.retail-page) .topbar-main {
   align-items: center;
-  justify-content: space-between;
   gap: 18px;
   min-width: 0;
 }
@@ -168,7 +193,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
@@ -4046,13 +4071,25 @@ button {
     position: static;
   }
 
-  .topbar-inner {
+  .page:not(.retail-page) .topbar-inner {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 10px;
   }
 
-  .topbar-main {
+  .page:not(.retail-page) .topbar-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     width: 100%;
+  }
+
+  .page:not(.retail-page) .topbar-main .brand {
+    grid-column: 1;
+  }
+
+  .page:not(.retail-page) .topbar-main .top-actions {
+    grid-column: 2;
   }
 
   .brand {
