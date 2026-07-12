@@ -137,6 +137,15 @@ const publicChatState = {
   pollTimer: null,
 };
 
+window.addEventListener("pagehide", () => {
+  window.clearInterval(publicChatState.pollTimer);
+  publicChatState.pollTimer = null;
+  publicChatState.token = "";
+  publicChatState.customerName = "";
+  publicChatState.customerPhone = "";
+  publicChatState.purchases = [];
+});
+
 const retailUiState = {
   slug: "",
   imageIndexByProductId: {},
@@ -856,10 +865,6 @@ function whatsappLink(number) {
   return digits ? `https://wa.me/${digits}` : "#";
 }
 
-function publicChatStorageKey(slug) {
-  return `public-webchat:v1:${String(slug || "public")}`;
-}
-
 function renderPublicChatWidget(site, slug) {
   const companyName = site?.company?.nombre || site?.settings?.title || "Atencion en linea";
   return `
@@ -1300,7 +1305,6 @@ async function loadPublicChatMessages() {
     setPublicChatNotice("");
   } catch (error) {
     if (/sesion|expir/i.test(String(error?.message || ""))) {
-      localStorage.removeItem(publicChatStorageKey(publicChatState.slug));
       publicChatState.token = "";
       syncPublicChatForms();
     }
@@ -1327,7 +1331,7 @@ function initializePublicChat(site, slug) {
   publicChatState.customerName = "";
   publicChatState.customerPhone = "";
   resetPublicChatPurchase();
-  publicChatState.token = localStorage.getItem(publicChatStorageKey(slug)) || "";
+  publicChatState.token = "";
   syncPublicChatForms();
 }
 
@@ -5992,7 +5996,6 @@ app.addEventListener("submit", async (event) => {
       publicChatState.token = payload.token || "";
       publicChatState.customerName = payload?.customer?.name || String(form.get("name") || "").trim();
       publicChatState.customerPhone = payload?.customer?.phone || String(form.get("phone") || "").replace(/\D/g, "");
-      localStorage.setItem(publicChatStorageKey(publicChatState.slug), publicChatState.token);
       syncPublicChatForms();
       renderPublicChatMessages(payload.messages || [], { forceBottom: true });
       renderPublicChatPurchases(payload.purchases || []);
