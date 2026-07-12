@@ -118,7 +118,7 @@ button {
 .topbar-main {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 18px;
   min-width: 0;
 }
@@ -176,13 +176,6 @@ button {
   flex-wrap: wrap;
 }
 
-.top-nav-inline {
-  flex: 1 1 auto;
-  justify-content: center;
-  min-width: 0;
-  margin: 0 10px;
-}
-
 .top-nav a {
   display: inline-flex;
   align-items: center;
@@ -221,7 +214,6 @@ button {
   flex-wrap: wrap;
   flex: 0 0 auto;
 }
-
 
 .topbar-menu-toggle {
   display: none;
@@ -1977,7 +1969,7 @@ button {
   }
 }
 
-.selector-summary {.selector-summary {
+.selector-summary {
   position: sticky;
   top: 18px;
   display: grid;
