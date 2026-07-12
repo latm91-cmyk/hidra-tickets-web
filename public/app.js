@@ -117,6 +117,7 @@ const publicChatState = {
   token: "",
   open: false,
   loading: false,
+  deliveryLoading: false,
   pollTimer: null,
 };
 
@@ -864,6 +865,7 @@ function renderPublicChatWidget(site, slug) {
             <p>Pregunte por sorteos, precios, reglas o deje que le guiemos para comprar.</p>
           </div>
           <div class="public-chat-messages" data-public-chat-messages aria-live="polite"></div>
+          <div class="public-chat-deliveries" data-public-chat-deliveries hidden></div>
           <div class="public-chat-action" data-public-chat-action hidden></div>
           <div class="public-chat-notice" data-public-chat-notice hidden></div>
           <form class="public-chat-onboarding" data-public-chat-onboarding>
@@ -916,6 +918,71 @@ function renderPublicChatMessages(messages = []) {
   root.scrollTop = root.scrollHeight;
 }
 
+function renderPublicChatDeliveries(deliveries = []) {
+  const root = app.querySelector("[data-public-chat-deliveries]");
+  if (!root) return;
+  root.replaceChildren();
+  root.hidden = !deliveries.length;
+  deliveries.forEach((delivery) => {
+    const card = document.createElement("article");
+    card.className = "public-chat-delivery";
+    const copy = document.createElement("div");
+    const eyebrow = document.createElement("span");
+    eyebrow.textContent = "Boleta comprada";
+    const title = document.createElement("strong");
+    title.textContent = delivery.campaignName || "Su boleta esta lista";
+    const reference = document.createElement("small");
+    reference.textContent = `Referencia ${delivery.reference}`;
+    copy.append(eyebrow, title, reference);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.action = "download-public-chat-delivery";
+    button.dataset.reference = delivery.reference || "";
+    button.textContent = "Descargar boleta";
+    card.append(copy, button);
+    root.appendChild(card);
+  });
+}
+
+async function downloadPublicChatDelivery(reference, button = null) {
+  if (!publicChatState.token || !reference || publicChatState.deliveryLoading) return;
+  publicChatState.deliveryLoading = true;
+  const originalLabel = button?.textContent || "Descargar boleta";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Preparando...";
+  }
+  setPublicChatNotice("Generando su boleta oficial...", "info");
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/chat/deliveries/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${publicChatState.token}` } },
+    );
+    const payload = await parsePublicChatResponse(response);
+    const tickets = Array.isArray(payload.tickets) ? payload.tickets : [];
+    if (!tickets.length) throw new Error("No encontre imagenes disponibles para esta compra.");
+    tickets.forEach((ticket, index) => {
+      window.setTimeout(() => {
+        const anchor = document.createElement("a");
+        anchor.href = ticket.dataUrl;
+        anchor.download = ticket.fileName || `boleta-${index + 1}-${reference}.png`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }, index * 250);
+    });
+    setPublicChatNotice(tickets.length === 1 ? "Su boleta fue descargada." : "Sus boletas fueron descargadas.", "success");
+  } catch (error) {
+    setPublicChatNotice(error?.message || "No fue posible descargar la boleta.", "error");
+  } finally {
+    publicChatState.deliveryLoading = false;
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  }
+}
+
 function renderPublicChatAction(action = null) {
   const root = app.querySelector("[data-public-chat-action]");
   if (!root) return;
@@ -957,6 +1024,7 @@ async function loadPublicChatMessages() {
     });
     const payload = await parsePublicChatResponse(response);
     renderPublicChatMessages(payload.messages || []);
+    renderPublicChatDeliveries(payload.deliveries || []);
     setPublicChatNotice("");
   } catch (error) {
     if (/sesion|expir/i.test(String(error?.message || ""))) {
@@ -983,6 +1051,7 @@ function initializePublicChat(site, slug) {
   publicChatState.site = site;
   publicChatState.open = false;
   publicChatState.loading = false;
+  publicChatState.deliveryLoading = false;
   publicChatState.token = localStorage.getItem(publicChatStorageKey(slug)) || "";
   syncPublicChatForms();
 }
@@ -5133,6 +5202,13 @@ async function refreshFeaturedRaffleAdvance(site, slug) {
 }
 
 app.addEventListener("click", (event) => {
+  const deliveryButton = event.target.closest('[data-action="download-public-chat-delivery"]');
+  if (deliveryButton && app.contains(deliveryButton)) {
+    event.preventDefault();
+    void downloadPublicChatDelivery(deliveryButton.dataset.reference || "", deliveryButton);
+    return;
+  }
+
   const publicChatToggle = event.target.closest('[data-action="toggle-public-chat"]');
   if (publicChatToggle && app.contains(publicChatToggle)) {
     const panel = app.querySelector("[data-public-chat-panel]");
@@ -5581,6 +5657,7 @@ app.addEventListener("submit", async (event) => {
       localStorage.setItem(publicChatStorageKey(publicChatState.slug), publicChatState.token);
       syncPublicChatForms();
       renderPublicChatMessages(payload.messages || []);
+      renderPublicChatDeliveries(payload.deliveries || []);
       setPublicChatNotice("");
       startPublicChatPolling();
       app.querySelector("[data-public-chat-composer] textarea")?.focus();
@@ -5616,6 +5693,7 @@ app.addEventListener("submit", async (event) => {
       const payload = await parsePublicChatResponse(response);
       if (textarea) textarea.value = "";
       renderPublicChatMessages(payload.messages || []);
+      renderPublicChatDeliveries(payload.deliveries || []);
       renderPublicChatAction(payload.action || null);
       setPublicChatNotice("");
     } catch (error) {

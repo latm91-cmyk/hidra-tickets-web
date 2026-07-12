@@ -5317,6 +5317,74 @@ button {
   color: #fff;
 }
 
+.public-chat-deliveries {
+  display: grid;
+  gap: 8px;
+}
+
+.public-chat-deliveries[hidden] {
+  display: none;
+}
+
+.public-chat-delivery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(29, 95, 70, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ecfdf5, #fffdf4);
+}
+
+.public-chat-delivery div,
+.public-chat-delivery span,
+.public-chat-delivery strong,
+.public-chat-delivery small {
+  display: block;
+}
+
+.public-chat-delivery span {
+  margin-bottom: 3px;
+  color: #1d5f46;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.public-chat-delivery strong {
+  overflow: hidden;
+  color: #102d47;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-chat-delivery small {
+  margin-top: 3px;
+  color: #6b7788;
+  font-size: 9px;
+}
+
+.public-chat-delivery button {
+  min-height: 36px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 11px;
+  background: #1d5f46;
+  color: #fff;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.public-chat-delivery button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
 .public-chat-onboarding,
 .public-chat-composer {
   display: grid;
