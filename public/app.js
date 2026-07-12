@@ -903,9 +903,14 @@ function setPublicChatNotice(message = "", tone = "info") {
   notice.hidden = !message;
 }
 
-function renderPublicChatMessages(messages = []) {
+function renderPublicChatMessages(messages = [], { forceBottom = false } = {}) {
   const root = app.querySelector("[data-public-chat-messages]");
   if (!root) return;
+  const hadMessages = root.childElementCount > 0;
+  const previousScrollTop = root.scrollTop;
+  const previousScrollHeight = root.scrollHeight;
+  const distanceFromBottom = previousScrollHeight - previousScrollTop - root.clientHeight;
+  const wasNearBottom = distanceFromBottom <= 48;
   root.replaceChildren();
   messages.forEach((item) => {
     const bubble = document.createElement("div");
@@ -915,7 +920,11 @@ function renderPublicChatMessages(messages = []) {
     bubble.appendChild(text);
     root.appendChild(bubble);
   });
-  root.scrollTop = root.scrollHeight;
+  if (forceBottom || !hadMessages || wasNearBottom) {
+    root.scrollTop = root.scrollHeight;
+    return;
+  }
+  root.scrollTop = previousScrollTop;
 }
 
 function renderPublicChatDeliveries(deliveries = []) {
@@ -5656,7 +5665,7 @@ app.addEventListener("submit", async (event) => {
       publicChatState.token = payload.token || "";
       localStorage.setItem(publicChatStorageKey(publicChatState.slug), publicChatState.token);
       syncPublicChatForms();
-      renderPublicChatMessages(payload.messages || []);
+      renderPublicChatMessages(payload.messages || [], { forceBottom: true });
       renderPublicChatDeliveries(payload.deliveries || []);
       setPublicChatNotice("");
       startPublicChatPolling();
@@ -5692,7 +5701,7 @@ app.addEventListener("submit", async (event) => {
       });
       const payload = await parsePublicChatResponse(response);
       if (textarea) textarea.value = "";
-      renderPublicChatMessages(payload.messages || []);
+      renderPublicChatMessages(payload.messages || [], { forceBottom: true });
       renderPublicChatDeliveries(payload.deliveries || []);
       renderPublicChatAction(payload.action || null);
       setPublicChatNotice("");
