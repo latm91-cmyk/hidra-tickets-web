@@ -5252,6 +5252,9 @@ button {
   display: grid;
   gap: 12px;
   padding: 15px;
+  max-height: calc(min(670px, 100vh - 105px) - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .public-chat-intro {
@@ -5511,6 +5514,54 @@ button {
   text-decoration: none;
   box-shadow: 0 10px 22px rgba(29, 155, 85, 0.2);
 }
+
+.public-chat-delivery-actions { display: grid !important; gap: 6px; }
+.public-chat-delivery-actions .is-whatsapp { background: #1d9b55; }
+.public-chat-purchases { display: grid; gap: 8px; }
+.public-chat-purchases[hidden] { display: none; }
+.public-chat-purchase-status { display: grid; gap: 3px; padding: 11px 12px; border: 1px solid #f3d49b; border-radius: 14px; background: #fff8e8; }
+.public-chat-purchase-status strong { color: #102d47; font-size: 12px; }
+.public-chat-purchase-status span,
+.public-chat-purchase-status small { color: #8a651c; font-size: 10px; }
+.public-chat-purchase-status.is-rechazado { border-color: #fecaca; background: #fff1f2; }
+.public-chat-purchase-status.is-rechazado span { color: #b42323; }
+
+.public-chat-action button { width: 100%; padding: 12px 14px; border: 0; border-radius: 14px; background: linear-gradient(135deg, #d9a441, #f3c34f); color: #08192f; cursor: pointer; font: 900 12px "Poppins", sans-serif; }
+.public-chat-purchase { border: 1px solid rgba(8, 25, 47, 0.1); border-radius: 18px; background: #fff; box-shadow: 0 14px 30px rgba(8, 25, 47, 0.1); }
+.public-chat-purchase[hidden] { display: none; }
+.public-chat-purchase-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 13px; border-bottom: 1px solid rgba(8, 25, 47, 0.08); background: linear-gradient(135deg, #f8fbfa, #fff9e9); }
+.public-chat-purchase-head span,
+.public-chat-purchase-head strong { display: block; }
+.public-chat-purchase-head span { color: #946818; font-size: 9px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.public-chat-purchase-head strong { margin-top: 2px; color: #102d47; font-size: 13px; }
+.public-chat-purchase-head button { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: rgba(8, 25, 47, 0.07); color: #102d47; cursor: pointer; font-size: 19px; }
+.public-chat-purchase form { display: grid; gap: 10px; padding: 12px; }
+.public-chat-purchase-field { display: grid; gap: 5px; color: #526174; font-size: 9px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; }
+.public-chat-purchase-field input,
+.public-chat-purchase-field select { width: 100%; min-height: 39px; padding: 0 10px; border: 1px solid rgba(8, 25, 47, 0.13); border-radius: 11px; outline: none; background: #fff; color: #102d47; font: 600 11px "Poppins", sans-serif; text-transform: none; }
+.public-chat-number-head { display: flex; justify-content: space-between; color: #526174; font-size: 10px; font-weight: 800; }
+.public-chat-number-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; max-height: 132px; overflow-y: auto; }
+.public-chat-number-grid button { min-height: 34px; padding: 4px; border: 1px solid rgba(8, 25, 47, 0.12); border-radius: 10px; background: #f7f9fb; color: #102d47; cursor: pointer; font-size: 10px; font-weight: 800; }
+.public-chat-number-grid button.is-selected { border-color: #1d5f46; background: #1d5f46; color: #fff; }
+.public-chat-purchase-empty { grid-column: 1 / -1; padding: 12px; color: #6b7788; font-size: 10px; text-align: center; }
+.public-chat-selected-summary { display: grid; gap: 3px; padding: 10px 11px; border-radius: 12px; background: #f1f7f5; }
+.public-chat-selected-summary strong { color: #1d5f46; font-size: 11px; }
+.public-chat-selected-summary span,
+.public-chat-selected-summary small { color: #657487; font-size: 9px; line-height: 1.4; }
+.public-chat-clip { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 8px 11px; border: 1px dashed #9b7a2d; border-radius: 13px; background: #fffaf0; color: #765812; cursor: pointer; font-size: 10px; font-weight: 900; text-align: left; }
+.public-chat-clip svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.public-chat-clip.has-file { border-color: #1d5f46; background: #ecfdf5; color: #1d5f46; }
+.public-chat-clip:disabled { cursor: not-allowed; opacity: 0.45; }
+.public-chat-receipt-preview { display: grid; grid-template-columns: 74px minmax(0, 1fr); align-items: center; gap: 10px; }
+.public-chat-receipt-preview img { width: 74px; height: 74px; border-radius: 11px; object-fit: cover; }
+.public-chat-receipt-preview button { min-height: 36px; border: 1px solid rgba(8, 25, 47, 0.12); border-radius: 10px; background: #fff; color: #102d47; cursor: pointer; font-size: 10px; font-weight: 800; }
+.public-chat-purchase-help,
+.public-chat-purchase-notice { margin: 0; color: #718094; font-size: 9px; line-height: 1.45; text-align: center; }
+.public-chat-purchase-notice { padding: 8px 9px; border-radius: 10px; background: #eef5ff; }
+.public-chat-purchase-notice.is-error { background: #fff1f2; color: #b42323; }
+.public-chat-purchase-notice.is-success { background: #ecfdf5; color: #166534; }
+.public-chat-purchase-submit { min-height: 44px; border: 0; border-radius: 13px; background: linear-gradient(135deg, #d9a441, #f3c34f); color: #08192f; cursor: pointer; font-size: 10px; font-weight: 900; }
+.public-chat-purchase-submit:disabled { cursor: not-allowed; opacity: 0.45; }
 
 @keyframes publicChatIn {
   from { opacity: 0; transform: translateY(12px) scale(0.98); }

@@ -118,6 +118,22 @@ const publicChatState = {
   open: false,
   loading: false,
   deliveryLoading: false,
+  customerName: "",
+  customerPhone: "",
+  purchases: [],
+  purchase: {
+    open: false,
+    raffleId: "",
+    numbers: [],
+    selected: [],
+    city: "",
+    file: null,
+    previewUrl: "",
+    loadingNumbers: false,
+    submitting: false,
+    notice: "",
+    noticeTone: "info",
+  },
   pollTimer: null,
 };
 
@@ -865,8 +881,10 @@ function renderPublicChatWidget(site, slug) {
             <p>Pregunte por sorteos, precios, reglas o deje que le guiemos para comprar.</p>
           </div>
           <div class="public-chat-messages" data-public-chat-messages aria-live="polite"></div>
+          <div class="public-chat-purchases" data-public-chat-purchases hidden></div>
           <div class="public-chat-deliveries" data-public-chat-deliveries hidden></div>
           <div class="public-chat-action" data-public-chat-action hidden></div>
+          <div class="public-chat-purchase" data-public-chat-purchase hidden></div>
           <div class="public-chat-notice" data-public-chat-notice hidden></div>
           <form class="public-chat-onboarding" data-public-chat-onboarding>
             <label>Nombre
@@ -927,6 +945,203 @@ function renderPublicChatMessages(messages = [], { forceBottom = false } = {}) {
   root.scrollTop = previousScrollTop;
 }
 
+function renderPublicChatPurchases(purchases = []) {
+  publicChatState.purchases = Array.isArray(purchases) ? purchases : [];
+  const root = app.querySelector("[data-public-chat-purchases]");
+  if (!root) return;
+  const pending = publicChatState.purchases.filter((purchase) => purchase.status !== "APROBADO");
+  root.replaceChildren();
+  root.hidden = !pending.length;
+  pending.forEach((purchase) => {
+    const card = document.createElement("article");
+    card.className = `public-chat-purchase-status is-${String(purchase.status || "pending").toLowerCase()}`;
+    const title = document.createElement("strong");
+    title.textContent = purchase.campaignName || "Compra registrada";
+    const status = document.createElement("span");
+    status.textContent = purchase.status === "RECHAZADO"
+      ? "Comprobante rechazado"
+      : "Comprobante en revision";
+    const reference = document.createElement("small");
+    reference.textContent = `Referencia ${purchase.reference}`;
+    card.append(title, status, reference);
+    root.appendChild(card);
+  });
+}
+
+function getPublicChatPurchaseRaffle() {
+  return asArray(publicChatState.site?.activeRaffles)
+    .find((item) => String(item?.campaign?.id || "") === String(publicChatState.purchase.raffleId || "")) || null;
+}
+
+function releasePublicChatPurchasePreview() {
+  if (publicChatState.purchase.previewUrl) URL.revokeObjectURL(publicChatState.purchase.previewUrl);
+  publicChatState.purchase.previewUrl = "";
+}
+
+function resetPublicChatPurchase({ keepOpen = false } = {}) {
+  releasePublicChatPurchasePreview();
+  publicChatState.purchase = {
+    open: keepOpen,
+    raffleId: String(asArray(publicChatState.site?.activeRaffles)[0]?.campaign?.id || ""),
+    numbers: [],
+    selected: [],
+    city: "",
+    file: null,
+    previewUrl: "",
+    loadingNumbers: false,
+    submitting: false,
+    notice: "",
+    noticeTone: "info",
+  };
+}
+
+function paintPublicChatPurchase() {
+  const root = app.querySelector("[data-public-chat-purchase]");
+  if (!root) return;
+  const state = publicChatState.purchase;
+  root.hidden = !state.open;
+  if (!state.open) {
+    root.replaceChildren();
+    return;
+  }
+  const raffles = asArray(publicChatState.site?.activeRaffles);
+  const raffle = getPublicChatPurchaseRaffle();
+  const summary = getRaffleSelectorSelectionSummary(raffle || {}, state.selected);
+  const supportUploadMode = Boolean(getRaffleSelectorAutoConfig(raffle || {}).public_support_upload);
+  const contactReady = Boolean(publicChatState.customerName && publicChatState.customerPhone && state.city.trim());
+  const canAttach = Boolean(raffle && summary.isComplete && contactReady && (!supportUploadMode || summary.completeTickets === 1));
+  const canSubmit = canAttach && Boolean(state.file) && !state.submitting;
+  root.innerHTML = `
+    <div class="public-chat-purchase-head">
+      <div><span>Compra en el chat</span><strong>Prepare su boleta</strong></div>
+      <button type="button" data-action="close-public-chat-purchase" aria-label="Cerrar compra">×</button>
+    </div>
+    <form data-public-chat-purchase-form>
+      <label class="public-chat-purchase-field">Sorteo
+        <select name="raffle_id" ${state.submitting ? "disabled" : ""}>
+          ${raffles.map((item) => `<option value="${escapeAttr(item?.campaign?.id || "")}" ${String(item?.campaign?.id) === String(state.raffleId) ? "selected" : ""}>${escapeHtml(getRaffleDisplayTitle(item))}</option>`).join("")}
+        </select>
+      </label>
+      <div class="public-chat-number-head">
+        <span>Numeros disponibles</span>
+        <small>${state.loadingNumbers ? "Actualizando..." : `${state.numbers.length} opciones`}</small>
+      </div>
+      <div class="public-chat-number-grid">
+        ${state.loadingNumbers
+          ? `<div class="public-chat-purchase-empty">Consultando disponibilidad...</div>`
+          : state.numbers.length
+            ? state.numbers.map((number) => `<button type="button" data-action="toggle-public-chat-number" data-number="${escapeAttr(number)}" class="${state.selected.includes(number) ? "is-selected" : ""}">${escapeHtml(number)}</button>`).join("")
+            : `<div class="public-chat-purchase-empty">No hay numeros cargados.</div>`}
+      </div>
+      <div class="public-chat-selected-summary">
+        <strong>${summary.completeTickets} boleta${summary.completeTickets === 1 ? "" : "s"} · ${formatCOP(summary.total)}</strong>
+        <span>${state.selected.length ? escapeHtml(state.selected.join(" · ")) : "Seleccione sus numeros"}</span>
+        ${summary.isComplete ? "" : `<small>Faltan ${summary.missingForNext} numero${summary.missingForNext === 1 ? "" : "s"} para completar la boleta.</small>`}
+      </div>
+      <label class="public-chat-purchase-field">Nombre
+        <input name="customer_name" value="${escapeAttr(publicChatState.customerName)}" readonly />
+      </label>
+      <label class="public-chat-purchase-field">Ciudad
+        <input name="customer_city" value="${escapeAttr(state.city)}" placeholder="Su ciudad" required ${state.submitting ? "disabled" : ""} />
+      </label>
+      <label class="public-chat-purchase-field">Telefono
+        <input name="customer_phone" value="${escapeAttr(publicChatState.customerPhone)}" readonly />
+      </label>
+      <input type="file" name="receipt_file" accept="image/jpeg,image/png,image/webp" data-public-chat-receipt-input hidden />
+      <button type="button" class="public-chat-clip ${state.file ? "has-file" : ""}" data-action="pick-public-chat-receipt" ${canAttach && !state.submitting ? "" : "disabled"}>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8.5 12.5 6.8-6.8a3.2 3.2 0 0 1 4.5 4.5l-8.7 8.7a5 5 0 0 1-7.1-7.1l8.6-8.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>${state.file ? escapeHtml(state.file.name) : supportUploadMode ? "Adjuntar captura de fidelizacion" : "Adjuntar comprobante de pago"}</span>
+      </button>
+      ${state.previewUrl ? `<div class="public-chat-receipt-preview"><img src="${escapeAttr(state.previewUrl)}" alt="Vista previa del comprobante" /><button type="button" data-action="remove-public-chat-receipt">Cambiar imagen</button></div>` : ""}
+      ${!canAttach ? `<p class="public-chat-purchase-help">Complete los numeros y la ciudad para habilitar el clip.</p>` : ""}
+      ${state.notice ? `<div class="public-chat-purchase-notice is-${escapeAttr(state.noticeTone)}">${escapeHtml(state.notice)}</div>` : ""}
+      <button type="submit" class="public-chat-purchase-submit" ${canSubmit ? "" : "disabled"}>${state.submitting ? "Enviando comprobante..." : "Enviar comprobante y registrar compra"}</button>
+    </form>
+  `;
+}
+
+async function loadPublicChatPurchaseNumbers() {
+  const raffle = getPublicChatPurchaseRaffle();
+  if (!raffle?.campaign?.id) return;
+  publicChatState.purchase.loadingNumbers = true;
+  publicChatState.purchase.notice = "";
+  paintPublicChatPurchase();
+  try {
+    const params = new URLSearchParams({ limit: "36", page: "1" });
+    const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/availability?${params.toString()}`, { cache: "no-store" });
+    const payload = await parsePublicChatResponse(response);
+    publicChatState.purchase.numbers = asArray(payload?.numbers)
+      .map((ticket) => formatTicketSelectionLabel(ticket))
+      .filter(Boolean);
+  } catch (error) {
+    publicChatState.purchase.numbers = [];
+    publicChatState.purchase.notice = error?.message || "No fue posible consultar los numeros.";
+    publicChatState.purchase.noticeTone = "error";
+  } finally {
+    publicChatState.purchase.loadingNumbers = false;
+    paintPublicChatPurchase();
+  }
+}
+
+function openPublicChatPurchase() {
+  resetPublicChatPurchase({ keepOpen: true });
+  renderPublicChatAction(null);
+  paintPublicChatPurchase();
+  void loadPublicChatPurchaseNumbers();
+}
+
+async function submitPublicChatPurchase() {
+  const state = publicChatState.purchase;
+  const raffle = getPublicChatPurchaseRaffle();
+  const summary = getRaffleSelectorSelectionSummary(raffle || {}, state.selected);
+  const autoConfig = getRaffleSelectorAutoConfig(raffle || {});
+  const supportUploadMode = Boolean(autoConfig.public_support_upload);
+  if (!raffle?.campaign?.id || !summary.isComplete || !state.city.trim() || !state.file || state.submitting) return;
+  if (supportUploadMode && summary.completeTickets !== 1) {
+    state.notice = "En fidelizacion solo puede registrar una boleta por cliente.";
+    state.noticeTone = "error";
+    paintPublicChatPurchase();
+    return;
+  }
+  state.submitting = true;
+  state.notice = supportUploadMode ? "Enviando captura..." : "Enviando comprobante...";
+  state.noticeTone = "info";
+  paintPublicChatPurchase();
+  try {
+    const formData = new FormData();
+    formData.append("selected_numbers", JSON.stringify(groupRaffleSelections(state.selected, summary.groupSize)));
+    formData.append("receipt_file", state.file, state.file.name || (supportUploadMode ? "captura" : "comprobante"));
+    formData.append("support_upload", supportUploadMode ? "true" : "false");
+    formData.append("customer_name", publicChatState.customerName);
+    formData.append("customer_city", state.city.trim());
+    formData.append("customer_phone", publicChatState.customerPhone);
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/raffles/${encodeURIComponent(raffle.campaign.id)}/receipt`,
+      { method: "POST", body: formData, cache: "no-store" },
+    );
+    const payload = await parsePublicChatResponse(response);
+    const reference = payload?.payment_reference || payload?.reference || "";
+    releasePublicChatPurchasePreview();
+    state.file = null;
+    state.selected = [];
+    state.notice = payload?.auto_approved
+      ? `Compra aprobada. Referencia ${reference}. Estamos preparando su boleta.`
+      : payload?.client_message || `Comprobante recibido. Referencia ${reference}. Quedo en revision.`;
+    state.noticeTone = "success";
+    state.open = false;
+    paintPublicChatPurchase();
+    setPublicChatNotice(state.notice, "success");
+    await loadPublicChatMessages();
+  } catch (error) {
+    state.notice = error?.message || "No fue posible registrar la compra.";
+    state.noticeTone = "error";
+    paintPublicChatPurchase();
+  } finally {
+    state.submitting = false;
+    if (state.open) paintPublicChatPurchase();
+  }
+}
+
 function renderPublicChatDeliveries(deliveries = []) {
   const root = app.querySelector("[data-public-chat-deliveries]");
   if (!root) return;
@@ -948,7 +1163,16 @@ function renderPublicChatDeliveries(deliveries = []) {
     button.dataset.action = "download-public-chat-delivery";
     button.dataset.reference = delivery.reference || "";
     button.textContent = "Descargar boleta";
-    card.append(copy, button);
+    const whatsappButton = document.createElement("button");
+    whatsappButton.type = "button";
+    whatsappButton.className = "is-whatsapp";
+    whatsappButton.dataset.action = "receive-public-chat-delivery-whatsapp";
+    whatsappButton.dataset.reference = delivery.reference || "";
+    whatsappButton.textContent = "Recibir por WhatsApp";
+    const actions = document.createElement("div");
+    actions.className = "public-chat-delivery-actions";
+    actions.append(button, whatsappButton);
+    card.append(copy, actions);
     root.appendChild(card);
   });
 }
@@ -992,12 +1216,48 @@ async function downloadPublicChatDelivery(reference, button = null) {
   }
 }
 
+async function receivePublicChatDeliveryWhatsApp(reference, button = null) {
+  if (!publicChatState.token || !reference || publicChatState.deliveryLoading) return;
+  publicChatState.deliveryLoading = true;
+  const originalLabel = button?.textContent || "Recibir por WhatsApp";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Preparando...";
+  }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/public-site/${encodeURIComponent(publicChatState.slug)}/chat/deliveries/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${publicChatState.token}` } },
+    );
+    const payload = await parsePublicChatResponse(response);
+    if (!payload.whatsapp_url) throw new Error("No hay un WhatsApp configurado para esta entrega.");
+    window.open(payload.whatsapp_url, "_blank", "noopener,noreferrer");
+  } catch (error) {
+    setPublicChatNotice(error?.message || "No fue posible preparar WhatsApp.", "error");
+  } finally {
+    publicChatState.deliveryLoading = false;
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalLabel;
+    }
+  }
+}
+
 function renderPublicChatAction(action = null) {
   const root = app.querySelector("[data-public-chat-action]");
   if (!root) return;
   root.replaceChildren();
   root.hidden = true;
   if (!action?.url) return;
+  if (action.type === "chat_purchase") {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.action = "start-public-chat-purchase";
+    button.textContent = action.label || "Comprar en este chat";
+    root.appendChild(button);
+    root.hidden = false;
+    return;
+  }
   const link = document.createElement("a");
   link.href = action.url;
   if (action.type === "site") {
@@ -1032,7 +1292,10 @@ async function loadPublicChatMessages() {
       headers: { Authorization: `Bearer ${publicChatState.token}` },
     });
     const payload = await parsePublicChatResponse(response);
+    publicChatState.customerName = payload?.customer?.name || publicChatState.customerName;
+    publicChatState.customerPhone = payload?.customer?.phone || publicChatState.customerPhone;
     renderPublicChatMessages(payload.messages || []);
+    renderPublicChatPurchases(payload.purchases || []);
     renderPublicChatDeliveries(payload.deliveries || []);
     setPublicChatNotice("");
   } catch (error) {
@@ -1061,6 +1324,9 @@ function initializePublicChat(site, slug) {
   publicChatState.open = false;
   publicChatState.loading = false;
   publicChatState.deliveryLoading = false;
+  publicChatState.customerName = "";
+  publicChatState.customerPhone = "";
+  resetPublicChatPurchase();
   publicChatState.token = localStorage.getItem(publicChatStorageKey(slug)) || "";
   syncPublicChatForms();
 }
@@ -5211,6 +5477,60 @@ async function refreshFeaturedRaffleAdvance(site, slug) {
 }
 
 app.addEventListener("click", (event) => {
+  const startPurchaseButton = event.target.closest('[data-action="start-public-chat-purchase"]');
+  if (startPurchaseButton && app.contains(startPurchaseButton)) {
+    event.preventDefault();
+    openPublicChatPurchase();
+    return;
+  }
+
+  const closePurchaseButton = event.target.closest('[data-action="close-public-chat-purchase"]');
+  if (closePurchaseButton && app.contains(closePurchaseButton)) {
+    publicChatState.purchase.open = false;
+    paintPublicChatPurchase();
+    return;
+  }
+
+  const numberButton = event.target.closest('[data-action="toggle-public-chat-number"]');
+  if (numberButton && app.contains(numberButton)) {
+    const value = String(numberButton.dataset.number || "").trim();
+    const raffle = getPublicChatPurchaseRaffle();
+    const state = publicChatState.purchase;
+    const exists = state.selected.includes(value);
+    const summary = getRaffleSelectorSelectionSummary(raffle || {}, state.selected);
+    const supportUploadMode = Boolean(getRaffleSelectorAutoConfig(raffle || {}).public_support_upload);
+    if (supportUploadMode && !exists && summary.totalNumbers >= summary.groupSize) {
+      state.notice = "En fidelizacion solo se permite una boleta por cliente.";
+      state.noticeTone = "error";
+    } else {
+      state.selected = exists ? state.selected.filter((item) => item !== value) : [...state.selected, value];
+      state.notice = "";
+    }
+    paintPublicChatPurchase();
+    return;
+  }
+
+  const clipButton = event.target.closest('[data-action="pick-public-chat-receipt"]');
+  if (clipButton && app.contains(clipButton)) {
+    app.querySelector("[data-public-chat-receipt-input]")?.click();
+    return;
+  }
+
+  const removeReceiptButton = event.target.closest('[data-action="remove-public-chat-receipt"]');
+  if (removeReceiptButton && app.contains(removeReceiptButton)) {
+    releasePublicChatPurchasePreview();
+    publicChatState.purchase.file = null;
+    paintPublicChatPurchase();
+    return;
+  }
+
+  const whatsappDeliveryButton = event.target.closest('[data-action="receive-public-chat-delivery-whatsapp"]');
+  if (whatsappDeliveryButton && app.contains(whatsappDeliveryButton)) {
+    event.preventDefault();
+    void receivePublicChatDeliveryWhatsApp(whatsappDeliveryButton.dataset.reference || "", whatsappDeliveryButton);
+    return;
+  }
+
   const deliveryButton = event.target.closest('[data-action="download-public-chat-delivery"]');
   if (deliveryButton && app.contains(deliveryButton)) {
     event.preventDefault();
@@ -5646,6 +5966,13 @@ app.addEventListener("click", (event) => {
 });
 
 app.addEventListener("submit", async (event) => {
+  const purchaseForm = event.target.closest("[data-public-chat-purchase-form]");
+  if (purchaseForm && app.contains(purchaseForm)) {
+    event.preventDefault();
+    await submitPublicChatPurchase();
+    return;
+  }
+
   const onboarding = event.target.closest("[data-public-chat-onboarding]");
   if (onboarding && app.contains(onboarding)) {
     event.preventDefault();
@@ -5663,9 +5990,12 @@ app.addEventListener("submit", async (event) => {
       });
       const payload = await parsePublicChatResponse(response);
       publicChatState.token = payload.token || "";
+      publicChatState.customerName = payload?.customer?.name || String(form.get("name") || "").trim();
+      publicChatState.customerPhone = payload?.customer?.phone || String(form.get("phone") || "").replace(/\D/g, "");
       localStorage.setItem(publicChatStorageKey(publicChatState.slug), publicChatState.token);
       syncPublicChatForms();
       renderPublicChatMessages(payload.messages || [], { forceBottom: true });
+      renderPublicChatPurchases(payload.purchases || []);
       renderPublicChatDeliveries(payload.deliveries || []);
       setPublicChatNotice("");
       startPublicChatPolling();
@@ -5700,8 +6030,11 @@ app.addEventListener("submit", async (event) => {
         body: JSON.stringify({ message }),
       });
       const payload = await parsePublicChatResponse(response);
+      publicChatState.customerName = payload?.customer?.name || publicChatState.customerName;
+      publicChatState.customerPhone = payload?.customer?.phone || publicChatState.customerPhone;
       if (textarea) textarea.value = "";
       renderPublicChatMessages(payload.messages || [], { forceBottom: true });
+      renderPublicChatPurchases(payload.purchases || []);
       renderPublicChatDeliveries(payload.deliveries || []);
       renderPublicChatAction(payload.action || null);
       setPublicChatNotice("");
@@ -5716,6 +6049,24 @@ app.addEventListener("submit", async (event) => {
 });
 
 app.addEventListener("input", (event) => {
+  const purchaseCityInput = event.target.closest('[data-public-chat-purchase-form] input[name="customer_city"]');
+  if (purchaseCityInput && app.contains(purchaseCityInput)) {
+    publicChatState.purchase.city = String(purchaseCityInput.value || "");
+    const raffle = getPublicChatPurchaseRaffle();
+    const summary = getRaffleSelectorSelectionSummary(raffle || {}, publicChatState.purchase.selected);
+    const supportUploadMode = Boolean(getRaffleSelectorAutoConfig(raffle || {}).public_support_upload);
+    const ready = Boolean(
+      summary.isComplete
+      && publicChatState.purchase.city.trim()
+      && publicChatState.customerName
+      && publicChatState.customerPhone
+      && (!supportUploadMode || summary.completeTickets === 1),
+    );
+    const clip = app.querySelector('[data-action="pick-public-chat-receipt"]');
+    if (clip) clip.disabled = !ready;
+    return;
+  }
+
   const input = event.target.closest("[data-selector-search]");
   if (!input || !app.contains(input)) {
     return;
@@ -5730,6 +6081,44 @@ app.addEventListener("input", (event) => {
   raffleSelectorState.queryTimer = setTimeout(() => {
     fetchRaffleSelectorNumbers();
   }, RAFFLE_SELECTOR_SEARCH_DELAY_MS);
+});
+
+app.addEventListener("change", (event) => {
+  const raffleSelect = event.target.closest('[data-public-chat-purchase-form] select[name="raffle_id"]');
+  if (raffleSelect && app.contains(raffleSelect)) {
+    releasePublicChatPurchasePreview();
+    publicChatState.purchase.raffleId = String(raffleSelect.value || "");
+    publicChatState.purchase.selected = [];
+    publicChatState.purchase.numbers = [];
+    publicChatState.purchase.file = null;
+    void loadPublicChatPurchaseNumbers();
+    return;
+  }
+
+  const receiptInput = event.target.closest("[data-public-chat-receipt-input]");
+  if (receiptInput && app.contains(receiptInput)) {
+    const file = receiptInput.files?.[0] || null;
+    receiptInput.value = "";
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type || "")) {
+      publicChatState.purchase.notice = "Seleccione una imagen JPG, PNG o WEBP.";
+      publicChatState.purchase.noticeTone = "error";
+      paintPublicChatPurchase();
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      publicChatState.purchase.notice = "La imagen no puede superar 12 MB.";
+      publicChatState.purchase.noticeTone = "error";
+      paintPublicChatPurchase();
+      return;
+    }
+    releasePublicChatPurchasePreview();
+    publicChatState.purchase.file = file;
+    publicChatState.purchase.previewUrl = URL.createObjectURL(file);
+    publicChatState.purchase.notice = "Imagen lista para enviar.";
+    publicChatState.purchase.noticeTone = "success";
+    paintPublicChatPurchase();
+  }
 });
 
 app.addEventListener("change", (event) => {
