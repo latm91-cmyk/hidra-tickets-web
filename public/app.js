@@ -924,8 +924,12 @@ function renderPublicChatAction(action = null) {
   if (!action?.url) return;
   const link = document.createElement("a");
   link.href = action.url;
-  link.target = "_blank";
-  link.rel = "noreferrer";
+  if (action.type === "site") {
+    link.dataset.action = "close-public-chat";
+  } else {
+    link.target = "_blank";
+    link.rel = "noreferrer";
+  }
   link.textContent = action.label || "Continuar por WhatsApp";
   root.appendChild(link);
   root.hidden = false;
