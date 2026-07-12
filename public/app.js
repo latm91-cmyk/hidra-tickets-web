@@ -4681,7 +4681,6 @@ function renderShell(site, slug) {
     ["Sorteos", "#sorteos"],
     ["C�mo participar", "#como-participar"],
     ["Ganadores", "#videos"],
-    ["Ayuda", "#faq"],
   ];
   const topNavLinks = footerQuickLinks;
   const footerSocialLinks = getFooterSocialLinks(site);
