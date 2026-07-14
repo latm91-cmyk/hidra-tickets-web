@@ -399,7 +399,12 @@ function getRaffleDisplayMode(raffle = {}) {
 }
 
 function getRaffleDisplayTotal(raffle = {}) {
-  const raw = raffle?.campaign?.totalNumeros ?? raffle?.campaign?.total_numeros ?? raffle?.totalNumeros ?? raffle?.total_numeros;
+  const raw = raffle?.campaign?.totalNumbers
+    ?? raffle?.campaign?.totalNumeros
+    ?? raffle?.campaign?.total_numeros
+    ?? raffle?.totalNumbers
+    ?? raffle?.totalNumeros
+    ?? raffle?.total_numeros;
   const numeric = Number(raw || 0);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
@@ -411,12 +416,13 @@ function getRaffleAdvanceStats(site = {}) {
   const reserved = Number(stats?.reservedCount || stats?.reserved_count || 0);
   const processed = Math.max(0, sold + reserved);
   const percent = total > 0 ? Math.min(100, Math.max(0, (processed / total) * 100)) : 0;
+  const displayPercent = Math.round(percent * 10) / 10;
   return {
     total,
     sold,
     reserved,
     processed,
-    percent: Math.round(percent),
+    percent: displayPercent,
   };
 }
 
@@ -431,23 +437,17 @@ function formatRaffleAdvanceLabel(advance = {}) {
 function renderRaffleAdvanceBlock(raffle = {}, options = {}) {
   const campaignId = String(raffle?.campaign?.id || "");
   const title = getRaffleDisplayTitle(raffle);
-  const total = getRaffleDisplayTotal(raffle);
   const compact = Boolean(options.compact);
-  const fallbackAdvance = {
-    total,
-    sold: 0,
-    reserved: 0,
-    processed: 0,
-    percent: 0,
-  };
+  const advance = getRaffleAdvanceStats(raffle);
+  const total = advance.total || getRaffleDisplayTotal(raffle);
 
   return `
     <div class="raffle-progress${compact ? " raffle-progress--subtle" : ""}" data-raffle-progress data-raffle-id="${escapeHtml(campaignId)}" data-raffle-title="${escapeHtml(title)}">
       <div class="raffle-progress-track" aria-hidden="true">
-        <span class="raffle-progress-fill" data-raffle-progress-fill style="width: 0%"></span>
+        <span class="raffle-progress-fill" data-raffle-progress-fill style="width: ${advance.percent}%; min-width: ${advance.percent > 0 ? "4px" : "0"}"></span>
       </div>
       <div class="raffle-progress-meta" data-raffle-progress-meta>
-        ${total ? `${escapeHtml(String(fallbackAdvance.percent))}% de avance` : "Cargando avance del sorteo..."}
+        ${total ? `${escapeHtml(String(advance.percent))}% de avance` : "Cargando avance del sorteo..."}
       </div>
     </div>
   `;
@@ -5440,44 +5440,49 @@ function renderShell(site, slug) {
 }
 
 async function refreshFeaturedRaffleAdvance(site, slug) {
-  const featuredRaffle = asArray(site?.activeRaffles)[0] || null;
-  if (!featuredRaffle?.campaign?.id) {
-    return;
-  }
+  const campaignIds = [...new Set(asArray(site?.activeRaffles)
+    .map((raffle) => String(raffle?.campaign?.id || ""))
+    .filter(Boolean))];
 
-  const progressRoot = app.querySelector(`[data-raffle-progress][data-raffle-id="${CSS.escape(String(featuredRaffle.campaign.id))}"]`);
-  if (!progressRoot) {
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(featuredRaffle.campaign.id)}/availability?limit=1`,
-    );
-    if (!response.ok) {
+  await Promise.all(campaignIds.map(async (campaignId) => {
+    const progressRoots = [...app.querySelectorAll(
+      `[data-raffle-progress][data-raffle-id="${CSS.escape(campaignId)}"]`,
+    )];
+    if (progressRoots.length === 0) {
       return;
     }
 
-    const payload = await response.json();
-    const advance = getRaffleAdvanceStats(payload);
-    const fill = progressRoot.querySelector("[data-raffle-progress-fill]");
-    const meta = progressRoot.querySelector("[data-raffle-progress-meta]");
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/raffles/${encodeURIComponent(campaignId)}/availability?limit=1`,
+      );
+      if (!response.ok) {
+        return;
+      }
 
-    if (meta) {
-      meta.textContent = advance.total > 0
-        ? `${advance.percent}% de avance`
-        : "Avance del sorteo";
-    }
+      const advance = getRaffleAdvanceStats(await response.json());
+      progressRoots.forEach((progressRoot) => {
+        const fill = progressRoot.querySelector("[data-raffle-progress-fill]");
+        const meta = progressRoot.querySelector("[data-raffle-progress-meta]");
 
-    if (fill) {
-      fill.style.width = "0%";
-      window.requestAnimationFrame(() => {
-        fill.style.width = `${advance.percent}%`;
+        if (meta) {
+          meta.textContent = advance.total > 0
+            ? `${advance.percent}% de avance`
+            : "Avance del sorteo";
+        }
+
+        if (fill) {
+          fill.style.width = "0%";
+          fill.style.minWidth = advance.percent > 0 ? "4px" : "0";
+          window.requestAnimationFrame(() => {
+            fill.style.width = `${advance.percent}%`;
+          });
+        }
       });
+    } catch {
+      // Se deja silencioso para no romper la landing si el avance no responde.
     }
-  } catch {
-    // Se deja silencioso para no romper la landing si el avance no responde.
-  }
+  }));
 }
 
 app.addEventListener("click", (event) => {

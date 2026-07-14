@@ -46,7 +46,8 @@ async function getAssetVersion() {
     }),
   );
 
-  return String(Math.max(...timestamps, Date.now())).replace(/\D/g, "");
+  // Keep the asset URL stable until a source file changes so browsers can reuse it.
+  return String(Math.max(...timestamps)).replace(/\D/g, "");
 }
 
 async function fileExists(filePath) {
@@ -68,10 +69,10 @@ async function serveAsset(res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = contentTypes[ext] || "application/octet-stream";
   const content = await fs.readFile(filePath);
-  const noCache = ext === ".html" || ext === ".css" || ext === ".js";
+  const immutableAsset = [".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".ico"].includes(ext);
   res.writeHead(200, {
     "Content-Type": contentType,
-    "Cache-Control": noCache ? "no-store" : "public, max-age=3600",
+    "Cache-Control": immutableAsset ? "public, max-age=31536000, immutable" : "no-store",
   });
   res.end(content);
 }
