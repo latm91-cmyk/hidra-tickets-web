@@ -14,6 +14,53 @@ function resolvePublicApiBaseUrl() {
 
 const API_BASE_URL = resolvePublicApiBaseUrl();
 const app = document.getElementById("app");
+const PUBLIC_SITE_FETCH_ATTEMPTS = 3;
+const PUBLIC_SITE_RETRY_DELAYS_MS = [0, 700, 1500];
+
+function waitForPublicSiteRetry(delayMs) {
+  return delayMs > 0
+    ? new Promise((resolve) => window.setTimeout(resolve, delayMs))
+    : Promise.resolve();
+}
+
+async function fetchPublicSitePayload(slug) {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) {
+    throw new Error("No se especifico el sitio publico.");
+  }
+
+  let lastError = null;
+  for (let attempt = 0; attempt < PUBLIC_SITE_FETCH_ATTEMPTS; attempt += 1) {
+    await waitForPublicSiteRetry(PUBLIC_SITE_RETRY_DELAYS_MS[attempt] || 0);
+
+    try {
+      const retryQuery = attempt > 0 ? `?retry=${attempt}` : "";
+      const response = await fetch(
+        `${API_BASE_URL}/public-site/${encodeURIComponent(normalizedSlug)}${retryQuery}`,
+        { cache: "no-store" },
+      );
+
+      if (!response.ok) {
+        const error = new Error(`No se encontro el sitio para /${normalizedSlug}`);
+        error.responseStatus = response.status;
+        throw error;
+      }
+
+      const site = await response.json();
+      return site && typeof site === "object" ? site : null;
+    } catch (error) {
+      lastError = error;
+      const status = Number(error?.responseStatus || 0);
+      const retryable = !status || status >= 500;
+      if (!retryable || attempt === PUBLIC_SITE_FETCH_ATTEMPTS - 1) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new Error("No fue posible cargar el sitio publico.");
+}
+
 const PUBLIC_SITE_MODE = (() => {
   const configured = String((window.__PUBLIC_SITE_CONFIG__ || {}).mode || "").trim().toLowerCase();
   if (configured === "retail" || configured === "raffles") {
@@ -1389,15 +1436,7 @@ async function fetchFreshPublicSite(slug = "") {
   }
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/public-site/${encodeURIComponent(normalizedSlug)}`,
-      { cache: "no-store" },
-    );
-    if (!response.ok) {
-      return null;
-    }
-
-    const site = await response.json();
+    const site = await fetchPublicSitePayload(normalizedSlug);
     return site && typeof site === "object" ? site : null;
   } catch {
     return null;
@@ -6342,12 +6381,7 @@ async function loadSite() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(slug)}`);
-    if (!response.ok) {
-      throw new Error(`No se encontro el sitio para /${slug}`);
-    }
-
-    const site = await response.json();
+    const site = await fetchPublicSitePayload(slug);
     renderShell(site, slug);
     void refreshFeaturedRaffleAdvance(site, slug);
   } catch (error) {
