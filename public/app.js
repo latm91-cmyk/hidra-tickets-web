@@ -1932,7 +1932,7 @@ function renderWinnerVideos(site) {
           </div>
           <div class="section-scroll-hint">Desliza hacia los lados</div>
         </div>
-        ${renderVideoCards(socialSupport, "social_support")}
+        ${renderVideoCards(socialSupport, "social_support", "strip")}
       </div>
     ` : ""}
   `;

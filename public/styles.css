@@ -3105,9 +3105,8 @@ button {
 }
 
 .video-strip {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(280px, 320px);
+  display: flex;
+  flex-wrap: nowrap;
   gap: 16px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -3132,7 +3131,17 @@ button {
 }
 
 .video-strip .card {
+  flex: 0 0 clamp(280px, 31vw, 320px);
+  min-width: 0;
   scroll-snap-align: start;
+}
+
+.video-strip .card-copy {
+  margin-top: 8px;
+  color: rgba(82, 96, 116, 0.82);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
 }
 
 .raffle-feature-body {
@@ -4728,9 +4737,12 @@ button {
   }
 
   .video-strip {
-    grid-auto-columns: minmax(250px, 84vw);
     gap: 12px;
     padding-bottom: 8px;
+  }
+
+  .video-strip .card {
+    flex-basis: min(320px, 84vw);
   }
 
   .raffle-list {
