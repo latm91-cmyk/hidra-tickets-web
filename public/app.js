@@ -154,6 +154,17 @@ const deliveryModalState = {
   requestId: 0,
 };
 
+const raffleResultsModalState = {
+  open: false,
+  loading: false,
+  error: "",
+  results: [],
+  selectedSeriesId: "",
+  selectedDrawId: "",
+  requestId: 0,
+  confettiTimer: null,
+};
+
 const publicUiState = {
   mobileMenuOpen: false,
 };
@@ -905,6 +916,190 @@ function closeVideoModal() {
   }
   document.body.classList.remove("modal-open");
   window.__PUBLIC_VIDEO_MODAL__ = null;
+}
+
+function getSafePublicExternalUrl(value = "") {
+  try {
+    const url = new URL(String(value || "").trim());
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function getSelectedRaffleResult() {
+  const results = asArray(raffleResultsModalState.results);
+  const series = results.find((item) => String(item?.id) === String(raffleResultsModalState.selectedSeriesId)) || results[0] || null;
+  const draws = asArray(series?.draws);
+  const draw = draws.find((item) => String(item?.id) === String(raffleResultsModalState.selectedDrawId)) || draws[0] || null;
+  return { series, draw };
+}
+
+function renderRaffleResultsModalContent() {
+  if (raffleResultsModalState.loading) {
+    return `<div class="raffle-results-state"><strong>Cargando resultados oficiales...</strong><span>Estamos consultando la información más reciente.</span></div>`;
+  }
+
+  if (raffleResultsModalState.error) {
+    return `<div class="raffle-results-state is-error"><strong>No fue posible cargar los resultados.</strong><span>${escapeHtml(raffleResultsModalState.error)}</span></div>`;
+  }
+
+  const { series, draw } = getSelectedRaffleResult();
+  if (!series) {
+    return `<div class="raffle-results-state"><strong>Aún no hay resultados publicados.</strong><span>Vuelve pronto para conocer los próximos ganadores.</span></div>`;
+  }
+
+  const results = asArray(raffleResultsModalState.results);
+  const draws = asArray(series.draws);
+  const prizes = asArray(draw?.prizes);
+
+  return `
+    <div class="raffle-results-controls">
+      <label>
+        <span>Sorteo o edición</span>
+        <select data-raffle-results-series>
+          ${results.map((item) => `<option value="${escapeAttr(item.id)}" ${String(item.id) === String(series.id) ? "selected" : ""}>${escapeHtml(item.title || "Sorteo")}</option>`).join("")}
+        </select>
+      </label>
+      <label>
+        <span>Fecha del sorteo</span>
+        <select data-raffle-results-draw ${draws.length ? "" : "disabled"}>
+          ${draws.map((item) => `<option value="${escapeAttr(item.id)}" ${String(item.id) === String(draw?.id) ? "selected" : ""}>${escapeHtml(item.label || "Resultado")}${item.drawDate ? ` · ${escapeHtml(formatDate(item.drawDate))}` : ""}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    ${series.description ? `<p class="raffle-results-description">${escapeHtml(series.description)}</p>` : ""}
+    ${draw ? `
+      <div class="raffle-results-draw-head">
+        <div>
+          <span class="section-tag">Resultados oficiales</span>
+          <h4>${escapeHtml(draw.label || "Resultado del sorteo")}</h4>
+          ${draw.drawDate ? `<p>${escapeHtml(formatDate(draw.drawDate))}</p>` : ""}
+        </div>
+        <span class="raffle-results-count">${prizes.length} premio${prizes.length === 1 ? "" : "s"}</span>
+      </div>
+      ${draw.notes ? `<p class="raffle-results-notes">${escapeHtml(draw.notes)}</p>` : ""}
+      ${prizes.length ? `
+        <div class="raffle-results-prizes">
+          ${prizes.map((prize) => {
+            const evidenceUrl = getSafePublicExternalUrl(prize?.evidenceUrl);
+            return `
+              <article class="raffle-result-prize-card">
+                <span class="raffle-result-prize-label">${escapeHtml(prize?.prizeName || "Premio")}</span>
+                <strong>${escapeHtml(prize?.winningNumber ? `Boleta ${prize.winningNumber}` : "Número ganador")}</strong>
+                <div class="raffle-result-winner">${escapeHtml(prize?.winnerName || "Ganador por confirmar")}</div>
+                ${prize?.city ? `<span class="raffle-result-city">${escapeHtml(prize.city)}</span>` : ""}
+                ${prize?.details ? `<p>${escapeHtml(prize.details)}</p>` : ""}
+                ${evidenceUrl ? `<a href="${escapeAttr(evidenceUrl)}" target="_blank" rel="noreferrer">Ver evidencia</a>` : ""}
+              </article>
+            `;
+          }).join("")}
+        </div>
+      ` : `<div class="raffle-results-state"><strong>Esta fecha no tiene premios publicados todavía.</strong></div>`}
+    ` : `<div class="raffle-results-state"><strong>Selecciona otra edición.</strong><span>No hay fechas publicadas para este sorteo.</span></div>`}
+  `;
+}
+
+function syncRaffleResultsModal() {
+  const modal = document.getElementById("raffle-results-modal");
+  const content = document.getElementById("raffle-results-modal-content");
+  if (!modal || !content) return;
+
+  modal.classList.toggle("is-open", raffleResultsModalState.open);
+  modal.setAttribute("aria-hidden", raffleResultsModalState.open ? "false" : "true");
+  content.innerHTML = renderRaffleResultsModalContent();
+
+  const anotherModalIsOpen = raffleSelectorState.open
+    || paymentModalState.open
+    || deliveryModalState.open
+    || document.getElementById("video-modal")?.classList.contains("is-open");
+  document.body.classList.toggle("modal-open", raffleResultsModalState.open || anotherModalIsOpen);
+}
+
+function renderRaffleResultsModal() {
+  return `
+    <div id="raffle-results-modal" class="video-modal raffle-results-modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div id="raffle-results-confetti" class="raffle-results-confetti" aria-hidden="true"></div>
+      <div class="video-modal-card raffle-results-modal-card" role="document">
+        <button type="button" class="video-modal-close" data-action="close-raffle-results" aria-label="Cerrar resultados">×</button>
+        <div class="video-modal-head">
+          <div class="section-tag">Historial publicado</div>
+          <h3>Resultados de sorteos</h3>
+          <p>Consulta los ganadores y premios de cada fecha.</p>
+        </div>
+        <div id="raffle-results-modal-content" class="raffle-results-modal-content"></div>
+      </div>
+    </div>
+  `;
+}
+
+function triggerRaffleResultsConfetti() {
+  const container = document.getElementById("raffle-results-confetti");
+  if (!container) return;
+
+  if (raffleResultsModalState.confettiTimer) {
+    window.clearTimeout(raffleResultsModalState.confettiTimer);
+  }
+
+  const colors = ["#fbbf24", "#fb7185", "#60a5fa", "#34d399", "#c084fc", "#f97316"];
+  const pieces = window.matchMedia("(max-width: 640px)").matches ? 24 : 38;
+  container.innerHTML = Array.from({ length: pieces }, (_, index) => {
+    const horizontal = (index * 37 + 11) % 100;
+    const delay = ((index * 29) % 180) / 1000;
+    const drift = ((index * 41) % 150) - 75;
+    const rotation = (index * 53) % 360;
+    const color = colors[index % colors.length];
+    return `<span style="--confetti-x:${horizontal}%;--confetti-delay:${delay}s;--confetti-drift:${drift}px;--confetti-rotation:${rotation}deg;--confetti-color:${color}"></span>`;
+  }).join("");
+
+  raffleResultsModalState.confettiTimer = window.setTimeout(() => {
+    container.innerHTML = "";
+    raffleResultsModalState.confettiTimer = null;
+  }, 2600);
+}
+
+async function openRaffleResultsModal() {
+  const slug = String(window.__PUBLIC_SITE_STATE__?.slug || "").trim();
+  if (!slug) return;
+
+  raffleResultsModalState.open = true;
+  raffleResultsModalState.loading = true;
+  raffleResultsModalState.error = "";
+  raffleResultsModalState.results = [];
+  raffleResultsModalState.selectedSeriesId = "";
+  raffleResultsModalState.selectedDrawId = "";
+  const requestId = ++raffleResultsModalState.requestId;
+  syncRaffleResultsModal();
+  triggerRaffleResultsConfetti();
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/public-site/${encodeURIComponent(slug)}/results`);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload?.error || "No fue posible consultar los resultados.");
+    }
+    if (requestId !== raffleResultsModalState.requestId) return;
+
+    const results = asArray(payload?.results);
+    raffleResultsModalState.results = results;
+    raffleResultsModalState.selectedSeriesId = String(results[0]?.id || "");
+    raffleResultsModalState.selectedDrawId = String(asArray(results[0]?.draws)[0]?.id || "");
+  } catch (error) {
+    if (requestId !== raffleResultsModalState.requestId) return;
+    raffleResultsModalState.error = error?.message || "No fue posible consultar los resultados.";
+  } finally {
+    if (requestId === raffleResultsModalState.requestId) {
+      raffleResultsModalState.loading = false;
+      syncRaffleResultsModal();
+    }
+  }
+}
+
+function closeRaffleResultsModal() {
+  raffleResultsModalState.open = false;
+  raffleResultsModalState.loading = false;
+  raffleResultsModalState.requestId += 1;
+  syncRaffleResultsModal();
 }
 
 function whatsappLink(number) {
@@ -5224,9 +5419,11 @@ function renderShell(site, slug) {
           </div>
           <nav class="top-nav top-nav-desktop" aria-label="Navegación principal">
             ${topNavLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
+            <button type="button" class="top-nav-button" data-action="open-raffle-results">Resultados</button>
           </nav>
           <div class="topbar-mobile-panel" id="topbar-mobile-menu" data-mobile-nav-panel ${publicUiState.mobileMenuOpen ? "" : "hidden"}>
             ${topNavLinks.map(([label, href]) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`).join("")}
+            <button type="button" class="topbar-mobile-results" data-action="open-raffle-results">Resultados de sorteos</button>
           </div>
         </div>
         </header>
@@ -5246,6 +5443,7 @@ function renderShell(site, slug) {
                 ${heroGreeting ? `<div class="hero-raffle-greeting">${escapeHtml(heroGreeting)}</div>` : ""}
                 <div class="hero-actions">
                   ${heroButton ? `<a class="button gold" href="${escapeHtml(heroButton)}"${String(heroButton).startsWith("#") ? "" : ' target="_blank" rel="noreferrer"'}>${escapeHtml(heroLabel)}</a>` : ""}
+                  <button type="button" class="button secondary hero-secondary" data-action="open-raffle-results">Resultados</button>
                   <a class="button secondary hero-secondary" href="#videos">Ver Ganadores</a>
                 </div>
               </div>
@@ -5400,6 +5598,7 @@ function renderShell(site, slug) {
         ${renderPaymentModal()}
         ${renderReceiptUploadModal()}
         ${renderDeliveryModal()}
+        ${renderRaffleResultsModal()}
         ${renderPublicChatWidget(site, slug)}
       <div id="video-modal" class="video-modal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if (event.target.id === 'video-modal') { closeVideoModal(); }">
         <div class="video-modal-card" role="document">
@@ -5417,6 +5616,7 @@ function renderShell(site, slug) {
 
   writeCachedPublicSite(slug, site);
   initRaffleCarousel();
+  syncRaffleResultsModal();
   initializePublicChat(site, slug);
 
   document.querySelectorAll("[data-video-url]").forEach((button) => {
@@ -5637,12 +5837,32 @@ app.addEventListener("click", (event) => {
     return;
   }
 
+  const raffleResultsOverlay = event.target.closest("#raffle-results-modal");
+  if (raffleResultsOverlay && event.target.id === "raffle-results-modal") {
+    closeRaffleResultsModal();
+    return;
+  }
+
   const action = event.target.closest("[data-action]");
   if (!action) {
     return;
   }
 
   const actionName = action.getAttribute("data-action");
+  if (actionName === "open-raffle-results") {
+    event.preventDefault();
+    event.stopPropagation();
+    void openRaffleResultsModal();
+    return;
+  }
+
+  if (actionName === "close-raffle-results") {
+    event.preventDefault();
+    event.stopPropagation();
+    closeRaffleResultsModal();
+    return;
+  }
+
   if (actionName === "close-raffle-selector") {
     event.preventDefault();
     event.stopPropagation();
@@ -6083,6 +6303,22 @@ app.addEventListener("input", (event) => {
 });
 
 app.addEventListener("change", (event) => {
+  const resultSeriesSelect = event.target.closest("[data-raffle-results-series]");
+  if (resultSeriesSelect && app.contains(resultSeriesSelect)) {
+    raffleResultsModalState.selectedSeriesId = String(resultSeriesSelect.value || "");
+    const { series } = getSelectedRaffleResult();
+    raffleResultsModalState.selectedDrawId = String(asArray(series?.draws)[0]?.id || "");
+    syncRaffleResultsModal();
+    return;
+  }
+
+  const resultDrawSelect = event.target.closest("[data-raffle-results-draw]");
+  if (resultDrawSelect && app.contains(resultDrawSelect)) {
+    raffleResultsModalState.selectedDrawId = String(resultDrawSelect.value || "");
+    syncRaffleResultsModal();
+    return;
+  }
+
   const raffleSelect = event.target.closest('[data-public-chat-purchase-form] select[name="raffle_id"]');
   if (raffleSelect && app.contains(raffleSelect)) {
     releasePublicChatPurchasePreview();
@@ -6145,6 +6381,16 @@ app.addEventListener("change", (event) => {
 
   submitPublicReceiptUpload(file);
 });
+
+if (!window.__PUBLIC_RAFFLE_RESULTS_KEYBOARD_BOUND__) {
+  window.__PUBLIC_RAFFLE_RESULTS_KEYBOARD_BOUND__ = true;
+  window.addEventListener("keydown", (event) => {
+    if (raffleResultsModalState.open && event.key === "Escape") {
+      event.preventDefault();
+      closeRaffleResultsModal();
+    }
+  });
+}
 
 if (!window.__PUBLIC_RETAIL_KEYBOARD_BOUND__) {
   window.__PUBLIC_RETAIL_KEYBOARD_BOUND__ = true;

@@ -201,7 +201,8 @@ button {
   flex-wrap: wrap;
 }
 
-.top-nav a {
+.top-nav a,
+.top-nav-button {
   display: inline-flex;
   align-items: center;
   min-height: 40px;
@@ -224,12 +225,18 @@ button {
     box-shadow 0.18s ease;
 }
 
-.top-nav a:hover {
+.top-nav a:hover,
+.top-nav-button:hover {
   color: #ffe08a;
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 216, 122, 0.18);
   box-shadow: 0 10px 18px rgba(8, 25, 47, 0.12);
+}
+
+.top-nav-button {
+  appearance: none;
+  cursor: pointer;
 }
 
 .top-actions {
@@ -280,7 +287,8 @@ button {
   display: grid;
 }
 
-.topbar-mobile-panel a {
+.topbar-mobile-panel a,
+.topbar-mobile-results {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -294,6 +302,12 @@ button {
   color: rgba(255, 255, 255, 0.94);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 216, 122, 0.12);
+}
+
+.topbar-mobile-results {
+  width: 100%;
+  cursor: pointer;
+  margin-top: 8px;
 }
 
 .topbar-mobile-panel a + a {
@@ -3771,6 +3785,224 @@ button {
 
 .video-modal-close:hover {
   background: rgba(15, 23, 42, 0.16);
+}
+
+.raffle-results-modal-card {
+  width: min(1040px, 100%);
+  max-height: min(88vh, 860px);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.raffle-results-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.raffle-results-confetti span {
+  position: absolute;
+  top: -28px;
+  left: var(--confetti-x);
+  width: 9px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--confetti-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--confetti-color) 45%, transparent);
+  animation: raffle-results-confetti-fall 2.2s cubic-bezier(0.2, 0.72, 0.35, 1) var(--confetti-delay) both;
+}
+
+@keyframes raffle-results-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -16px, 0) rotate(var(--confetti-rotation));
+  }
+  9% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-drift), 105vh, 0) rotate(calc(var(--confetti-rotation) + 540deg));
+  }
+}
+
+.raffle-results-modal-content {
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+}
+
+.raffle-results-state {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--muted);
+}
+
+.raffle-results-state strong {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.raffle-results-state.is-error {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.raffle-results-state.is-error strong {
+  color: #be123c;
+}
+
+.raffle-results-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.raffle-results-controls label {
+  display: grid;
+  gap: 7px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.raffle-results-controls select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--primary);
+  font: inherit;
+  text-transform: none;
+}
+
+.raffle-results-description,
+.raffle-results-notes {
+  margin: 16px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.raffle-results-draw-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.raffle-results-draw-head h4 {
+  margin: 7px 0 4px;
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.raffle-results-draw-head p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.raffle-results-count {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.raffle-results-prizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.raffle-result-prize-card {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, #f8fafc);
+}
+
+.raffle-result-prize-label {
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.raffle-result-prize-card strong {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.raffle-result-winner {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.raffle-result-city,
+.raffle-result-prize-card p {
+  color: var(--muted);
+}
+
+.raffle-result-prize-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.raffle-result-prize-card a {
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .raffle-results-modal {
+    padding: 12px;
+  }
+
+  .raffle-results-modal-card {
+    max-height: calc(100vh - 24px);
+    border-radius: 22px;
+  }
+
+  .raffle-results-modal-content,
+  .video-modal-head {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .raffle-results-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .raffle-results-draw-head {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raffle-results-confetti {
+    display: none;
+  }
 }
 
 .loading-shell {
