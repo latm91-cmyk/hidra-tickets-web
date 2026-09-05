@@ -2160,17 +2160,11 @@ function renderRaffleSelectorContent() {
         })
         .join("")
       : `<div class="selector-empty selector-empty-large">No hay numeros disponibles en este momento.</div>`;
-  const isReady = raffle && !raffleSelectorState.loading;
   const canContinueToPayment = Boolean(
     selected.length
     && selectionSummary.isComplete
     && (!fidelitySingleTicketOnly || selectionSummary.completeTickets === 1),
   );
-  const whatsappNumber = getRaffleDisplayWhatsApp(site);
-  const cleanWhatsapp = String(whatsappNumber || "").replace(/\D/g, "");
-  const whatsappMessage = buildSelectionMessage(raffle, selected);
-  const whatsappHref = cleanWhatsapp && selected.length ? buildWhatsAppHref(cleanWhatsapp, whatsappMessage) : "#";
-  const whatsappLabel = isMobileDevice() ? "Abrir WhatsApp" : "Continuar por WhatsApp";
   const limitInfo = raffleSelectorState.query ? `Resultados para "${escapeHtml(raffleSelectorState.query)}"` : `${numbers.length} numeros visibles`;
   const pageInfo = numbers.length > 0
     ? `Página ${pagination.page} de ${pagination.totalPages}`
@@ -2265,21 +2259,7 @@ function renderRaffleSelectorContent() {
         </div>
         <div class="selector-summary-mobile-actions">
           <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
-          <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
-          <a
-            class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
-            href="${escapeHtml(whatsappHref)}"
-            target="_blank"
-            rel="noreferrer"
-            ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
-          >
-            <span class="whatsapp-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-                <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
-              </svg>
-            </span>
-            <span>${escapeHtml(whatsappLabel)}</span>
-          </a>
+          <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Borrar selección</button>
         </div>
       </div>
     `;
@@ -2371,21 +2351,7 @@ function renderRaffleSelectorContent() {
           </div>
           <div class="selector-summary-actions">
             <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
-            <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
-            <a
-              class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
-              href="${escapeHtml(whatsappHref)}"
-              target="_blank"
-              rel="noreferrer"
-              ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
-            >
-              <span class="whatsapp-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-                  <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
-                </svg>
-              </span>
-              <span>${escapeHtml(whatsappLabel)}</span>
-            </a>
+            <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Borrar selección</button>
           </div>
         </div>
       </aside>
@@ -2406,21 +2372,7 @@ function renderRaffleSelectorContent() {
       </div>
       <div class="selector-summary-mobile-actions">
         <button type="button" class="button primary" data-action="go-payment-section" ${canContinueToPayment ? "" : "disabled"}>Continuar al pago</button>
-        <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Limpiar</button>
-        <a
-          class="button whatsapp ${selected.length && isReady ? "" : "is-disabled"}"
-          href="${escapeHtml(whatsappHref)}"
-          target="_blank"
-          rel="noreferrer"
-          ${selected.length && isReady ? "" : 'aria-disabled="true" tabindex="-1"'}
-        >
-          <span class="whatsapp-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-              <path d="M12 2.25c-5.38 0-9.75 4.22-9.75 9.42 0 1.84.56 3.56 1.53 5.01L2.25 21.75l5.21-1.35a10.1 10.1 0 0 0 4.54 1.06c5.38 0 9.75-4.22 9.75-9.42S17.38 2.25 12 2.25zm5.83 13.3c-.25.7-1.45 1.3-1.99 1.38-.51.08-1.16.12-3.73-.88-3.1-1.2-5.1-4.35-5.25-4.56-.15-.2-1.24-1.66-1.24-3.16 0-1.5.79-2.24 1.07-2.55.28-.31.61-.39.82-.39h.59c.19 0 .44-.07.69.52.25.6.85 2.08.93 2.23.08.16.13.34.02.55-.11.22-.17.36-.33.55-.17.19-.35.43-.49.58-.16.17-.33.36-.14.67.19.31.84 1.41 1.8 2.28 1.24 1.12 2.28 1.47 2.61 1.64.33.17.52.14.71-.08.19-.22.81-.94 1.03-1.26.22-.31.43-.26.72-.15.28.11 1.78.84 2.09.99.31.15.52.23.6.36.08.14.08.79-.17 1.49z" fill="currentColor"/>
-            </svg>
-          </span>
-          <span>${escapeHtml(whatsappLabel)}</span>
-        </a>
+        <button type="button" class="button secondary" data-action="clear-raffle-selection" ${selected.length ? "" : "disabled"}>Borrar selección</button>
       </div>
     </div>
   `;
