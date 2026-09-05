@@ -918,13 +918,14 @@ function closeVideoModal() {
   window.__PUBLIC_VIDEO_MODAL__ = null;
 }
 
-function getSafePublicExternalUrl(value = "") {
-  try {
-    const url = new URL(String(value || "").trim());
-    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
-  } catch {
-    return "";
-  }
+function maskPublicWinnerName(value = "") {
+  const name = String(value || "").replace(/\s+/g, " ").trim();
+  if (!name) return "";
+
+  const characters = Array.from(name);
+  if (characters.length < 2) return "****";
+
+  return `${characters[0]}****${characters[characters.length - 1]}`;
 }
 
 function getSelectedRaffleResult() {
@@ -956,7 +957,7 @@ function renderRaffleResultsModalContent() {
   return `
     <div class="raffle-results-controls">
       <label>
-        <span>Sorteo o edición</span>
+        <span>Nombre del sorteo</span>
         <select data-raffle-results-series>
           ${results.map((item) => `<option value="${escapeAttr(item.id)}" ${String(item.id) === String(series.id) ? "selected" : ""}>${escapeHtml(item.title || "Sorteo")}</option>`).join("")}
         </select>
@@ -964,33 +965,34 @@ function renderRaffleResultsModalContent() {
       <label>
         <span>Fecha del sorteo</span>
         <select data-raffle-results-draw ${draws.length ? "" : "disabled"}>
-          ${draws.map((item) => `<option value="${escapeAttr(item.id)}" ${String(item.id) === String(draw?.id) ? "selected" : ""}>${escapeHtml(item.label || "Resultado")}${item.drawDate ? ` · ${escapeHtml(formatDate(item.drawDate))}` : ""}</option>`).join("")}
+          ${draws.map((item) => `<option value="${escapeAttr(item.id)}" ${String(item.id) === String(draw?.id) ? "selected" : ""}>${escapeHtml(item.drawDate ? formatDate(item.drawDate) : "Fecha sin publicar")}</option>`).join("")}
         </select>
       </label>
     </div>
-    ${series.description ? `<p class="raffle-results-description">${escapeHtml(series.description)}</p>` : ""}
     ${draw ? `
       <div class="raffle-results-draw-head">
         <div>
           <span class="section-tag">Resultados oficiales</span>
-          <h4>${escapeHtml(draw.label || "Resultado del sorteo")}</h4>
-          ${draw.drawDate ? `<p>${escapeHtml(formatDate(draw.drawDate))}</p>` : ""}
+          <h4>${escapeHtml(series.title || "Sorteo")}</h4>
+          ${draw.drawDate ? `<p>Fecha del sorteo: ${escapeHtml(formatDate(draw.drawDate))}</p>` : ""}
         </div>
         <span class="raffle-results-count">${prizes.length} premio${prizes.length === 1 ? "" : "s"}</span>
       </div>
-      ${draw.notes ? `<p class="raffle-results-notes">${escapeHtml(draw.notes)}</p>` : ""}
       ${prizes.length ? `
         <div class="raffle-results-prizes">
           ${prizes.map((prize) => {
-            const evidenceUrl = getSafePublicExternalUrl(prize?.evidenceUrl);
             return `
               <article class="raffle-result-prize-card">
-                <span class="raffle-result-prize-label">${escapeHtml(prize?.prizeName || "Premio")}</span>
-                <strong>${escapeHtml(prize?.winningNumber ? `Boleta ${prize.winningNumber}` : "Número ganador")}</strong>
-                <div class="raffle-result-winner">${escapeHtml(prize?.winnerName || "Ganador por confirmar")}</div>
-                ${prize?.city ? `<span class="raffle-result-city">${escapeHtml(prize.city)}</span>` : ""}
-                ${prize?.details ? `<p>${escapeHtml(prize.details)}</p>` : ""}
-                ${evidenceUrl ? `<a href="${escapeAttr(evidenceUrl)}" target="_blank" rel="noreferrer">Ver evidencia</a>` : ""}
+                <span class="raffle-result-prize-label">Premio</span>
+                <strong>${escapeHtml(prize?.prizeName || "Premio menor")}</strong>
+                <div class="raffle-result-data">
+                  <span>Número ganador</span>
+                  <strong>${escapeHtml(prize?.winningNumber || "Pendiente de publicación")}</strong>
+                </div>
+                <div class="raffle-result-data">
+                  <span>Ganador</span>
+                  <strong class="raffle-result-winner">${escapeHtml(maskPublicWinnerName(prize?.winnerName) || "Por confirmar")}</strong>
+                </div>
               </article>
             `;
           }).join("")}

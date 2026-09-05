@@ -3958,6 +3958,21 @@ button {
   font-weight: 800;
 }
 
+.raffle-result-data {
+  display: grid;
+  gap: 3px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.raffle-result-data span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .raffle-result-city,
 .raffle-result-prize-card p {
   color: var(--muted);
