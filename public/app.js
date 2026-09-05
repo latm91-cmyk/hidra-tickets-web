@@ -1055,7 +1055,7 @@ function triggerRaffleResultsConfetti() {
   raffleResultsModalState.confettiTimer = window.setTimeout(() => {
     container.innerHTML = "";
     raffleResultsModalState.confettiTimer = null;
-  }, 2600);
+  }, 5400);
 }
 
 async function openRaffleResultsModal() {

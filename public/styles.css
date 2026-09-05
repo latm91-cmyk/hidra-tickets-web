@@ -3811,7 +3811,7 @@ button {
   border-radius: 3px;
   background: var(--confetti-color);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--confetti-color) 45%, transparent);
-  animation: raffle-results-confetti-fall 2.2s cubic-bezier(0.2, 0.72, 0.35, 1) var(--confetti-delay) both;
+  animation: raffle-results-confetti-fall 5s cubic-bezier(0.2, 0.72, 0.35, 1) var(--confetti-delay) both;
 }
 
 @keyframes raffle-results-confetti-fall {
